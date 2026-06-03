@@ -16,33 +16,47 @@ borrow from HyperAgents, see `REFERENCE.md`.
 - 6/6 tests pass. Mock loop improves 0.30→0.88 and escalates difficulty 2→3.
 - Open gotcha recorded: `--permission-mode bypassPermissions` is refused as root; we use
   `acceptEdits` + an explicit `--allowedTools mcp__probe__*` allowlist.
+- **TODO 1 done** (2026-06-03): first real 3-iteration evolution run completed. See below.
 
 ---
 
-## TODO 1 — Short real multi-iteration run (single_session)
-**Goal:** see the *real* Opus meta agent invent novel taste improvements across generations
-(the mock plateaus because it only has one trick: flip naive→smart). This is the first
-end-to-end real evolution run, now affordable thanks to single-session episodes.
+## TODO 1 — Short real multi-iteration run (single_session) — ✅ DONE (2026-06-03)
+First end-to-end real evolution run completed. Full analysis + numbers:
+[`runs/TODO1_FINDINGS.md`](runs/TODO1_FINDINGS.md); raw log: `runs/todo1_2026-06-03.log`.
 
-**Run:**
+**What happened:** pipeline ran 3 iterations with no crashes; archive grew to 4 valid
+nodes (seed + 3 children); airgap held (no rule leaked into `EVAL_REPORT.md`); cost
+**$2.47 / 30 calls** (as predicted). The Opus meta agent makes **substantial, sensible
+edits** — all 3 children independently invent the same two mechanisms: a deterministic
+*falsification-first probe battery* and a *verified Occam candidate-rule library* (so good
+taste doesn't depend on the weak Haiku model). That answers the headline question — yes,
+it edits `solver.py` non-trivially, far beyond the mock's strategy flip.
+
+**But fitness did NOT climb** (child progression 0.609→0.465→0.553; transfer flat→down).
+Three understood causes, each with a fix to carry into the next run:
+1. **Meta agent exhausts its turn budget every iteration** (`turns=13, error=True` at
+   `--meta-max-turns 12`) → edits get cut off mid-revision. **Bump `meta_max_turns` to
+   ~25–40.**
+2. **No cumulative lineage** — `select_parent` (random, RNG seeded by iter index) picked
+   the seed `gen_0000` all 3 times, so every child is "seed + one edit" and nothing
+   compounds. **Bias selection toward best/recent children** (the deferred `score×novelty`
+   selector in REFERENCE.md), or fix the RNG seeding so lineage advances.
+3. **Noisy 4-world fitness + stochastic Haiku** — the same seed program scored
+   0.76/0.43/0.58 across iters (driven by the regenerated curriculum, not the agent), so a
+   better child can still lose. **More worlds/repeats per eval** (+ staged-eval gating to
+   stay cheap).
+
+**Loop mechanics that worked:** weak-tag targeting closed (iters 2–3 hit `gen_0001`'s
+`sign_zero`/`arithmetic` weaknesses, making train worlds materially harder); single-session
+economics held (24 Haiku episodes ≈ $1); invalid-child handling never tripped. ZPD
+difficulty stayed at 2 (escalation needs ≥75% solved; best agent hit 2/4) — gated behind
+fixes 1–2 above.
+
+**Reproduce:**
 ```bash
 python run_loop.py --iterations 3 --backend real --episode-mode single_session \
   --max-probes 8 --n-train 2 --n-transfer 2 --meta-max-turns 12
 ```
-Rough budget: ~4 episodes × 2 (parent+child) + 1 Opus meta + 1 Opus world-smith per
-iteration ≈ $0.5–1.0 and a few minutes per iteration; ~$2–3 total for 3 iterations.
-
-**What to watch:** fitness progression per generation; whether the Opus meta agent edits
-`solver.py`/`episode_prompt.md` in non-trivial ways (beyond the strategy flip); whether
-`weak_tags` get targeted by the next curriculum; transfer-set fitness (the real signal —
-did taste *generalize*, not just fit the training worlds).
-
-**Watch out for:** `--max-turns` budget vs `max_probes` (episode buffer is 8; bump if the
-agent runs out of turns mid-episode); a child that breaks the `Solver` contract should be
-recorded `valid=False` (already handled) — confirm it doesn't crash the loop.
-
-**Done when:** a real run completes 3 iterations, the archive grows with valid children,
-and we can read off whether transfer fitness rose. Capture the run log for analysis.
 
 ---
 

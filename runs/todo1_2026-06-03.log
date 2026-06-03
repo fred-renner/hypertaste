@@ -1,0 +1,85 @@
+Running 3 iterations [backend=real] ...
+
+
+########## ITERATION 1/3 ##########
+seeded gen_0000 from seed program
+selected parent: gen_0000
+curriculum: target_difficulty=2
+  world-smith built 2 training worlds (target_difficulty=2, weak_tags=none)
+
+[evaluate PARENT]
+ train worlds:
+  world_0: solved=True agree=1.00 probes=6 novelty=1.00 infogain=0.32
+  world_1: solved=True agree=1.00 probes=7 novelty=1.00 infogain=0.68
+ transfer worlds (held-out):
+  world_0: solved=True agree=1.00 probes=7 novelty=1.00 infogain=0.25
+  world_1: solved=False agree=0.95 probes=8 novelty=1.00 infogain=0.17
+
+[meta agent: branch + self-modify]
+  meta agent: turns=13 error=True cost=$0.419
+
+[evaluate CHILD]
+ train worlds:
+  world_0: solved=True agree=1.00 probes=7 novelty=1.00 infogain=0.29
+  world_1: solved=False agree=0.77 probes=7 novelty=1.00 infogain=0.39
+ transfer worlds (held-out):
+  world_0: solved=True agree=1.00 probes=7 novelty=1.00 infogain=0.32
+  world_1: solved=False agree=0.95 probes=8 novelty=1.00 infogain=0.17
+  -> gen_0001 fitness=0.6093 (parent gen_0000=0.7576) 
+
+########## ITERATION 2/3 ##########
+selected parent: gen_0000
+curriculum: target_difficulty=2, targeting weak modes ['sign_zero', 'arithmetic']
+  world-smith built 2 training worlds (target_difficulty=2, weak_tags=['sign_zero', 'arithmetic'])
+
+[evaluate PARENT]
+ train worlds:
+  world_0: solved=False agree=0.37 probes=8 novelty=1.00 infogain=0.19
+  world_1: solved=False agree=0.54 probes=8 novelty=1.00 infogain=0.17
+ transfer worlds (held-out):
+  world_0: solved=True agree=1.00 probes=7 novelty=1.00 infogain=0.24
+  world_1: solved=False agree=0.93 probes=8 novelty=1.00 infogain=0.17
+
+[meta agent: branch + self-modify]
+  meta agent: turns=13 error=True cost=$0.580
+
+[evaluate CHILD]
+ train worlds:
+  world_0: solved=False agree=0.66 probes=8 novelty=1.00 infogain=0.22
+  world_1: solved=False agree=0.64 probes=8 novelty=1.00 infogain=0.59
+ transfer worlds (held-out):
+  world_0: solved=True agree=1.00 probes=7 novelty=1.00 infogain=0.29
+  world_1: solved=False agree=0.93 probes=8 novelty=1.00 infogain=0.24
+  -> gen_0002 fitness=0.4646 (parent gen_0000=0.4284) IMPROVED
+
+########## ITERATION 3/3 ##########
+selected parent: gen_0000
+curriculum: target_difficulty=2, targeting weak modes ['sign_zero', 'arithmetic']
+  world-smith built 2 training worlds (target_difficulty=2, weak_tags=['sign_zero', 'arithmetic'])
+
+[evaluate PARENT]
+ train worlds:
+  world_0: solved=False agree=0.37 probes=8 novelty=1.00 infogain=0.22
+  world_1: solved=True agree=1.00 probes=8 novelty=1.00 infogain=0.21
+ transfer worlds (held-out):
+  world_0: solved=True agree=1.00 probes=8 novelty=1.00 infogain=0.21
+  world_1: solved=False agree=0.95 probes=8 novelty=1.00 infogain=0.17
+
+[meta agent: branch + self-modify]
+  meta agent: turns=13 error=True cost=$0.468
+
+[evaluate CHILD]
+ train worlds:
+  world_0: solved=False agree=0.81 probes=8 novelty=1.00 infogain=0.26
+  world_1: solved=True agree=1.00 probes=7 novelty=1.00 infogain=0.24
+ transfer worlds (held-out):
+  world_0: solved=True agree=1.00 probes=8 novelty=1.00 infogain=0.21
+  world_1: solved=False agree=0.00 probes=8 novelty=1.00 infogain=0.17
+  -> gen_0003 fitness=0.5527 (parent gen_0000=0.5754) 
+
+======================================================================
+PROGRESSION (child fitness per iteration):
+  0.609 -> 0.465 -> 0.553
+best stepping stone: gen_0001 fitness=0.6093
+LLM calls: 30  est_cost=$2.4655  by_role={'world_smith': 3, 'task_episode': 24, 'meta': 3}
+EXIT=0
