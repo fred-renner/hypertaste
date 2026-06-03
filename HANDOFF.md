@@ -60,7 +60,33 @@ python run_loop.py --iterations 3 --backend real --episode-mode single_session \
 
 ---
 
-## TODO 2 — Brainstorm: how we grow the world
+## TODO 2 — Brainstorm: how we grow the world — ✅ DONE (2026-06-03)
+Design note written: [`WORLD_DESIGN.md`](WORLD_DESIGN.md).
+
+**Pick:** grow along two coupled axes first, chosen because both keep the empirical-
+equivalence scorer and the AST airgap byte-for-byte unchanged:
+- **Axis A — compositional / multi-rule worlds** (regimes, exceptions, conjunctions).
+  The grammar *already* admits `and/or/not`, ternaries, and arithmetic, so these are
+  expressible and safe today; they're exactly where taste (hypothesis decomposition,
+  falsification) wins. Scorer change: **none** (still pure `f(x,y,z)→bool`).
+- **Axis B — generative/sampled hypothesis space** (required enabler for A). The
+  info-gain metric currently measures reduction over the fixed 25-rule
+  `candidate_library`; compositional rules fall outside it, so `avg_info_gain` goes
+  noisy. Fix: measure version-space collapse over rules *sampled from the grammar*;
+  demote the library to prior/fallback + offline Occam inductor.
+
+**Deferred (with reasons in the note):** stochastic rules and latent/multi-step rules
+(both break deterministic empirical-equivalence scoring — need new scorers/metrics),
+N>3 vars (orthogonal), and program/dataset "real research" worlds (long-term).
+
+**Resolved open questions** (anti-degeneracy via a non-degenerate+solvable gate,
+objective world-novelty via battery behavior-vector de-dup, anti-collusion via an
+independently-seeded transfer distribution, and keeping LLM "interestingness" in world
+*generation* only — never in fitness). See `WORLD_DESIGN.md` for the smallest
+shippable first slice + the exact files each change touches.
+
+Original brainstorm framing (for reference):
+
 **Goal:** decide how the world evolves beyond classic numeric WILT so that *research taste*
 keeps being the thing that wins, without breaking objective scoring or the airgap.
 
