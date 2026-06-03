@@ -122,8 +122,13 @@ adapts) are averaged, so improvement must be *general* taste, not curriculum ove
 4. Any model-generated lambda (candidate, world-smith rule, or agent guess) is
    AST-validated against a strict whitelist and evaluated with no builtins
    (`hta/world/grammar.py`) — model output cannot execute arbitrary code.
-5. For production, run the agent plane in a container (as HyperAgents does); the meta
-   agent is denied Bash here as a lighter mitigation.
+5. For production, run the self-modifying meta agent in a container (`--sandbox docker`):
+   `claude -p` runs **inside** an ephemeral, non-root, resource-limited container with
+   **no host filesystem, no `.env`, and no `hta/world/*`** — the child workspace is
+   copied in, edited, the result copied out, the container destroyed (edit→extract→reset).
+   Credentials are passed as env (a no-Bash agent can't read its own env to exfiltrate
+   them). It **fails closed** if Docker is unavailable. Default `--sandbox none` keeps
+   the lighter mitigation (Bash denied, in-process). See `CONTAINERIZATION.md`.
 
 ## Cost / throughput finding
 
@@ -149,7 +154,7 @@ Measured A/B (same world, smart strategy, `max_probes=6`, live Haiku):
 | Roadblocker | Handling |
 |---|---|
 | `claude -p` is an agent, not a completion endpoint | two adapters: constrained (task/world) vs agentic (meta) |
-| Reward-hacking / leaking the hidden rule | airgap: meta edits code but never runs eval; sanitized report; ProbeChannel only |
+| Reward-hacking / leaking the hidden rule | airgap: meta edits code but never runs eval; sanitized report; ProbeChannel only; optional `--sandbox docker` hard boundary (no host FS/world in the meta agent's container) |
 | Subscription throughput / cost | Haiku task agent; objective scoring; **single-session episodes** (`episode_mode=single_session`) amortize the ~31k system-prompt tax to once per world |
 | Overfitting vs world-independent taste | frozen transfer suite averaged into fitness |
 | Operationalizing "taste" without Goodhart | objective metrics; LLM judgement only on the world-generation side |
@@ -165,6 +170,7 @@ hta/
   task_agent.py        load + run the editable solver; sanitized report
   meta_agent.py        Opus agentic self-modification (+ deterministic mock)
   archive.py           archive of hyperagents + open-ended parent selection
+  sandbox.py           meta-agent airgap strategies: Direct (Bash-denied) | Docker (container)
   loop.py              one DGM-H iteration (parent eval → self-modify → child eval)
   world/               AGENT-INACCESSIBLE
     grammar.py         safe lambda compilation + candidate hypothesis library
@@ -176,6 +182,9 @@ hta/
     solver.py          seed task-agent program (STRATEGY knob; run() + episode_prompt())
     episode_prompt.md  editable single-session strategy surface (meta agent edits this)
     meta_strategy.md   editable meta playbook (metacognitive self-modification)
+docker/
+  Dockerfile.agent     agent-plane image (Node + claude CLI; no project code/world/secrets)
+scripts/build_agent_image.sh  build the agent-plane image (context = docker/ only)
 run_iteration.py       run one iteration, report improvement + cost
 run_loop.py            run N iterations, print progression
 scripts/real_eval_demo.py  live Haiku eval on one world (--episode-mode per_probe|single_session)

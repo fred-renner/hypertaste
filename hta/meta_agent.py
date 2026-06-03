@@ -16,7 +16,7 @@ import os
 import re
 import shutil
 
-from . import llm
+from . import sandbox
 from .config import Config
 
 _INSTRUCTION = """You are the META AGENT in a self-improving research system.
@@ -78,11 +78,12 @@ def self_modify(parent_dir: str, child_dir: str, report_md: str, cfg: Config, lo
 
     meta_strategy = _read(os.path.join(child_dir, "meta_strategy.md"), "(empty)")
     instruction = _INSTRUCTION.format(meta_strategy=meta_strategy)
-    res = llm.agentic(instruction, workdir=child_dir, model=cfg.meta_model,
-                      allowed_tools=cfg.meta_allowed_tools, max_turns=cfg.meta_max_turns,
-                      role="meta", cfg=cfg)
-    log(f"  meta agent: turns={res.get('num_turns')} error={res.get('is_error')} "
-        f"cost=${res.get('cost_usd', 0):.3f}")
+    # Route the agentic edit through the configured sandbox: DirectSandbox (Bash-denied,
+    # in-process) by default, or DockerSandbox (hard, host-isolated container) when
+    # cfg.sandbox == "docker". Both return the same result shape.
+    res = sandbox.get_sandbox(cfg).run_meta_edit(child_dir, instruction, cfg, log=log)
+    log(f"  meta agent [{cfg.sandbox}]: turns={res.get('num_turns')} "
+        f"error={res.get('is_error')} cost=${res.get('cost_usd', 0):.3f}")
     return child_dir
 
 

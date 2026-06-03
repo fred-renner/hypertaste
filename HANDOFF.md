@@ -1,8 +1,10 @@
 # Handoff
 
-Snapshot of where `hypertaste` stands and the three things to do next. For architecture,
-the LLM-call map, the airgap model, and run instructions, see `README.md`; for what we
-borrow from HyperAgents, see `REFERENCE.md`.
+Snapshot of where `hypertaste` stands. The three TODOs below are **all done** (TODO 1:
+first real run; TODO 2: world-growth design; TODO 3: containerized airgap). For
+architecture, the LLM-call map, the airgap model, and run instructions, see `README.md`;
+for what we borrow from HyperAgents, see `REFERENCE.md`; for the container airgap, see
+`CONTAINERIZATION.md`.
 
 ## Where we are
 - Full DGM-H pipeline works: task agent (Haiku) ↔ meta agent (Opus) ↔ world-smith (Opus),
@@ -17,6 +19,9 @@ borrow from HyperAgents, see `REFERENCE.md`.
 - Open gotcha recorded: `--permission-mode bypassPermissions` is refused as root; we use
   `acceptEdits` + an explicit `--allowedTools mcp__probe__*` allowlist.
 - **TODO 1 done** (2026-06-03): first real 3-iteration evolution run completed. See below.
+- **TODO 2 done** (2026-06-03): world-growth design note (`WORLD_DESIGN.md`). See below.
+- **TODO 3 done** (2026-06-03): production-grade container airgap for the meta agent
+  (`--sandbox docker`, `hta/sandbox.py`, `docker/Dockerfile.agent`). See below.
 
 ---
 
@@ -121,7 +126,55 @@ picking the first 1–2 axes to implement and the scorer/metric changes they req
 
 ---
 
-## TODO 3 — Containerization (production-grade airgap)
+## TODO 3 — Containerization (production-grade airgap) — ✅ DONE (2026-06-03)
+Full design + threat model + the resolved open questions: [`CONTAINERIZATION.md`](CONTAINERIZATION.md).
+
+**What shipped:** a `Sandbox` strategy (`hta/sandbox.py`) selected by `--sandbox`:
+- `none` → `DirectSandbox` (default, unchanged: `claude -p` in-process, Bash denied);
+- `docker` → `DockerSandbox` — the **hard boundary**. Per child:
+  `docker create` (isolated, non-root, `--cap-drop ALL`, `no-new-privileges`,
+  `--network/--memory/--cpus/--pids-limit`, **no host bind mounts**) → `cp` workspace
+  **in** → `start` (claude edits **in-container**) → `cp` result **out** → apply diff to
+  the node dir → `rm` (reset). Image: `docker/Dockerfile.agent` (Node + claude CLI, a
+  non-root `agent` user, **no project code/world/secrets baked in**); built by
+  `scripts/build_agent_image.sh` with the build context = `docker/` only.
+
+**Open questions — resolved (rationale in `CONTAINERIZATION.md`):**
+1. *Claude inside vs. on the host?* **Inside.** It's the only way to actually contain
+   `Edit/Read/Write` — on the host, `Read` would still see absolute host paths.
+2. *Credentials without weakening the airgap?* Forwarded as **env** (`CLAUDE_CODE_OAUTH_TOKEN`
+   / `ANTHROPIC_API_KEY`), never as a mounted file — a no-Bash agent has no tool to read
+   its own env, so it can't exfiltrate the token.
+3. *Network?* Configurable (`sandbox_network`, default `bridge`); production restricts
+   egress to the Anthropic API (claude must reach the API from inside).
+4. *Resource limits?* `--memory/--cpus/--pids-limit` + ephemeral per-child containers.
+5. *Sandbox the task-episode MCP server too?* Deferred — different shape (the probe
+   server owns the rule and must stay **outside** the agent container, talking over the
+   stdio-MCP wall). Lower risk; tracked as follow-up. The meta agent was the "done when".
+
+**Fail-closed:** `--sandbox docker` raises if the daemon is down or the image is missing,
+rather than silently downgrading to the soft airgap.
+
+**Done when — status:** ✅ no readable path to host secrets/world (no host mounts; creds
+env-only); ✅ edit→diff→reset works (verified end-to-end against a faked docker — no
+daemon — in `tests/test_sandbox.py`); ✅ existing tests still pass (6/6 `test_pipeline.py`
++ 10 new sandbox tests = 16/16; mock path never touches the sandbox).
+
+**Not yet validated live:** a real `docker build` + a containerized `claude -p` run — this
+dev box has the Docker CLI but **no running daemon**, and a live run costs Opus tokens.
+Everything except the literal `docker` daemon calls is covered by tests (the daemon calls
+go through one `_run` seam). **Next:** build the image, export `CLAUDE_CODE_OAUTH_TOKEN`,
+run `python run_iteration.py --backend real --sandbox docker --episode-mode single_session`.
+
+**Reproduce (offline tests):**
+```bash
+python -m pytest tests/ -q          # 16 passed (mock pipeline + sandbox orchestration)
+```
+
+---
+
+### Original TODO 3 framing (for reference)
+
 **Goal:** isolate the self-modifying meta agent (and ideally the whole agent plane) in a
 container so a runaway/self-modifying agent cannot touch the host, secrets, or the world
 source. Today the meta agent is airgapped only by *denying Bash*; that's the lighter

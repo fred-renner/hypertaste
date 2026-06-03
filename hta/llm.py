@@ -133,25 +133,30 @@ def _real_complete(prompt: str, model: str, role: str, cfg: Config) -> str:
 
 # ---------------------------------------------------------------------------
 # AGENTIC editing (meta agent). Real backend only; mock is handled by the caller.
+# The argv and result-parsing are factored out so the meta agent can run through the
+# SAME airgap flags whether it executes in-process (DirectSandbox) or inside a
+# container (DockerSandbox). See hta/sandbox.py.
 # ---------------------------------------------------------------------------
-def agentic(instruction: str, workdir: str, model: str,
-            allowed_tools: Tuple[str, ...], max_turns: int,
-            role: str = "meta", cfg: Optional[Config] = None) -> dict:
-    cfg = cfg or Config()
-    if cfg.backend == "mock":
-        raise RuntimeError("agentic() not available in mock backend; caller must handle mock")
+def agentic_argv(instruction: str, model: str,
+                 allowed_tools: Tuple[str, ...], max_turns: int) -> List[str]:
+    """The `claude -p` command for an agentic edit, used both on-host and in-container.
+    Centralizes the airgap flags: acceptEdits + an explicit tool allowlist (Bash is
+    never granted, because it is never placed in `allowed_tools`)."""
     cmd = ["claude", "-p", instruction, "--model", model,
            "--output-format", "json", "--permission-mode", "acceptEdits",
            "--max-turns", str(max_turns)]
     for t in allowed_tools:
         cmd += ["--allowedTools", t]
-    try:
-        proc = subprocess.run(cmd, capture_output=True, text=True,
-                              cwd=workdir, timeout=cfg.call_timeout_s * 3)
-        obj = json.loads(proc.stdout) if proc.stdout.strip() else {}
-    except subprocess.TimeoutExpired:
-        return {"is_error": True, "result": "timeout", "num_turns": 0, "cost_usd": 0.0}
-    except json.JSONDecodeError:
+    return cmd
+
+
+def agentic_result_from_stdout(stdout: str, role: str, model: str) -> dict:
+    """Parse `claude -p --output-format json` stdout into the standard agentic result
+    dict and record accounting. Tolerant of leading/trailing log noise (e.g. when the
+    JSON is read back from a container's attached stdout). Returns a bad-json error
+    dict (and records NO cost) if nothing parseable is found."""
+    obj = extract_json(stdout) if (stdout and stdout.strip()) else {}
+    if obj is None:
         return {"is_error": True, "result": "bad json", "num_turns": 0, "cost_usd": 0.0}
     cost = obj.get("total_cost_usd", 0.0)
     ACCT.add(role, model, cost)
@@ -159,6 +164,21 @@ def agentic(instruction: str, workdir: str, model: str,
             "result": obj.get("result", ""),
             "num_turns": obj.get("num_turns", 0),
             "cost_usd": cost}
+
+
+def agentic(instruction: str, workdir: str, model: str,
+            allowed_tools: Tuple[str, ...], max_turns: int,
+            role: str = "meta", cfg: Optional[Config] = None) -> dict:
+    cfg = cfg or Config()
+    if cfg.backend == "mock":
+        raise RuntimeError("agentic() not available in mock backend; caller must handle mock")
+    cmd = agentic_argv(instruction, model, allowed_tools, max_turns)
+    try:
+        proc = subprocess.run(cmd, capture_output=True, text=True,
+                              cwd=workdir, timeout=cfg.call_timeout_s * 3)
+    except subprocess.TimeoutExpired:
+        return {"is_error": True, "result": "timeout", "num_turns": 0, "cost_usd": 0.0}
+    return agentic_result_from_stdout(proc.stdout, role, model)
 
 
 # ---------------------------------------------------------------------------

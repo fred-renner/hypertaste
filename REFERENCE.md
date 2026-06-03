@@ -46,9 +46,10 @@ repo's license). Line numbers are from the repo state we read on 2026-06-03.
 
 ## Patterns to adopt next (deferred this session)
 
-- **Docker-per-generation sandbox for the meta agent** — the real "won't go off the rails" win
-  (we currently airgap the meta agent only by denying it Bash). Mirror `docker_utils.py` +
-  in-container edit→diff→reset.
+- ~~**Docker-per-generation sandbox for the meta agent**~~ — **DONE (TODO 3)**. Mirrors
+  `docker_utils.py` + in-container edit→diff→reset as `hta/sandbox.py:DockerSandbox`
+  (`--sandbox docker`): claude runs inside an ephemeral, host-isolated container; copy
+  workspace in → edit → copy out → apply diff → `rm`. See `CONTAINERIZATION.md`.
 - **Staged-eval gating** — eval each child on a tiny world subset first; only run the full set if
   it clears a threshold. Cuts compute (`generate_loop.py:638-684`).
 - **score×novelty parent selection** — replace our `random.choice` in `hta/archive.py:select_parent`

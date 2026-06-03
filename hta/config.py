@@ -58,6 +58,35 @@ class Config:
     meta_allowed_tools: Tuple[str, ...] = ("Edit", "Read", "Write")
     meta_max_turns: int = 30
 
+    # ---- meta-agent sandbox (production-grade airgap; see CONTAINERIZATION.md) ----
+    # "none":   run the meta agent's claude -p in-process; airgapped only by denying
+    #           Bash (the lighter mitigation). Default, so mock/tests are unchanged.
+    # "docker": run claude -p INSIDE an ephemeral container that holds no host FS, no
+    #           .env, and no world source; copy the child workspace in, edit, extract
+    #           the result, destroy the container. Fails CLOSED if Docker is
+    #           unavailable -- a security boundary must not silently downgrade.
+    sandbox: str = field(default_factory=lambda: _env("HTA_SANDBOX", "none"))
+    sandbox_image: str = field(
+        default_factory=lambda: _env("HTA_SANDBOX_IMAGE", "hypertaste-agent:latest"))
+    sandbox_network: str = field(default_factory=lambda: _env("HTA_SANDBOX_NETWORK", "bridge"))
+    sandbox_memory: str = field(default_factory=lambda: _env("HTA_SANDBOX_MEMORY", "2g"))
+    sandbox_cpus: str = field(default_factory=lambda: _env("HTA_SANDBOX_CPUS", "2"))
+    sandbox_pids: int = 256
+    sandbox_autobuild: bool = field(
+        default_factory=lambda: _env("HTA_SANDBOX_AUTOBUILD", "0") == "1")
+    sandbox_docker_bin: str = field(default_factory=lambda: _env("HTA_DOCKER_BIN", "docker"))
+    # Credentials forwarded host->container as ENV (never mounted files): with Bash
+    # denied the model has no tool to read its own process env, so the token cannot be
+    # exfiltrated through Edit/Read/Write -- whereas a mounted credential file could.
+    sandbox_auth_env: Tuple[str, ...] = ("CLAUDE_CODE_OAUTH_TOKEN", "ANTHROPIC_API_KEY")
+    # Opt-in (weaker) fallback for subscription auth stored on disk: mount the claude
+    # config dir read-only. Off by default; the env token above is preferred.
+    sandbox_mount_claude_config: bool = field(
+        default_factory=lambda: _env("HTA_SANDBOX_MOUNT_CLAUDE_CONFIG", "0") == "1")
+    sandbox_claude_config_dir: str = field(
+        default_factory=lambda: _env("HTA_SANDBOX_CLAUDE_CONFIG_DIR",
+                                     os.path.expanduser("~/.claude")))
+
     # ---- paths ----
     out_dir: str = "outputs"
 

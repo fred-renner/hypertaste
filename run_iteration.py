@@ -34,6 +34,8 @@ def build_config(args) -> Config:
         cfg.n_transfer_worlds = args.n_transfer
     if getattr(args, "meta_max_turns", None) is not None:
         cfg.meta_max_turns = args.meta_max_turns
+    if getattr(args, "sandbox", None):
+        cfg.sandbox = args.sandbox
     if args.out_dir:
         cfg.out_dir = args.out_dir
     return cfg
@@ -52,6 +54,9 @@ def main():
     ap.add_argument("--n-train", dest="n_train", type=int)
     ap.add_argument("--n-transfer", dest="n_transfer", type=int)
     ap.add_argument("--meta-max-turns", dest="meta_max_turns", type=int)
+    ap.add_argument("--sandbox", choices=["none", "docker"],
+                    help="meta-agent airgap: none (Bash-denied, in-process) | "
+                         "docker (host-isolated container). docker fails closed.")
     ap.add_argument("--out-dir", dest="out_dir")
     args = ap.parse_args()
 
@@ -61,7 +66,7 @@ def main():
     print("=" * 70)
     print(f"hypertaste :: one iteration  [backend={cfg.backend}, profile={args.profile}]")
     print(f"models: task={cfg.task_model}  meta={cfg.meta_model}  world={cfg.world_model}")
-    print(f"episode_mode: {cfg.episode_mode}")
+    print(f"episode_mode: {cfg.episode_mode}   meta-sandbox: {cfg.sandbox}")
     print(f"knobs:  max_probes={cfg.max_probes}  train={cfg.n_train_worlds}  "
           f"transfer={cfg.n_transfer_worlds}")
     print("=" * 70)

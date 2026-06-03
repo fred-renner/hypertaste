@@ -28,6 +28,9 @@ def main():
     ap.add_argument("--n-train", dest="n_train", type=int)
     ap.add_argument("--n-transfer", dest="n_transfer", type=int)
     ap.add_argument("--meta-max-turns", dest="meta_max_turns", type=int)
+    ap.add_argument("--sandbox", choices=["none", "docker"],
+                    help="meta-agent airgap: none (Bash-denied, in-process) | "
+                         "docker (host-isolated container). docker fails closed.")
     ap.add_argument("--out-dir", dest="out_dir")
     args = ap.parse_args()
 
