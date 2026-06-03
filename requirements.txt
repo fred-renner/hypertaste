@@ -1,0 +1,6 @@
+# Runtime: standard library only.
+# The "real" backend shells out to the `claude` CLI (Claude Code), which must be
+# installed and authenticated with your subscription:  https://claude.com/code
+#
+# Dev/test only:
+pytest>=7.0

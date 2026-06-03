@@ -1,0 +1,236 @@
+"""The single foundation-model seam. Every LLM call in the system goes through
+here, so model assignment and the two `claude -p` invocation modes live in one place.
+
+Two modes:
+  * complete(...)  -- CONSTRAINED generation. `claude -p --output-format json
+                      --max-turns 1` with no tools. Behaves like a text completion.
+                      Used by the task agent (Haiku) and the world-smith (Opus).
+  * agentic(...)   -- AGENTIC editing. `claude -p` with Edit/Read/Write tools in a
+                      workspace dir. Used by the meta agent (Opus) to rewrite the
+                      task agent's code. Never granted Bash, never run where the
+                      world source is reachable (airgap).
+
+A deterministic `mock` backend stands in for claude -p so the whole pipeline can be
+exercised offline at zero cost. The mock is NOT intelligent; it only makes the
+plumbing observable and reproducible.
+"""
+
+import json
+import re
+import subprocess
+from dataclasses import dataclass, field
+from typing import Dict, List, Optional, Tuple
+
+from .config import Config
+
+# ---------------------------------------------------------------------------
+# Call accounting (so a test run can report calls + $).
+# ---------------------------------------------------------------------------
+@dataclass
+class _Acct:
+    calls: int = 0
+    cost_usd: float = 0.0
+    by_role: Dict[str, int] = field(default_factory=dict)
+    by_model: Dict[str, int] = field(default_factory=dict)
+
+    def add(self, role: str, model: str, cost: float):
+        self.calls += 1
+        self.cost_usd += float(cost or 0.0)
+        self.by_role[role] = self.by_role.get(role, 0) + 1
+        self.by_model[model] = self.by_model.get(model, 0) + 1
+
+
+ACCT = _Acct()
+
+
+def reset_accounting():
+    global ACCT
+    ACCT = _Acct()
+
+
+def accounting() -> dict:
+    return {"calls": ACCT.calls, "cost_usd": round(ACCT.cost_usd, 4),
+            "by_role": dict(ACCT.by_role), "by_model": dict(ACCT.by_model)}
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+_FENCE = re.compile(r"^```[a-zA-Z0-9_]*\s*|\s*```$", re.MULTILINE)
+
+
+def strip_fences(text: str) -> str:
+    t = (text or "").strip()
+    if t.startswith("```"):
+        t = _FENCE.sub("", t).strip()
+    return t
+
+
+def extract_json(text: str) -> Optional[dict]:
+    """Best-effort: parse the last JSON object found in text."""
+    t = strip_fences(text)
+    try:
+        return json.loads(t)
+    except Exception:
+        pass
+    # find last {...} block
+    depth = 0
+    end = None
+    for i in range(len(t) - 1, -1, -1):
+        c = t[i]
+        if c == "}":
+            if depth == 0:
+                end = i
+            depth += 1
+        elif c == "{":
+            depth -= 1
+            if depth == 0 and end is not None:
+                frag = t[i:end + 1]
+                try:
+                    return json.loads(frag)
+                except Exception:
+                    end = None
+                    depth = 0
+    return None
+
+
+# ---------------------------------------------------------------------------
+# CONSTRAINED generation
+# ---------------------------------------------------------------------------
+def complete(prompt: str, model: str, role: str = "gen", cfg: Optional[Config] = None) -> str:
+    cfg = cfg or Config()
+    if cfg.backend == "mock":
+        out = _mock_complete(prompt, role)
+        ACCT.add(role, f"mock:{model}", 0.0)
+        return out
+    return _real_complete(prompt, model, role, cfg)
+
+
+def _real_complete(prompt: str, model: str, role: str, cfg: Config) -> str:
+    cmd = ["claude", "-p", prompt, "--model", model,
+           "--output-format", "json", "--max-turns", "1"]
+    last_err = None
+    for attempt in range(2):
+        try:
+            proc = subprocess.run(cmd, capture_output=True, text=True,
+                                  timeout=cfg.call_timeout_s)
+            if proc.returncode != 0:
+                last_err = f"claude -p exit {proc.returncode}: {proc.stderr[:300]}"
+                continue
+            obj = json.loads(proc.stdout)
+            cost = obj.get("total_cost_usd", 0.0)
+            ACCT.add(role, model, cost)
+            if obj.get("is_error"):
+                last_err = f"claude -p error: {str(obj.get('result'))[:300]}"
+                continue
+            return strip_fences(obj.get("result", ""))
+        except subprocess.TimeoutExpired:
+            last_err = "claude -p timeout"
+        except json.JSONDecodeError as e:
+            last_err = f"bad json from claude -p: {e}"
+    raise RuntimeError(f"complete() failed (role={role}, model={model}): {last_err}")
+
+
+# ---------------------------------------------------------------------------
+# AGENTIC editing (meta agent). Real backend only; mock is handled by the caller.
+# ---------------------------------------------------------------------------
+def agentic(instruction: str, workdir: str, model: str,
+            allowed_tools: Tuple[str, ...], max_turns: int,
+            role: str = "meta", cfg: Optional[Config] = None) -> dict:
+    cfg = cfg or Config()
+    if cfg.backend == "mock":
+        raise RuntimeError("agentic() not available in mock backend; caller must handle mock")
+    cmd = ["claude", "-p", instruction, "--model", model,
+           "--output-format", "json", "--permission-mode", "acceptEdits",
+           "--max-turns", str(max_turns)]
+    for t in allowed_tools:
+        cmd += ["--allowedTools", t]
+    try:
+        proc = subprocess.run(cmd, capture_output=True, text=True,
+                              cwd=workdir, timeout=cfg.call_timeout_s * 3)
+        obj = json.loads(proc.stdout) if proc.stdout.strip() else {}
+    except subprocess.TimeoutExpired:
+        return {"is_error": True, "result": "timeout", "num_turns": 0, "cost_usd": 0.0}
+    except json.JSONDecodeError:
+        return {"is_error": True, "result": "bad json", "num_turns": 0, "cost_usd": 0.0}
+    cost = obj.get("total_cost_usd", 0.0)
+    ACCT.add(role, model, cost)
+    return {"is_error": bool(obj.get("is_error")),
+            "result": obj.get("result", ""),
+            "num_turns": obj.get("num_turns", 0),
+            "cost_usd": cost}
+
+
+# ---------------------------------------------------------------------------
+# Deterministic mock backend
+# ---------------------------------------------------------------------------
+_CTX = re.compile(r"<<CTX>>(.*?)<<CTX>>", re.DOTALL)
+
+# A diverse, falsification-seeking probe battery for the "smart" strategy.
+_SMART_BATTERY = [
+    [1, 2, 3], [3, 2, 1], [2, 2, 2], [1, 3, 2], [-1, 0, 1],
+    [5, 5, 6], [2, 4, 6], [0, 0, 0], [10, 5, 1], [1, 2, 2],
+]
+
+
+def _parse_ctx(prompt: str) -> dict:
+    m = _CTX.search(prompt or "")
+    if not m:
+        return {}
+    try:
+        return json.loads(m.group(1).strip())
+    except Exception:
+        return {}
+
+
+def _mock_complete(prompt: str, role: str) -> str:
+    ctx = _parse_ctx(prompt)
+    role = ctx.get("role", role)
+    if role == "probe":
+        return json.dumps(_mock_probe(ctx))
+    if role == "guess":
+        return json.dumps(_mock_guess(ctx))
+    if role == "world_smith":
+        return json.dumps(_mock_world_smith(ctx))
+    return json.dumps({"note": "mock", "role": role})
+
+
+def _mock_probe(ctx: dict) -> dict:
+    history = ctx.get("history", [])
+    strategy = ctx.get("strategy", "naive")
+    n = len(history)
+    if strategy == "smart":
+        probe = _SMART_BATTERY[n % len(_SMART_BATTERY)]
+        reasoning = "diverse probe to falsify and split the hypothesis space"
+    else:
+        # confirmation bias: always increasing with a constant gap of 2.
+        probe = [n + 1, n + 3, n + 5]
+        reasoning = "another increasing example to confirm the hypothesis"
+    return {"probe": probe, "reasoning": reasoning}
+
+
+def _mock_guess(ctx: dict) -> dict:
+    history = ctx.get("history", [])
+    strategy = ctx.get("strategy", "naive")
+    if strategy == "smart":
+        # Occam induction from observed booleans only (no hidden rule peeking).
+        from .world.grammar import simplest_consistent
+        hist = [{"triple": h.get("triple"), "label": h.get("label")}
+                for h in history if h.get("triple")]
+        best = simplest_consistent(hist)
+        rule = best.source if best else "lambda x, y, z: x < y < z"
+        return {"rule": rule, "reasoning": "simplest rule consistent with all observations"}
+    # naive overfits to its own biased data (constant gap of 4).
+    return {"rule": "lambda x, y, z: x < y < z and z - x == 4",
+            "reasoning": "every example I tried was increasing with a gap of 4"}
+
+
+def _mock_world_smith(ctx: dict) -> dict:
+    """Canned curriculum: return rules at/around a target difficulty."""
+    from .world.grammar import candidate_library
+    target = int(ctx.get("target_difficulty", 2))
+    n = int(ctx.get("n", 2))
+    lib = candidate_library()
+    lib.sort(key=lambda r: abs(r.difficulty - target))
+    picked = lib[:max(1, n)]
+    return {"rules": [r.to_dict() for r in picked]}
