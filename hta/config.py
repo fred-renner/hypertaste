@@ -58,7 +58,7 @@ class Config:
     meta_allowed_tools: Tuple[str, ...] = ("Edit", "Read", "Write")
     meta_max_turns: int = 30
 
-    # ---- meta-agent sandbox (production-grade airgap; see CONTAINERIZATION.md) ----
+    # ---- meta-agent sandbox (production-grade airgap; see hta/sandbox.py) ----
     # "none":   run the meta agent's claude -p in-process; airgapped only by denying
     #           Bash (the lighter mitigation). Default, so mock/tests are unchanged.
     # "docker": run claude -p INSIDE an ephemeral container that holds no host FS, no

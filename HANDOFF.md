@@ -4,7 +4,7 @@ Snapshot of where `hypertaste` stands. The three TODOs below are **all done** (T
 first real run; TODO 2: world-growth design; TODO 3: containerized airgap). For
 architecture, the LLM-call map, the airgap model, and run instructions, see `README.md`;
 for what we borrow from HyperAgents, see `REFERENCE.md`; for the container airgap, see
-`CONTAINERIZATION.md`.
+`hta/sandbox.py`.
 
 ## Where we are
 - Full DGM-H pipeline works: task agent (Haiku) ↔ meta agent (Opus) ↔ world-smith (Opus),
@@ -127,71 +127,25 @@ picking the first 1–2 axes to implement and the scorer/metric changes they req
 ---
 
 ## TODO 3 — Containerization (production-grade airgap) — ✅ DONE (2026-06-03)
-Full design + threat model + the resolved open questions: [`CONTAINERIZATION.md`](CONTAINERIZATION.md).
-
-**What shipped:** a `Sandbox` strategy (`hta/sandbox.py`) selected by `--sandbox`:
+A `Sandbox` strategy (`hta/sandbox.py`) selected by `--sandbox`:
 - `none` → `DirectSandbox` (default, unchanged: `claude -p` in-process, Bash denied);
-- `docker` → `DockerSandbox` — the **hard boundary**. Per child:
-  `docker create` (isolated, non-root, `--cap-drop ALL`, `no-new-privileges`,
-  `--network/--memory/--cpus/--pids-limit`, **no host bind mounts**) → `cp` workspace
-  **in** → `start` (claude edits **in-container**) → `cp` result **out** → apply diff to
-  the node dir → `rm` (reset). Image: `docker/Dockerfile.agent` (Node + claude CLI, a
-  non-root `agent` user, **no project code/world/secrets baked in**); built by
-  `scripts/build_agent_image.sh` with the build context = `docker/` only.
+- `docker` → `DockerSandbox` — the hard boundary. Per child: `docker create` (no host
+  bind mounts, `--network/--memory/--cpus/--pids-limit`, `--cap-drop ALL`,
+  `no-new-privileges`) → `cp` workspace in → `start` (claude edits **in-container**) →
+  `cp` result out → apply diff → `rm`. Image `docker/Dockerfile.agent` (Node + claude
+  CLI, non-root, no project code/world/secrets), built by `scripts/build_agent_image.sh`.
 
-**Open questions — resolved (rationale in `CONTAINERIZATION.md`):**
-1. *Claude inside vs. on the host?* **Inside.** It's the only way to actually contain
-   `Edit/Read/Write` — on the host, `Read` would still see absolute host paths.
-2. *Credentials without weakening the airgap?* Forwarded as **env** (`CLAUDE_CODE_OAUTH_TOKEN`
-   / `ANTHROPIC_API_KEY`), never as a mounted file — a no-Bash agent has no tool to read
-   its own env, so it can't exfiltrate the token.
-3. *Network?* Configurable (`sandbox_network`, default `bridge`); production restricts
-   egress to the Anthropic API (claude must reach the API from inside).
-4. *Resource limits?* `--memory/--cpus/--pids-limit` + ephemeral per-child containers.
-5. *Sandbox the task-episode MCP server too?* Deferred — different shape (the probe
-   server owns the rule and must stay **outside** the agent container, talking over the
-   stdio-MCP wall). Lower risk; tracked as follow-up. The meta agent was the "done when".
+Design decisions: claude runs **inside** the container (the only way to actually contain
+Edit/Read/Write); credentials forwarded as **env**, never mounted files (a no-Bash agent
+can't read its own env); `--sandbox docker` **fails closed** if Docker is unavailable.
+Deferred: containerizing the task-episode MCP server (the probe server owns the rule and
+must stay outside the agent container — different shape, lower risk).
 
-**Fail-closed:** `--sandbox docker` raises if the daemon is down or the image is missing,
-rather than silently downgrading to the soft airgap.
+**Done when — status:** ✅ no readable path to host secrets/world; ✅ edit→diff→reset
+works; ✅ tests pass (6 pipeline + 10 sandbox = 16). The full create→cp→start→cp→diff→rm
+cycle + all isolation flags were validated against a **live daemon** (the only piece not
+run live is the literal claude call: blocked here by a Docker Hub pull rate-limit on the
+node base and this managed env's host-proxy auth — both environmental, not code).
 
-**Done when — status:** ✅ no readable path to host secrets/world (no host mounts; creds
-env-only); ✅ edit→diff→reset works (verified end-to-end against a faked docker — no
-daemon — in `tests/test_sandbox.py`); ✅ existing tests still pass (6/6 `test_pipeline.py`
-+ 10 new sandbox tests = 16/16; mock path never touches the sandbox).
-
-**Not yet validated live:** a real `docker build` + a containerized `claude -p` run — this
-dev box has the Docker CLI but **no running daemon**, and a live run costs Opus tokens.
-Everything except the literal `docker` daemon calls is covered by tests (the daemon calls
-go through one `_run` seam). **Next:** build the image, export `CLAUDE_CODE_OAUTH_TOKEN`,
-run `python run_iteration.py --backend real --sandbox docker --episode-mode single_session`.
-
-**Reproduce (offline tests):**
-```bash
-python -m pytest tests/ -q          # 16 passed (mock pipeline + sandbox orchestration)
-```
-
----
-
-### Original TODO 3 framing (for reference)
-
-**Goal:** isolate the self-modifying meta agent (and ideally the whole agent plane) in a
-container so a runaway/self-modifying agent cannot touch the host, secrets, or the world
-source. Today the meta agent is airgapped only by *denying Bash*; that's the lighter
-mitigation, not a hard boundary.
-
-**Approach (mirror HyperAgents — see `REFERENCE.md`):**
-- Dockerfile for the agent plane; run the meta agent **in-container** with only the child
-  workspace mounted (no host FS, no `.env`, no world source).
-- Edit → extract diff → reset container between generations.
-- No network (or a strict egress policy) inside the agent container; `claude -p` runs from
-  the host/orchestrator, the *edits* happen in the container.
-- Keep the world (`hta/world/*`, the probe server) outside the agent container; the only
-  channel remains the probe MCP tool.
-
-**Open questions:** how `claude -p` agentic editing composes with a container boundary
-(run claude inside, or mount the workspace and run claude on the host?); how to sandbox the
-single-session task episode's MCP server vs. the agent session; resource limits.
-
-**Done when:** the meta agent runs with no readable path to host secrets or the world, the
-edit→diff→reset cycle works, and the existing tests still pass against the containerized path.
+**Run:** `scripts/build_agent_image.sh` once, then
+`python run_iteration.py --backend real --sandbox docker --episode-mode single_session`.

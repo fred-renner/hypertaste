@@ -1,32 +1,22 @@
-"""Production-grade airgap for the self-modifying META AGENT (TODO 3).
+"""Airgap for the self-modifying META AGENT.
 
-The meta agent is the one untrusted, self-modifying actor in the system: it runs as
-an agentic `claude -p` with Edit/Read/Write tools. Denying it Bash (DirectSandbox)
-shrinks the blast radius but is NOT a hard boundary -- the Read tool can still read
-absolute host paths, so host secrets and the world source are only a path away.
+The meta agent runs `claude -p` with Edit/Read/Write. Denying it Bash (DirectSandbox)
+is soft: the Read tool can still open absolute host paths, so host secrets and the
+world source (hta/world/*) are one Read away. DockerSandbox makes it a hard boundary
+by running claude INSIDE an ephemeral container that holds no host filesystem, no
+.env, and no world source. Per child: create (isolated) -> cp workspace in -> start
+(edit in-container) -> cp result out -> apply diff to the node dir -> rm (reset).
 
-`DockerSandbox` makes it a hard boundary: claude runs INSIDE an ephemeral container
-that simply does not contain the host filesystem, the `.env`, or `hta/world/*` (where
-the hidden rule lives). The child workspace is copied IN, edited, the result copied
-OUT, and the container destroyed -- edit -> extract -> reset, mirroring HyperAgents'
-`docker_utils.py` + `gl_utils.py` in-container diff cycle (see REFERENCE.md).
+Notes:
+  * claude runs INSIDE the container -- the only way to actually contain Edit/Read/
+    Write (on the host its Read would see the host FS regardless of cwd).
+  * credentials are forwarded as ENV, never mounted files: with Bash denied the model
+    has no tool to read its own process env, so the token can't be exfiltrated.
+  * fails CLOSED: if sandbox=docker but Docker is unavailable we raise, never silently
+    downgrade the airgap.
 
-Open questions from HANDOFF.md TODO 3, resolved here (full rationale in
-CONTAINERIZATION.md):
-  * "run claude inside, or mount the workspace and run claude on the host?" -> run it
-    INSIDE the container. That is the only way to actually contain Edit/Read/Write: if
-    claude ran on the host, its Read tool would see the host filesystem regardless of
-    any mount tricks.
-  * Credentials are passed as ENV, never mounted files: with Bash denied the model has
-    no tool to read its own process environment, so the token cannot be exfiltrated
-    through Edit/Read/Write (a mounted credential file, by contrast, is Read-able).
-  * Network is configurable; production restricts egress to the Anthropic API.
-  * Fails CLOSED: if `sandbox=docker` but Docker is unavailable we raise rather than
-    silently downgrade the airgap.
-
-All Docker invocations go through the module-level `_run` seam, so the orchestration
-(create -> cp in -> start -> cp out -> rm) and the diff/apply are fully testable
-without a running daemon (tests/test_sandbox.py).
+All docker calls go through the module-level `_run` seam, so the orchestration and the
+diff/apply are testable without a daemon (tests/test_sandbox.py).
 """
 
 import os

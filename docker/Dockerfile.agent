@@ -1,24 +1,15 @@
-# Agent-plane image for hypertaste's self-modifying META AGENT (TODO 3).
-#
-# The meta agent runs here as `claude -p` with ONLY Edit/Read/Write (Bash denied),
-# editing a child workspace copied to /workspace at run time. Deliberately minimal:
-#   * it contains NO host secrets, NO .env, and NO world source (hta/world/*) -- the
-#     hidden rule is never in this image or container;
-#   * it contains NO project code at all. The workspace (solver.py, meta_strategy.md,
-#     EVAL_REPORT.md) is copied in by the orchestrator after the container is created
-#     (see hta/sandbox.py: DockerSandbox), and the edited result is copied back out.
-#
-# The meta agent only edits text files -- it never executes the solver (that is the
-# airgap) -- so this image needs Node + the Claude Code CLI and nothing else.
+# Agent-plane image for the self-modifying meta agent (hta/sandbox.py: DockerSandbox).
+# Minimal on purpose: Node + the Claude Code CLI and nothing else. No project code, no
+# .env, no world source -- the child workspace is copied to /workspace at run time and
+# the edited result copied back out.
 FROM node:22-slim
 
 # Claude Code CLI (the agent runtime).
 RUN npm install -g @anthropic-ai/claude-code \
     && npm cache clean --force
 
-# Non-root user with a writable HOME for claude's own config/cache. Running as a
-# non-root, capability-stripped user is part of the boundary (see --cap-drop /
-# --security-opt no-new-privileges in DockerSandbox._create_cmd).
+# Non-root user with a writable HOME for claude's config/cache (part of the boundary,
+# alongside --cap-drop ALL / --security-opt no-new-privileges set at run time).
 RUN useradd --create-home --shell /usr/sbin/nologin agent \
     && mkdir -p /workspace \
     && chown -R agent:agent /workspace /home/agent
@@ -26,7 +17,6 @@ USER agent
 ENV HOME=/home/agent
 WORKDIR /workspace
 
-# No ENTRYPOINT on purpose: the orchestrator passes the full `claude -p ...` argv at
-# run time, so the airgap flags live in exactly one place (hta/llm.agentic_argv). The
-# default CMD is a harmless smoke check used when building/verifying the image.
+# No ENTRYPOINT: the orchestrator passes the full `claude -p ...` argv at run time
+# (airgap flags live in hta/llm.agentic_argv). Default CMD is a build-time smoke check.
 CMD ["claude", "--version"]

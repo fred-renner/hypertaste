@@ -122,13 +122,14 @@ adapts) are averaged, so improvement must be *general* taste, not curriculum ove
 4. Any model-generated lambda (candidate, world-smith rule, or agent guess) is
    AST-validated against a strict whitelist and evaluated with no builtins
    (`hta/world/grammar.py`) — model output cannot execute arbitrary code.
-5. For production, run the self-modifying meta agent in a container (`--sandbox docker`):
-   `claude -p` runs **inside** an ephemeral, non-root, resource-limited container with
-   **no host filesystem, no `.env`, and no `hta/world/*`** — the child workspace is
-   copied in, edited, the result copied out, the container destroyed (edit→extract→reset).
-   Credentials are passed as env (a no-Bash agent can't read its own env to exfiltrate
-   them). It **fails closed** if Docker is unavailable. Default `--sandbox none` keeps
-   the lighter mitigation (Bash denied, in-process). See `CONTAINERIZATION.md`.
+5. For a hard boundary, run the self-modifying meta agent in a container
+   (`--sandbox docker`, see `hta/sandbox.py`): `claude -p` runs **inside** an ephemeral,
+   non-root, resource-limited container with **no host filesystem, no `.env`, and no
+   `hta/world/*`** — the child workspace is copied in, edited, the result copied out, the
+   container destroyed. Credentials are passed as env (a no-Bash agent can't read its own
+   env to exfiltrate them); it **fails closed** if Docker is unavailable. Build once with
+   `scripts/build_agent_image.sh`. Default `--sandbox none` keeps the lighter mitigation
+   (Bash denied, in-process).
 
 ## Cost / throughput finding
 

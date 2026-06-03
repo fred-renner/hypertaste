@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
-# Build the agent-plane image used by DockerSandbox (TODO 3 / production-grade airgap).
-# The build context is docker/ only, so no project code, .env, or world source is sent
-# to the daemon or baked into the image. See ../CONTAINERIZATION.md.
+# Build the agent-plane image used by DockerSandbox (hta/sandbox.py). Build context is
+# docker/ only, so no project code, .env, or world source is sent to the daemon.
 set -euo pipefail
 
 IMAGE="${HTA_SANDBOX_IMAGE:-hypertaste-agent:latest}"
