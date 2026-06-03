@@ -135,6 +135,15 @@ probe tool, so that overhead is paid **once per world** instead of once per prob
 grows with `max_probes` (per-probe cost is linear in probes; single-session is ~flat). Other
 mitigations: Haiku task agent, objective local scoring (no LLM in the scoring path).
 
+Measured A/B (same world, smart strategy, `max_probes=6`, live Haiku):
+
+| mode | claude -p calls | cost | solved | fitness |
+|---|---|---|---|---|
+| `per_probe` | 7 | $0.1890 | ✓ | 0.879 |
+| `single_session` | 1 | $0.0405 | ✓ | 0.888 |
+
+~4.7× cheaper at 6 probes; the ratio grows toward ~30× at the full 30-probe WILT budget.
+
 ## Roadblockers → how they're handled
 
 | Roadblocker | Handling |
