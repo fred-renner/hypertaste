@@ -30,6 +30,9 @@ probing (boundaries like <= vs <, rare exceptions, sign/zero cases) succeeds.
 Target difficulty around {target_difficulty}/5 (1=easy, 5=hard). Escalate from what
 the agent already handles.
 
+Target the agent's WEAK areas (tags it currently fails): {weak_tags}. Bias the rules
+toward exercising those weaknesses, so the agent must improve its taste to win.
+
 Frontier (what the current best agent is weak at): {frontier}
 
 Return ONLY JSON:
@@ -55,23 +58,27 @@ def _rulespecs_from_json(text: str) -> List[RuleSpec]:
     return out
 
 
-def build_worlds(cfg: Config, target_difficulty: int = 2,
+def build_worlds(cfg: Config, target_difficulty: int = 2, weak_tags=None,
                  frontier: Optional[str] = None, log=print) -> List[WiltWorld]:
     n = cfg.n_train_worlds
+    weak_tags = list(weak_tags or [])
     ctx = json.dumps({"role": "world_smith", "n": n,
-                      "target_difficulty": target_difficulty})
+                      "target_difficulty": target_difficulty, "weak_tags": weak_tags})
     prompt = _SMITH_PROMPT.format(target_difficulty=target_difficulty,
-                                  frontier=frontier or "(none yet)", n=n, ctx=ctx)
+                                  frontier=frontier or "(none yet)", n=n, ctx=ctx,
+                                  weak_tags=", ".join(weak_tags) or "(none yet)")
     try:
         text = llm.complete(prompt, model=cfg.world_model, role="world_smith", cfg=cfg)
         rules = _rulespecs_from_json(text)
     except Exception as e:
         log(f"  world-smith fell back to library: {e}")
         rules = []
-    # backfill from the library if the smith returned too few valid rules
+    # backfill from the library, preferring rules whose tags hit the weak areas and
+    # whose difficulty is near the target.
     if len(rules) < n:
+        weak = set(weak_tags)
         lib = candidate_library()
-        lib.sort(key=lambda r: abs(r.difficulty - target_difficulty))
+        lib.sort(key=lambda r: (-len(set(r.tags) & weak), abs(r.difficulty - target_difficulty)))
         for r in lib:
             if r.source not in {x.source for x in rules}:
                 rules.append(r)
@@ -79,7 +86,7 @@ def build_worlds(cfg: Config, target_difficulty: int = 2,
                 break
     rules = rules[:n]
     log(f"  world-smith built {len(rules)} training worlds "
-        f"(target_difficulty={target_difficulty})")
+        f"(target_difficulty={target_difficulty}, weak_tags={weak_tags or 'none'})")
     return [WiltWorld(r, max_probes=cfg.max_probes) for r in rules]
 
 

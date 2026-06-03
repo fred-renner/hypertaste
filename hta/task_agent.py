@@ -8,13 +8,20 @@ boolean probe results.
 
 import importlib.util
 import hashlib
+import json
 import os
+import sys
+import tempfile
+import uuid
+from collections import defaultdict
 from typing import Callable, List
 
 from . import llm
 from .config import Config
 from . import taste
 from .world.engine import WiltWorld
+
+_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 def load_solver(solver_dir: str):
@@ -35,6 +42,23 @@ def _task_llm(cfg: Config) -> Callable:
 
 
 def run_on_world(solver, world: WiltWorld, cfg: Config, log=print) -> dict:
+    """Dispatch on execution mode. single_session (real) runs a whole episode in one
+    claude -p session via the probe MCP tool; per_probe (and mock) makes one call per
+    probe. Both return the same {history, guess, metrics} shape."""
+    if cfg.episode_mode == "single_session" and cfg.backend != "mock":
+        return _run_single_session(solver, world, cfg, log)
+    return _run_per_probe(solver, world, cfg, log)
+
+
+def _score_and_metrics(world: WiltWorld, history, guess, cfg: Config) -> dict:
+    score = world.score_guess(guess)
+    hyp = world.hypothesis_reduction(history)
+    metrics = taste.compute_metrics(history, guess, score, hyp)
+    metrics["fitness"] = taste.fitness(metrics, cfg)
+    return {"history": history, "guess": guess, "metrics": metrics}
+
+
+def _run_per_probe(solver, world: WiltWorld, cfg: Config, log=print) -> dict:
     channel = world.open_channel()
     llm_fn = _task_llm(cfg)
     guess = None
@@ -43,12 +67,70 @@ def run_on_world(solver, world: WiltWorld, cfg: Config, log=print) -> dict:
     except Exception as e:
         log(f"  solver crashed on a world: {e}")
         guess = None
-    history = channel.history()
-    score = world.score_guess(guess)
-    hyp = world.hypothesis_reduction(history)
-    metrics = taste.compute_metrics(history, guess, score, hyp)
-    metrics["fitness"] = taste.fitness(metrics, cfg)
-    return {"history": history, "guess": guess, "metrics": metrics}
+    return _score_and_metrics(world, channel.history(), guess, cfg)
+
+
+def _run_single_session(solver, world: WiltWorld, cfg: Config, log=print) -> dict:
+    traj_path = os.path.join(tempfile.gettempdir(), f"hta_traj_{uuid.uuid4().hex}.jsonl")
+    open(traj_path, "w").close()
+    # The rule source lives ONLY in the MCP server's env; the agent session cannot read it.
+    server_env = {
+        "HTA_RULE_SRC": world.rule.source,
+        "HTA_MAX_PROBES": str(world.max_probes),
+        "HTA_TRAJ_PATH": traj_path,
+        "PATH": os.environ.get("PATH", ""),
+        "HOME": os.environ.get("HOME", ""),
+        "PYTHONPATH": _REPO_ROOT + os.pathsep + os.environ.get("PYTHONPATH", ""),
+    }
+    server_argv = [sys.executable, "-m", "hta.world.probe_server"]
+    try:
+        prompt = solver.episode_prompt(world.max_probes)
+    except Exception as e:
+        log(f"  solver has no episode_prompt ({e}); using default")
+        prompt = _default_episode_prompt(world.max_probes)
+    max_turns = world.max_probes + cfg.episode_turn_buffer
+    res = llm.episode(prompt, model=cfg.task_model, mcp_server_argv=server_argv,
+                      server_env=server_env, cwd=_REPO_ROOT,
+                      allowed_tools=cfg.episode_allowed_tools, max_turns=max_turns,
+                      role="task_episode", cfg=cfg)
+    if res.get("is_error"):
+        log(f"  episode error: {str(res.get('result'))[:140]}")
+    history, guess = _read_trajectory(traj_path)
+    try:
+        os.remove(traj_path)
+    except OSError:
+        pass
+    return _score_and_metrics(world, history, guess, cfg)
+
+
+def _read_trajectory(path: str):
+    """Reconstruct (history, guess) from the server's append-only log. history items
+    match channel.history() shape, so downstream scoring/metrics are unchanged."""
+    history, guess = [], None
+    try:
+        with open(path) as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                rec = json.loads(line)
+                if rec.get("type") == "probe":
+                    history.append({k: rec[k] for k in ("triple", "label", "reused", "malformed")
+                                    if k in rec})
+                elif rec.get("type") == "guess":
+                    guess = rec.get("rule") or None
+    except OSError:
+        pass
+    return history, guess
+
+
+def _default_episode_prompt(max_probes: int) -> str:
+    return (
+        "Discover a hidden rule mapping three numbers (x,y,z) to True/False. "
+        f"You have {max_probes} probes. Use probe(x,y,z) to gather evidence, try to "
+        "falsify your hypotheses, then call submit_guess('lambda x, y, z: ...') exactly "
+        "once with the simplest rule consistent with all observations."
+    )
 
 
 def evaluate(solver_dir: str, worlds: List[WiltWorld], cfg: Config, log=print) -> dict:
@@ -72,6 +154,37 @@ def evaluate(solver_dir: str, worlds: List[WiltWorld], cfg: Config, log=print) -
         "report_md": _sanitized_report(per_world),
     }
     return agg
+
+
+def weak_tags(worlds: List[WiltWorld], per_world: List[dict], threshold: float = 0.5) -> List[str]:
+    """Taste-tags the agent is weakest at: rule tags with the lowest solved-rate.
+    Feeds the world-smith so the curriculum targets the agent's blind spots."""
+    total, solved = defaultdict(int), defaultdict(int)
+    for w, r in zip(worlds, per_world):
+        for tag in w.rule.tags:
+            total[tag] += 1
+            if r["metrics"]["solved"]:
+                solved[tag] += 1
+    rates = {t: solved[t] / total[t] for t in total}
+    weak = [t for t, rt in rates.items() if rt < threshold]
+    return sorted(weak, key=lambda t: rates[t])
+
+
+def weakness_flags(per_world: List[dict]) -> List[str]:
+    """Behavioral failure modes aggregated across worlds (human-readable)."""
+    n = len(per_world) or 1
+    mig = sum(r["metrics"]["avg_info_gain"] for r in per_world) / n
+    mff = sum(r["metrics"]["false_frac"] for r in per_world) / n
+    overcomplex = sum(1 for r in per_world
+                      if r["metrics"]["agreement"] >= 0.95 and not r["metrics"]["solved"])
+    flags = []
+    if mig < 0.15:
+        flags.append("weak hypothesis-space reduction (low info gain)")
+    if mff < 0.15:
+        flags.append("confirmation bias (rarely seeks falsifying cases)")
+    if overcomplex > 0:
+        flags.append("over-complex guesses (near-correct but not exact)")
+    return flags
 
 
 def _sanitized_report(per_world: List[dict]) -> str:

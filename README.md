@@ -50,13 +50,25 @@ HTA_TASK_MODEL=haiku  HTA_META_MODEL=opus  HTA_WORLD_MODEL=opus  HTA_BACKEND=rea
 # or: python run_iteration.py --backend real --task-model haiku --meta-model opus
 ```
 
-### The two `claude -p` adapters (`hta/llm.py`)
+### The three `claude -p` adapters (`hta/llm.py`)
 - `complete(prompt, model, role)` → `claude -p <prompt> --model M --output-format json --max-turns 1`.
   No tools granted ⇒ behaves like a text completion. Output is unwrapped from the JSON
-  `result` field and de-fenced.
+  `result` field and de-fenced. (per-probe task agent + world-smith)
+- `episode(prompt, model, mcp_server_argv, server_env, ...)` → runs a **whole world's episode in
+  one `claude -p` session** with the probe channel exposed as a narrow stdio-MCP tool
+  (`hta/world/probe_server.py`). The ~31k-token system-prompt overhead is paid **once per world**
+  instead of once per probe. Only `mcp__probe__*` tools are allowed; Bash/Read/Edit/Write are
+  denied (airgap). (single-session task agent — the efficient mode)
 - `agentic(instruction, workdir, model, allowed_tools, max_turns)` → `claude -p` run
   **inside the child workspace** with `Edit/Read/Write` and `--permission-mode acceptEdits`.
-  **Never granted Bash**, never run where the world source is reachable.
+  **Never granted Bash**, never run where the world source is reachable. (meta agent)
+
+### Task-agent execution modes (`episode_mode`)
+- `per_probe` (default; used by the mock/tests): one `complete()` call per probe.
+- `single_session`: one `episode()` per world — the efficient path. **Contamination boundary:**
+  context is shared *within* a world's episode (the multi-turn memory we want) but a **fresh
+  session is used per world** (never across worlds → no hypothesis bleed / rule-distribution leak)
+  and never across roles. The only tool the session can use is the probe channel.
 
 ## Quick start
 
@@ -70,6 +82,9 @@ python run_loop.py --iterations 5 --backend mock
 
 # Live claude -p (Haiku task agent, Opus meta + world-smith). Start small:
 python run_iteration.py --backend real --max-probes 5 --n-train 1 --n-transfer 1
+
+# Efficient task agent: whole episode per world in one claude -p session (MCP probe tool):
+python run_iteration.py --backend real --episode-mode single_session --max-probes 8 --n-train 1 --n-transfer 1
 
 # Tests (mock only, incl. airgap + sandbox checks):
 python -m pytest tests/ -q
@@ -113,12 +128,12 @@ adapts) are averaged, so improvement must be *general* taste, not curriculum ove
 ## Cost / throughput finding
 
 Each `claude -p` call carries ~31k tokens of cached Claude-Code system-prompt overhead
-(~$0.04 per Haiku call) because we use the CLI as a generation engine. That is the main
-scaling constraint (roadblocker #3). Mitigations in place: Haiku task agent, tiny
-testing profile, objective local scoring (no LLM in the scoring path). Recommended next
-optimization: run an entire probing episode as **one** `claude -p` session (channel
-exposed as a tool) so the system-prompt tax is amortized across probes instead of paid
-per probe.
+(~$0.02–0.04 per Haiku call) because we use the CLI as a generation engine — the main
+scaling constraint (roadblocker #3). **`episode_mode=single_session` addresses it**: a whole
+world's episode (all probes + guess) runs in **one** `claude -p` session via the stdio-MCP
+probe tool, so that overhead is paid **once per world** instead of once per probe. The win
+grows with `max_probes` (per-probe cost is linear in probes; single-session is ~flat). Other
+mitigations: Haiku task agent, objective local scoring (no LLM in the scoring path).
 
 ## Roadblockers → how they're handled
 
@@ -126,7 +141,7 @@ per probe.
 |---|---|
 | `claude -p` is an agent, not a completion endpoint | two adapters: constrained (task/world) vs agentic (meta) |
 | Reward-hacking / leaking the hidden rule | airgap: meta edits code but never runs eval; sanitized report; ProbeChannel only |
-| Subscription throughput / cost | Haiku task agent; minimal calls; objective scoring; (next) single-session episodes |
+| Subscription throughput / cost | Haiku task agent; objective scoring; **single-session episodes** (`episode_mode=single_session`) amortize the ~31k system-prompt tax to once per world |
 | Overfitting vs world-independent taste | frozen transfer suite averaged into fitness |
 | Operationalizing "taste" without Goodhart | objective metrics; LLM judgement only on the world-generation side |
 | Arbitrary code from model strings | strict AST whitelist + no-builtins eval |
@@ -142,17 +157,21 @@ hta/
   meta_agent.py        Opus agentic self-modification (+ deterministic mock)
   archive.py           archive of hyperagents + open-ended parent selection
   loop.py              one DGM-H iteration (parent eval → self-modify → child eval)
-  seed/
-    solver.py          seed editable task-agent program (STRATEGY knob)
-    meta_strategy.md   editable meta playbook (metacognitive self-modification)
   world/               AGENT-INACCESSIBLE
     grammar.py         safe lambda compilation + candidate hypothesis library
     channel.py         ProbeChannel — the only agent↔world interface
     engine.py          WiltWorld: hidden rule + empirical-equivalence scorer + info gain
-    world_smith.py     Opus curriculum generator + frozen transfer suite
+    world_smith.py     Opus curriculum generator (ZPD + weak-tag targeting) + frozen transfer
+    probe_server.py    stdlib stdio-MCP server: exposes ONE world as narrow probe tools
+  seed/
+    solver.py          seed task-agent program (STRATEGY knob; run() + episode_prompt())
+    episode_prompt.md  editable single-session strategy surface (meta agent edits this)
+    meta_strategy.md   editable meta playbook (metacognitive self-modification)
 run_iteration.py       run one iteration, report improvement + cost
 run_loop.py            run N iterations, print progression
-tests/test_pipeline.py mock end-to-end + airgap + sandbox tests
+scripts/real_eval_demo.py  live Haiku eval on one world (--episode-mode per_probe|single_session)
+tests/test_pipeline.py mock end-to-end + airgap + sandbox + probe-server + curriculum tests
+REFERENCE.md           how HyperAgents does it + patterns to adopt next (pointers, no code copied)
 ```
 
 Built on the concepts of HyperAgents (Zhang et al., 2026) and WILT (Banatt et al., 2025).

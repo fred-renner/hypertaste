@@ -26,6 +26,8 @@ def build_config(args) -> Config:
         cfg.world_model = args.world_model
     if args.max_probes is not None:
         cfg.max_probes = args.max_probes
+    if getattr(args, "episode_mode", None):
+        cfg.episode_mode = args.episode_mode
     if getattr(args, "n_train", None) is not None:
         cfg.n_train_worlds = args.n_train
     if getattr(args, "n_transfer", None) is not None:
@@ -45,6 +47,8 @@ def main():
     ap.add_argument("--meta-model", dest="meta_model")
     ap.add_argument("--world-model", dest="world_model")
     ap.add_argument("--max-probes", dest="max_probes", type=int)
+    ap.add_argument("--episode-mode", dest="episode_mode",
+                    choices=["per_probe", "single_session"])
     ap.add_argument("--n-train", dest="n_train", type=int)
     ap.add_argument("--n-transfer", dest="n_transfer", type=int)
     ap.add_argument("--meta-max-turns", dest="meta_max_turns", type=int)
@@ -57,6 +61,7 @@ def main():
     print("=" * 70)
     print(f"hypertaste :: one iteration  [backend={cfg.backend}, profile={args.profile}]")
     print(f"models: task={cfg.task_model}  meta={cfg.meta_model}  world={cfg.world_model}")
+    print(f"episode_mode: {cfg.episode_mode}")
     print(f"knobs:  max_probes={cfg.max_probes}  train={cfg.n_train_worlds}  "
           f"transfer={cfg.n_transfer_worlds}")
     print("=" * 70)

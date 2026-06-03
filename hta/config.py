@@ -31,6 +31,18 @@ class Config:
     # ---- WILT knobs ----
     max_probes: int = 30  # classic WILT allows up to 30 test cases
 
+    # ---- task-agent episode execution ----
+    # "per_probe": one constrained claude -p call per probe (simple; high overhead).
+    # "single_session": run a whole episode (all probes + guess for ONE world) as a
+    #   single claude -p session with the probe channel exposed as a narrow stdio-MCP
+    #   tool, so the ~31k-token system-prompt overhead is paid once per world instead
+    #   of once per probe. Default per_probe so the deterministic mock tests are
+    #   untouched; real runners pass single_session.
+    episode_mode: str = field(default_factory=lambda: _env("HTA_EPISODE_MODE", "per_probe"))
+    episode_allowed_tools: Tuple[str, ...] = (
+        "mcp__probe__probe", "mcp__probe__remaining", "mcp__probe__submit_guess")
+    episode_turn_buffer: int = 8  # max_turns = max_probes + buffer (probe+read+guess+retries)
+
     # ---- evaluation ----
     n_train_worlds: int = 4
     n_transfer_worlds: int = 4  # frozen held-out worlds -> measures generalization

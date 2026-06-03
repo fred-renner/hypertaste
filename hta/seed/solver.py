@@ -14,9 +14,22 @@ replace this whole file with something better, as long as the contract holds.
 """
 
 import json
+import os
 import re
 
 STRATEGY = "naive"   # meta agent may change this and/or rewrite the strategy below.
+
+# Strategy guidance injected into the single-session episode prompt. The meta agent
+# may edit these strings (and/or episode_prompt.md) to improve research taste.
+NAIVE_GUIDANCE = (
+    "Propose test cases similar to ones that returned True, to confirm your current "
+    "hypothesis."
+)
+SMART_GUIDANCE = (
+    "Actively try to FALSIFY your current best hypothesis: probe diverse and edge cases "
+    "(equal values, negatives, zero, non-strict orderings, large gaps, reversed orders). "
+    "Never repeat a probe. Prefer probes that split your remaining hypotheses in half."
+)
 
 
 def _extract_json(text):
@@ -42,6 +55,16 @@ def _valid_triple(p):
 
 
 class Solver:
+    def episode_prompt(self, max_probes):
+        """Single-session mode: build the whole-episode prompt for one world.
+        Loads episode_prompt.md (next to this file) and fills in the strategy + budget.
+        The agent then drives the episode via the probe MCP tools."""
+        here = os.path.dirname(os.path.abspath(__file__))
+        with open(os.path.join(here, "episode_prompt.md")) as f:
+            template = f.read()
+        guidance = SMART_GUIDANCE if STRATEGY == "smart" else NAIVE_GUIDANCE
+        return template.format(max_probes=max_probes, strategy_guidance=guidance)
+
     def run(self, channel, llm):
         history = []  # list of {"triple": [...], "label": bool}
         seen = set()

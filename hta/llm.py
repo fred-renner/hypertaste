@@ -162,6 +162,49 @@ def agentic(instruction: str, workdir: str, model: str,
 
 
 # ---------------------------------------------------------------------------
+# SINGLE-SESSION EPISODE (task agent). One claude -p session runs a whole world's
+# episode, with the probe channel exposed as a narrow stdio-MCP tool. Real only.
+# ---------------------------------------------------------------------------
+def episode(prompt: str, model: str, mcp_server_argv, server_env, cwd: str,
+            allowed_tools, max_turns: int, role: str = "task_episode",
+            cfg: Optional[Config] = None) -> dict:
+    cfg = cfg or Config()
+    if cfg.backend == "mock":
+        raise RuntimeError("episode() not available in mock backend; caller must handle mock")
+    # Inline MCP config string -> nothing written to disk that the agent could read.
+    mcp_cfg = json.dumps({"mcpServers": {"probe": {
+        "type": "stdio",
+        "command": mcp_server_argv[0],
+        "args": list(mcp_server_argv[1:]),
+        "env": server_env,  # the hidden rule lives ONLY here, on the server's process
+    }}})
+    # acceptEdits (not bypassPermissions, which is refused when running as root); the
+    # explicit --allowedTools allowlist below is what auto-approves the MCP probe tools.
+    cmd = ["claude", "-p", prompt, "--model", model, "--output-format", "json",
+           "--mcp-config", mcp_cfg, "--strict-mcp-config",
+           "--permission-mode", "acceptEdits",
+           "--max-turns", str(max_turns)]
+    for t in allowed_tools:
+        cmd += ["--allowedTools", t]
+    # Belt-and-suspenders: deny every filesystem/network tool so the only channel to
+    # the world is the probe MCP tool (airgap).
+    cmd += ["--disallowedTools", "Bash", "Read", "Edit", "Write", "WebFetch", "WebSearch", "Glob", "Grep"]
+    try:
+        proc = subprocess.run(cmd, capture_output=True, text=True, cwd=cwd,
+                              timeout=cfg.call_timeout_s * 4)
+        obj = json.loads(proc.stdout) if proc.stdout.strip() else {}
+    except subprocess.TimeoutExpired:
+        return {"is_error": True, "result": "timeout", "num_turns": 0, "cost_usd": 0.0}
+    except json.JSONDecodeError:
+        return {"is_error": True, "result": (proc.stdout or proc.stderr)[:300],
+                "num_turns": 0, "cost_usd": 0.0}
+    cost = obj.get("total_cost_usd", 0.0)
+    ACCT.add(role, model, cost)  # ONE accounting row for the whole episode
+    return {"is_error": bool(obj.get("is_error")), "result": obj.get("result", ""),
+            "num_turns": obj.get("num_turns", 0), "cost_usd": cost}
+
+
+# ---------------------------------------------------------------------------
 # Deterministic mock backend
 # ---------------------------------------------------------------------------
 _CTX = re.compile(r"<<CTX>>(.*?)<<CTX>>", re.DOTALL)
@@ -226,11 +269,12 @@ def _mock_guess(ctx: dict) -> dict:
 
 
 def _mock_world_smith(ctx: dict) -> dict:
-    """Canned curriculum: return rules at/around a target difficulty."""
+    """Canned curriculum: rules near a target difficulty, biased toward weak tags."""
     from .world.grammar import candidate_library
     target = int(ctx.get("target_difficulty", 2))
     n = int(ctx.get("n", 2))
+    weak = set(ctx.get("weak_tags", []) or [])
     lib = candidate_library()
-    lib.sort(key=lambda r: abs(r.difficulty - target))
+    lib.sort(key=lambda r: (-len(set(r.tags) & weak), abs(r.difficulty - target)))
     picked = lib[:max(1, n)]
     return {"rules": [r.to_dict() for r in picked]}
