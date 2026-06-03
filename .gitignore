@@ -8,3 +8,6 @@ outputs/
 venv/
 # Disposable local smoke/diagnostic logs (committed run logs live under runs/)
 /outputs_smoke.log
+# Live run log while a run is in progress; re-added as a final committed artifact
+# once the run completes (avoids churn from every appended line).
+/runs/todo1_2026-06-03.log
