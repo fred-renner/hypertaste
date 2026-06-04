@@ -1,31 +1,12 @@
-# World design: how we grow the world (TODO 2)
+# World design — how the world grows
 
-Design note for HANDOFF.md TODO 2. Decides how the world evolves beyond classic
-numeric WILT so that *research taste* keeps being the thing that wins, **without
-breaking objective scoring or the airgap**. Grounded in the current code; cites the
-files each change touches.
+How the world evolves beyond classic numeric WILT so that *research taste* keeps being
+the thing that wins, without breaking objective scoring or the airgap. Grounded in the
+current code; cites the files each change touches.
 
-> **Status (2026-06-04): the "smallest shippable first slice" below is implemented.**
-> Axis A (compositional worlds) + Axis B (sampled hypothesis space) are live; the
-> scorer (`score_guess`) and the AST airgap (`validate_lambda`/`compile_rule`) are
-> byte-for-byte unchanged, as promised. What landed:
-> - `RuleSpec.structure` (`atomic|conjunction|regime|exception`) + 7 compositional
->   seed rules in `grammar.py` (library now 32 rules spanning all four structures).
-> - `grammar.sample_hypotheses(seed, k, max_structure)` — the generative version
->   space; `engine.WiltWorld.hypothesis_reduction` now measures collapse over a
->   per-world sampled set (seeded from the rule source) instead of the fixed library.
-> - Solvability gate (`world_smith.is_admissible`): non-degeneracy (both labels occur)
->   + a reference Occam inductor that confirms an optimal prober recovers the rule's
->   equivalence class. Behavior-vector novelty (`select_worlds`) de-dups worlds whose
->   battery label-vectors are within a small Hamming distance, incl. vs. transfer.
-> - `world_smith.transfer_suite` is now an independently-seeded held-out draw (fixed
->   `_TRANSFER_SEED`, never conditioned on `weak_tags`) over admissible worlds, instead
->   of a fixed 6-name list. `_SMITH_PROMPT` now instructs the smith to compose rules
->   and emit `structure`.
-> - Tests: `tests/test_world_design.py` (8 cases) covers all six slice items.
->
-> Everything still deferred below (stochastic/latent/N>3/"real research" worlds)
-> remains deferred for the documented reasons.
+Axes A (compositional worlds) and B (sampled hypothesis space) are implemented; the
+scorer (`score_guess`) and the AST airgap (`validate_lambda`/`compile_rule`) are
+unchanged. Everything under "Explicitly deferred" remains deferred.
 
 ## The constraint that picks the axis
 
@@ -109,9 +90,9 @@ the agent's probes shrink the **25-rule `candidate_library()`** (`hta/world/gram
 That library currently doubles as both the measurable hypothesis space *and* the
 smith's fallback. The instant Axis A produces rules outside those 25 templates, the
 library no longer contains the true rule, so `consistent_candidates` can collapse to
-the wrong set (or empty), and `avg_info_gain` reports noise. This is also the open
-question in HANDOFF.md ("how does info-gain scale when the library no longer covers
-the rule space?"). **We must decouple them before A is meaningful.**
+the wrong set (or empty), and `avg_info_gain` reports noise. This is the core info-gain
+scaling problem: how does the metric behave when the library no longer covers the rule
+space? We must decouple them before A is meaningful.
 
 **The fix — version space over a sampled rule set.** Replace "hypothesis space = the
 fixed 25 library rules" with "hypothesis space = K rules **sampled from the grammar**"
@@ -133,37 +114,27 @@ definition of the hypothesis space.
 - `hta/taste.py` — no change to the fitness formula; `avg_info_gain` just becomes
   trustworthy on compositional worlds.
 
-## Open questions from HANDOFF.md — resolved for A+B
+## Design decisions
 
-- **Objective scoring as worlds get richer.** Unchanged for A: compositional rules are
-  deterministic, so empirical equivalence on the battery is exactly as valid as today.
-  This is precisely *why* stochastic/latent axes are deferred — they're the ones that
-  would force a new scorer.
-- **Info-gain when the library no longer covers the rule space.** Solved by Axis B:
-  sampled version space, not a fixed 25-rule library.
 - **ZPD calibration + avoiding unsolvable / degenerate worlds.** The solvability gate
-  (Axis A) is the floor (non-degenerate + recoverable-in-principle); the existing
-  `_target_difficulty` escalator (`hta/loop.py`, escalate at ≥75% solved) is the
-  ceiling. `structure` becomes a difficulty axis the smith can climb (atomic →
-  conjunction → regime → exception) instead of just nudging an integer 1–5.
-- **World novelty / anti-degeneracy across generations.** Make it **objective**: a
-  world's *behavior vector* is its label over `_BATTERY`. Reject a generated world whose
+  (Axis A) is the floor (non-degenerate + recoverable-in-principle); the
+  `_target_difficulty` escalator (`hta/loop.py`, escalate at ≥75% solved) is the ceiling.
+  `structure` is a difficulty axis the smith climbs (atomic → conjunction → regime →
+  exception) rather than just nudging an integer 1–5.
+- **World novelty / anti-degeneracy across generations.** Kept objective: a world's
+  *behavior vector* is its label over `_BATTERY`. A generated world is rejected when its
   behavior vector is within a small Hamming distance of any world already used this run
-  (and optionally of the transfer set). Cheap, model-free, and it directly measures
-  "is this actually a new world or a relabeled duplicate."
-- **Anti-collusion as the smith gets more powerful.** Keep the frozen transfer set, but
-  strengthen it: today `transfer_suite` is 6 hand-picked library names
-  (`world_smith._TRANSFER_NAMES`). Add an **independently sampled** transfer
-  distribution — draw transfer worlds from the *same grammar* but with a **fixed,
-  separate seed** and **never** conditioned on the agent's `weak_tags` (training worlds
-  are; transfer must not be). That makes transfer a genuine held-out distribution, not a
-  fixed list the agent could memorize across runs.
-- **Where LLM-judged "interestingness" belongs.** World **generation only** — the smith
-  may rank or filter its own candidates for interestingness. It must **never** enter
-  fitness: `hta/taste.py` is deliberately objective/computable because the agent is
-  optimized against that number and an LLM judge there is gameable (the module's own
-  docstring makes this commitment). Interestingness shapes *what worlds exist*, never
-  *what score an agent gets*.
+  (and of the transfer set) — a model-free measure of "new world vs. relabeled duplicate."
+- **Anti-collusion as the smith gets more powerful.** Transfer is an independently
+  sampled held-out distribution: drawn from the same grammar with a fixed, separate seed
+  (`_TRANSFER_SEED`) and never conditioned on the agent's `weak_tags` (training worlds
+  are; transfer is not). That keeps it a genuine held-out distribution, not a fixed list
+  the agent could memorize across runs.
+- **Where LLM-judged "interestingness" belongs.** World generation only — the smith may
+  rank or filter its own candidates. It never enters fitness: `hta/taste.py` is
+  deliberately objective because the agent is optimized against that number and an LLM
+  judge there is gameable. Interestingness shapes *what worlds exist*, never *what score
+  an agent gets*.
 
 ## Explicitly deferred (and why, so the next session doesn't relitigate)
 

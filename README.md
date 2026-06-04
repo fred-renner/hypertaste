@@ -12,10 +12,9 @@ its own improvement procedure**), specialized so that:
 - the world (hidden rule + scorer) is **airgapped** from the agent's editable surface,
   which is simultaneously the anti-leak wall and the scientific-validity wall.
 
-> Status: **testing mode**. Classic numeric WILT. Multi-iteration evolution verified
-> end-to-end on both the offline mock backend and live `claude -p` (5-iteration real run:
-> `runs/run5_2026-06-04.log`). Episodes run concurrently; lineage compounds and children
-> improve over parents.
+> Status: classic numeric WILT. Multi-iteration evolution is verified end-to-end on both
+> backends — the offline mock and live `claude -p`. Episodes run concurrently; lineage
+> compounds and children improve over their parents.
 
 ## The three planes
 
@@ -152,6 +151,11 @@ Measured A/B (same world, smart strategy, `max_probes=6`, live Haiku):
 
 ~4.7× cheaper at 6 probes; the ratio grows toward ~30× at the full 30-probe WILT budget.
 
+With single-session episodes and concurrent eval in place, the Opus meta agent dominates
+per-iteration cost. Staged-eval gating (eval a child on one world first, full set only if
+it clears a bar) and diagnose-from-sampled-failure (hand the meta agent one sampled failing
+trajectory instead of the whole report) are the main remaining levers; neither is implemented yet.
+
 ## Roadblockers → how they're handled
 
 | Roadblocker | Handling |
@@ -191,9 +195,11 @@ docker/
 scripts/build_agent_image.sh  build the agent-plane image (context = docker/ only)
 run_iteration.py       run one iteration, report improvement + cost (shared CLI args)
 run_loop.py            run N iterations, print progression
-tests/test_pipeline.py mock end-to-end + airgap + sandbox + probe-server + curriculum tests
+tests/test_pipeline.py mock end-to-end + airgap + probe-server + curriculum tests
 tests/test_world_design.py  compositional worlds + sampled hypothesis space + solvability/novelty gates
-REFERENCE.md           how HyperAgents does it + patterns to adopt next (pointers, no code copied)
+tests/test_sandbox.py  meta-agent sandbox routing + Docker isolation flags (offline; no daemon)
 ```
 
+We did not fork [HyperAgents](https://github.com/facebookresearch/Hyperagents)
+(CC-BY-NC-SA); this is a lean reimplementation that uses `claude -p` as the model layer.
 Built on the concepts of HyperAgents (Zhang et al., 2026) and WILT (Banatt et al., 2025).

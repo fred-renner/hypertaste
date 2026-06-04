@@ -6,5 +6,6 @@ outputs/
 .pytest_cache/
 .venv/
 venv/
-# Disposable local smoke/diagnostic logs (committed run logs live under runs/)
+# Run logs and findings are local-only (kept on disk, not committed).
+runs/
 /outputs_smoke.log
