@@ -12,8 +12,10 @@ its own improvement procedure**), specialized so that:
 - the world (hidden rule + scorer) is **airgapped** from the agent's editable surface,
   which is simultaneously the anti-leak wall and the scientific-validity wall.
 
-> Status: **testing mode**. Classic numeric WILT, one-iteration pipeline verified
-> end-to-end on both the offline mock backend and live `claude -p`. See *Status* below.
+> Status: **testing mode**. Classic numeric WILT. Multi-iteration evolution verified
+> end-to-end on both the offline mock backend and live `claude -p` (5-iteration real run:
+> `runs/run5_2026-06-04.log`). Episodes run concurrently; lineage compounds and children
+> improve over parents.
 
 ## The three planes
 
@@ -187,9 +189,8 @@ hta/
 docker/
   Dockerfile.agent     agent-plane image (Node + claude CLI; no project code/world/secrets)
 scripts/build_agent_image.sh  build the agent-plane image (context = docker/ only)
-run_iteration.py       run one iteration, report improvement + cost
+run_iteration.py       run one iteration, report improvement + cost (shared CLI args)
 run_loop.py            run N iterations, print progression
-scripts/real_eval_demo.py  live Haiku eval on one world (--episode-mode per_probe|single_session)
 tests/test_pipeline.py mock end-to-end + airgap + sandbox + probe-server + curriculum tests
 tests/test_world_design.py  compositional worlds + sampled hypothesis space + solvability/novelty gates
 REFERENCE.md           how HyperAgents does it + patterns to adopt next (pointers, no code copied)

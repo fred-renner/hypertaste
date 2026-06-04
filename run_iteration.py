@@ -14,6 +14,33 @@ from hta.config import Config
 from hta import loop
 
 
+def add_common_args(ap: argparse.ArgumentParser) -> None:
+    """The run knobs shared by run_iteration.py and run_loop.py (single source so the
+    two launchers can't drift). run_loop adds its own --iterations on top."""
+    ap.add_argument("--backend", choices=["mock", "real"])
+    ap.add_argument("--profile", choices=["testing", "full"], default="testing")
+    ap.add_argument("--task-model", dest="task_model")
+    ap.add_argument("--meta-model", dest="meta_model")
+    ap.add_argument("--world-model", dest="world_model")
+    ap.add_argument("--max-probes", dest="max_probes", type=int)
+    ap.add_argument("--episode-mode", dest="episode_mode",
+                    choices=["per_probe", "single_session"])
+    ap.add_argument("--n-train", dest="n_train", type=int)
+    ap.add_argument("--n-transfer", dest="n_transfer", type=int)
+    ap.add_argument("--meta-max-turns", dest="meta_max_turns", type=int)
+    ap.add_argument("--eval-repeats", dest="eval_repeats", type=int,
+                    help="run each world's episode N times and average (variance damping)")
+    ap.add_argument("--eval-concurrency", dest="eval_concurrency", type=int,
+                    help="max simultaneous claude -p episodes (real backend; speed)")
+    ap.add_argument("--parent-selection", dest="parent_selection",
+                    choices=["weighted", "random"],
+                    help="archive parent policy: weighted quality x novelty | uniform random")
+    ap.add_argument("--sandbox", choices=["none", "docker"],
+                    help="meta-agent airgap: none (Bash-denied, in-process) | "
+                         "docker (host-isolated container). docker fails closed.")
+    ap.add_argument("--out-dir", dest="out_dir")
+
+
 def build_config(args) -> Config:
     cfg = Config.testing() if args.profile == "testing" else Config()
     if args.backend:
@@ -36,6 +63,8 @@ def build_config(args) -> Config:
         cfg.meta_max_turns = args.meta_max_turns
     if getattr(args, "eval_repeats", None) is not None:
         cfg.eval_repeats = args.eval_repeats
+    if getattr(args, "eval_concurrency", None) is not None:
+        cfg.eval_concurrency = args.eval_concurrency
     if getattr(args, "parent_selection", None):
         cfg.parent_selection = args.parent_selection
     if getattr(args, "sandbox", None):
@@ -47,26 +76,7 @@ def build_config(args) -> Config:
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--backend", choices=["mock", "real"])
-    ap.add_argument("--profile", choices=["testing", "full"], default="testing")
-    ap.add_argument("--task-model", dest="task_model")
-    ap.add_argument("--meta-model", dest="meta_model")
-    ap.add_argument("--world-model", dest="world_model")
-    ap.add_argument("--max-probes", dest="max_probes", type=int)
-    ap.add_argument("--episode-mode", dest="episode_mode",
-                    choices=["per_probe", "single_session"])
-    ap.add_argument("--n-train", dest="n_train", type=int)
-    ap.add_argument("--n-transfer", dest="n_transfer", type=int)
-    ap.add_argument("--meta-max-turns", dest="meta_max_turns", type=int)
-    ap.add_argument("--eval-repeats", dest="eval_repeats", type=int,
-                    help="run each world's episode N times and average (variance damping)")
-    ap.add_argument("--parent-selection", dest="parent_selection",
-                    choices=["weighted", "random"],
-                    help="archive parent policy: weighted quality x novelty | uniform random")
-    ap.add_argument("--sandbox", choices=["none", "docker"],
-                    help="meta-agent airgap: none (Bash-denied, in-process) | "
-                         "docker (host-isolated container). docker fails closed.")
-    ap.add_argument("--out-dir", dest="out_dir")
+    add_common_args(ap)
     args = ap.parse_args()
 
     cfg = build_config(args)

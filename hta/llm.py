@@ -18,10 +18,16 @@ plumbing observable and reproducible.
 import json
 import re
 import subprocess
+import threading
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
 
 from .config import Config
+
+# Episodes run concurrently (see task_agent.evaluate), so every claude -p call is
+# launched with no stdin: without this the CLI waits 3s per launch for input that
+# never comes ("no stdin data received in 3s") -- ~3s x every call of dead latency.
+_NO_STDIN = subprocess.DEVNULL
 
 # ---------------------------------------------------------------------------
 # Call accounting (so a test run can report calls + $).
@@ -32,12 +38,14 @@ class _Acct:
     cost_usd: float = 0.0
     by_role: Dict[str, int] = field(default_factory=dict)
     by_model: Dict[str, int] = field(default_factory=dict)
+    _lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
 
     def add(self, role: str, model: str, cost: float):
-        self.calls += 1
-        self.cost_usd += float(cost or 0.0)
-        self.by_role[role] = self.by_role.get(role, 0) + 1
-        self.by_model[model] = self.by_model.get(model, 0) + 1
+        with self._lock:  # concurrent episodes mutate this from worker threads
+            self.calls += 1
+            self.cost_usd += float(cost or 0.0)
+            self.by_role[role] = self.by_role.get(role, 0) + 1
+            self.by_model[model] = self.by_model.get(model, 0) + 1
 
 
 ACCT = _Acct()
@@ -113,7 +121,7 @@ def _real_complete(prompt: str, model: str, role: str, cfg: Config) -> str:
     for attempt in range(2):
         try:
             proc = subprocess.run(cmd, capture_output=True, text=True,
-                                  timeout=cfg.call_timeout_s)
+                                  stdin=_NO_STDIN, timeout=cfg.call_timeout_s)
             if proc.returncode != 0:
                 last_err = f"claude -p exit {proc.returncode}: {proc.stderr[:300]}"
                 continue
@@ -175,7 +183,7 @@ def agentic(instruction: str, workdir: str, model: str,
     cmd = agentic_argv(instruction, model, allowed_tools, max_turns)
     try:
         proc = subprocess.run(cmd, capture_output=True, text=True,
-                              cwd=workdir, timeout=cfg.call_timeout_s * 3)
+                              stdin=_NO_STDIN, cwd=workdir, timeout=cfg.call_timeout_s * 3)
     except subprocess.TimeoutExpired:
         return {"is_error": True, "result": "timeout", "num_turns": 0, "cost_usd": 0.0}
     return agentic_result_from_stdout(proc.stdout, role, model)
@@ -211,7 +219,7 @@ def episode(prompt: str, model: str, mcp_server_argv, server_env, cwd: str,
     cmd += ["--disallowedTools", "Bash", "Read", "Edit", "Write", "WebFetch", "WebSearch", "Glob", "Grep"]
     try:
         proc = subprocess.run(cmd, capture_output=True, text=True, cwd=cwd,
-                              timeout=cfg.call_timeout_s * 4)
+                              stdin=_NO_STDIN, timeout=cfg.call_timeout_s * 4)
         obj = json.loads(proc.stdout) if proc.stdout.strip() else {}
     except subprocess.TimeoutExpired:
         return {"is_error": True, "result": "timeout", "num_turns": 0, "cost_usd": 0.0}
@@ -220,7 +228,10 @@ def episode(prompt: str, model: str, mcp_server_argv, server_env, cwd: str,
                 "num_turns": 0, "cost_usd": 0.0}
     cost = obj.get("total_cost_usd", 0.0)
     ACCT.add(role, model, cost)  # ONE accounting row for the whole episode
-    return {"is_error": bool(obj.get("is_error")), "result": obj.get("result", ""),
+    # On error the JSON has no `result` field; fall back to `subtype` (e.g.
+    # "error_max_turns") so the log says *why* instead of an empty message.
+    msg = obj.get("result") or obj.get("subtype") or ""
+    return {"is_error": bool(obj.get("is_error")), "result": msg,
             "num_turns": obj.get("num_turns", 0), "cost_usd": cost}
 
 

@@ -30,6 +30,44 @@ The maintainer cares about token efficiency **in general** — apply it at every
 
 When proposing changes, call out the token/cost impact explicitly.
 
+## Operating notes (skip the warmup — don't re-explore the repo each session)
+
+This file + `README.md` ARE the orientation. Don't read the whole tree to get your
+bearings; open only the files you're about to change. The map below is enough to act.
+
+**Environment (this managed remote):**
+- The `claude` CLI is installed and authenticated — the `real` backend works out of the
+  box. No API key needed (subscription auth).
+- `pytest` is NOT preinstalled: `pip install pytest` once, then `python -m pytest tests/ -q`
+  (26 tests, ~2s, mock-only so free). Runtime itself is stdlib-only (Python 3.11).
+- Cost reality (so you can judge spend): ~$0.02–0.03 per Haiku call/episode; **~$1 per
+  Opus meta-agent edit** — the meta agent is ~77% of run cost. World reasoning is cheap.
+
+**Run it:**
+```bash
+python run_loop.py --iterations 5 --backend mock          # free, deterministic, fast
+python run_loop.py --iterations 5 --backend real --episode-mode single_session \
+  --max-probes 6 --n-train 2 --n-transfer 1                # real; episodes run concurrently
+```
+Shared CLI args live in `run_iteration.add_common_args`; `run_loop.py` adds `--iterations`.
+
+**Pipeline in one breath:** `loop.run_iteration` → world-smith builds train+transfer worlds
+→ eval PARENT → meta agent rewrites a CHILD → eval CHILD → archive + report. Foundation-model
+calls funnel through `hta/llm.py` (`complete`/`episode`/`agentic`); the airgapped world lives
+in `hta/world/`; fitness in `hta/taste.py`.
+
+**Files you'll actually edit:** `hta/config.py` (knobs), `hta/loop.py` (iteration),
+`hta/task_agent.py` (eval), `hta/world/world_smith.py` (curriculum), `hta/seed/*` (the
+evolving program + prompts the meta agent rewrites). Leave `hta/world/{engine,grammar,channel}.py`
+alone unless changing the scorer/airgap (and then mind the two invariants below).
+
+**Gotchas:** `single_session` episodes are real-backend only (mock uses `per_probe`); eval is
+concurrent on the real backend (`eval_concurrency`); the meta agent's turn budget defaults to
+40 but uses ~14–27; episode turn budget is `max_probes*2 + buffer` so probes (not turns) bind;
+`--sandbox none` is the soft airgap (Bash denied, in-process), `docker` is the hard one (slower,
+same token cost). A non-solving agent that uses all its probes is a legitimate worst-score
+failure — worlds are gated to be solvable within budget, so we don't "rescue" it.
+
 ## Project orientation
 
 `hypertaste` is a self-improving research-taste harness (DGM-H pipeline). Key docs:

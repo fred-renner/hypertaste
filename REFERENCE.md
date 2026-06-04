@@ -50,9 +50,11 @@ repo's license). Line numbers are from the repo state we read on 2026-06-03.
   `docker_utils.py` + in-container edit→diff→reset as `hta/sandbox.py:DockerSandbox`
   (`--sandbox docker`): claude runs inside an ephemeral, host-isolated container; copy
   workspace in → edit → copy out → apply diff → `rm`.
+- ~~**score×novelty parent selection**~~ — **DONE**. `hta/archive.py:select_parent` defaults to
+  `weighted`: sigmoid(fitness) × `exp(-(children/scale)^3)`, the `score_child_prop` shape
+  (`gl_utils.py:557-584`). `--parent-selection random` restores the old uniform policy.
 - **Staged-eval gating** — eval each child on a tiny world subset first; only run the full set if
-  it clears a threshold. Cuts compute (`generate_loop.py:638-684`).
-- **score×novelty parent selection** — replace our `random.choice` in `hta/archive.py:select_parent`
-  with `score_child_prop`-style weighting (`gl_utils.py:557-584`).
+  it clears a threshold. Cuts compute (`generate_loop.py:638-684`). The cheapest remaining cost
+  lever now that single-session + concurrent eval are in.
 - **Diagnose-from-sampled-failure** — feed the meta agent a *specific* sampled failing trajectory
   (we already pass a sanitized whole-eval report; sampling one failure is cheaper and sharper).

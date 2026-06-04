@@ -88,7 +88,7 @@ def _run_single_session(solver, world: WiltWorld, cfg: Config, log=print) -> dic
     except Exception as e:
         log(f"  solver has no episode_prompt ({e}); using default")
         prompt = _default_episode_prompt(world.max_probes)
-    max_turns = world.max_probes + cfg.episode_turn_buffer
+    max_turns = world.max_probes * 2 + cfg.episode_turn_buffer
     res = llm.episode(prompt, model=cfg.task_model, mcp_server_argv=server_argv,
                       server_env=server_env, cwd=_REPO_ROOT,
                       allowed_tools=cfg.episode_allowed_tools, max_turns=max_turns,
@@ -157,13 +157,33 @@ def evaluate(solver_dir: str, worlds: List[WiltWorld], cfg: Config, log=print) -
     """Evaluate a solver across worlds. Returns aggregate numbers plus a SANITIZED
     report (no rule names/sources) suitable to hand to the meta agent. With
     cfg.eval_repeats > 1, each world's episode is run that many times and averaged to
-    damp the weak task model's variance (see Config.eval_repeats)."""
+    damp the weak task model's variance (see Config.eval_repeats).
+
+    Real-backend episodes are independent claude -p subprocesses, so the (world x
+    repeat) units run concurrently (cfg.eval_concurrency) -- this is the dominant
+    wall-clock lever, since serial episodes were ~half the run time. The mock backend
+    stays serial so its tests remain deterministic. Results are regrouped per world and
+    logged in order, so output is unchanged from the serial version."""
     solver = load_solver(solver_dir)
     repeats = max(getattr(cfg, "eval_repeats", 1) or 1, 1)
+    concurrency = max(getattr(cfg, "eval_concurrency", 1) or 1, 1)
+    units = [i for i in range(len(worlds)) for _ in range(repeats)]  # world idx per episode
+    recs_by_world: dict = {i: [] for i in range(len(worlds))}
+
+    if cfg.backend == "mock" or concurrency <= 1 or len(units) <= 1:
+        for i in units:
+            recs_by_world[i].append(run_on_world(solver, worlds[i], cfg, log=log))
+    else:
+        from concurrent.futures import ThreadPoolExecutor
+        with ThreadPoolExecutor(max_workers=min(concurrency, len(units))) as ex:
+            for i, rec in ex.map(lambda i: (i, run_on_world(solver, worlds[i], cfg, log=log)),
+                                 units):
+                recs_by_world[i].append(rec)
+
     per_world = []
     for i, w in enumerate(worlds):
-        recs = [run_on_world(solver, w, cfg, log=log) for _ in range(repeats)]
-        rec = recs[0] if repeats == 1 else _aggregate_repeats(recs)
+        recs = recs_by_world[i]
+        rec = recs[0] if len(recs) == 1 else _aggregate_repeats(recs)
         per_world.append(rec)
         m = rec["metrics"]
         rpt = "" if repeats == 1 else f" (avg of {repeats})"

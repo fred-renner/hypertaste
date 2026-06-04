@@ -9,34 +9,14 @@ import argparse
 
 from hta import llm
 from hta.archive import Archive
-from hta.config import Config
 from hta import loop
-from run_iteration import build_config
+from run_iteration import add_common_args, build_config
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--iterations", type=int, default=3)
-    ap.add_argument("--backend", choices=["mock", "real"])
-    ap.add_argument("--profile", choices=["testing", "full"], default="testing")
-    ap.add_argument("--task-model", dest="task_model")
-    ap.add_argument("--meta-model", dest="meta_model")
-    ap.add_argument("--world-model", dest="world_model")
-    ap.add_argument("--max-probes", dest="max_probes", type=int)
-    ap.add_argument("--episode-mode", dest="episode_mode",
-                    choices=["per_probe", "single_session"])
-    ap.add_argument("--n-train", dest="n_train", type=int)
-    ap.add_argument("--n-transfer", dest="n_transfer", type=int)
-    ap.add_argument("--meta-max-turns", dest="meta_max_turns", type=int)
-    ap.add_argument("--eval-repeats", dest="eval_repeats", type=int,
-                    help="run each world's episode N times and average (variance damping)")
-    ap.add_argument("--parent-selection", dest="parent_selection",
-                    choices=["weighted", "random"],
-                    help="archive parent policy: weighted quality x novelty | uniform random")
-    ap.add_argument("--sandbox", choices=["none", "docker"],
-                    help="meta-agent airgap: none (Bash-denied, in-process) | "
-                         "docker (host-isolated container). docker fails closed.")
-    ap.add_argument("--out-dir", dest="out_dir")
+    add_common_args(ap)
     args = ap.parse_args()
 
     cfg = build_config(args)

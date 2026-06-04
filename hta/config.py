@@ -41,11 +41,22 @@ class Config:
     episode_mode: str = field(default_factory=lambda: _env("HTA_EPISODE_MODE", "per_probe"))
     episode_allowed_tools: Tuple[str, ...] = (
         "mcp__probe__probe", "mcp__probe__remaining", "mcp__probe__submit_guess")
-    episode_turn_buffer: int = 8  # max_turns = max_probes + buffer (probe+read+guess+retries)
+    # max_turns = max_probes * 2 + buffer. The agent needs ~1 turn per probe + a guess,
+    # but the chatty Haiku model also spends turns reasoning; with the old additive
+    # budget (max_probes + 8) ~13% of episodes hit `error_max_turns` BEFORE exhausting
+    # their probes, which then scored as a spurious failure. Giving 2 turns/probe makes
+    # the *probe* budget the binding constraint: an agent that uses all its probes and
+    # still misses the (guaranteed-solvable) world earns the worst score on merit.
+    episode_turn_buffer: int = 6
 
     # ---- evaluation ----
     n_train_worlds: int = 4
     n_transfer_worlds: int = 4  # frozen held-out worlds -> measures generalization
+    # Episodes are independent claude -p subprocesses, so the per-world eval is run
+    # concurrently (the dominant wall-clock cost was serial episodes). Caps the number
+    # of simultaneous claude -p sessions. 1 = serial (mock/tests path is always serial
+    # and deterministic regardless of this value).
+    eval_concurrency: int = 4
     # Episodes are stochastic (weak Haiku task model) and a world set is small, so a
     # single pass is noisy: in the TODO-1 run the SAME seed program scored 0.76/0.43/0.58
     # across iterations. Re-running each world's episode and averaging shrinks that
