@@ -15,6 +15,21 @@ Standard flow:
 
 So the last step of completing any task is always: merge into `main`, push `main`.
 
+## Token efficiency is a first-class concern
+
+The maintainer cares about token efficiency **in general** — apply it at every level:
+
+- **In the harness it builds:** every `claude -p` call carries a fixed ~31k-token
+  system-prompt tax, so minimize call *count* (prefer single-session episodes over
+  per-probe), keep prompts and the meta agent's eval report lean, and don't multiply
+  cost (e.g. `eval_repeats`) without a staged-eval gate to cap it.
+- **In the code itself:** prefer the smallest design that meets the need; delete dead
+  paths and stale docs rather than letting them accrue.
+- **In your own working style:** be concise, parallelize independent tool calls, avoid
+  re-reading files you've already read, and don't pad explanations.
+
+When proposing changes, call out the token/cost impact explicitly.
+
 ## Project orientation
 
 `hypertaste` is a self-improving research-taste harness (DGM-H pipeline). Key docs:
