@@ -29,20 +29,28 @@ fixed:
   (worlds are gated solvable-in-budget), not a rescued one.
 - **Biggest speed win**: per-world eval now runs episodes **concurrently**
   (`eval_concurrency`, default 4) — they were independent subprocesses run serially.
+  Measured A/B (3 real episodes): **85.3s serial → 34.2s concurrent (2.5×), same cost.**
 - Removed a ~3s/call stdin stall (`stdin=DEVNULL` on every claude launch).
 - Consolidated the two launchers onto one shared arg parser; dropped the redundant
   `scripts/real_eval_demo.py`.
+- Validated by a 1-iteration real run (`runs/smoke_after_2026-06-04.log`): 0 episode
+  errors, transfer world solved exactly, child IMPROVED (+0.0475).
 
-## Next steps (smallest, highest-leverage first)
+## The bottleneck now: the Opus meta agent
 
-1. **Re-measure** wall-clock with concurrent eval on a fresh 5-iteration run; confirm the
-   episode-error rate is ~0 and update this section with the before/after time.
-2. **Staged-eval gating** (deferred in `REFERENCE.md`): eval a child on 1 world first, run
-   the full set only if it clears a bar. The cheapest remaining cost lever, and it pairs
-   with `eval_repeats > 1` for variance damping without multiplying cost.
-3. **Meta-agent cost** (the 77%): if/when cost matters, feed a *sampled failing trajectory*
-   instead of the full sanitized report (smaller prompt, sharper signal), and/or lower
-   `meta_max_turns` (~28 covers the observed 14–27).
-4. **Docker airgap**: parked. Code + tests exist (`hta/sandbox.py`, `tests/test_sandbox.py`)
-   but the in-container claude call was never run live (Docker Hub rate-limit here). Revisit
-   only when a hard boundary is actually needed; soft airgap (`--sandbox none`) is the default.
+With concurrent eval, a real iteration is ~6 min and the **meta-agent edit is ~4–5 min of
+it** (and ~77% of cost). It is now *the* lever for both speed and money — eval and the task
+agent are no longer where the time goes. Options, cheapest first:
+
+1. **Lower `meta_max_turns`** — observed 14–27 turns against a 40 budget; ~28 is safe and
+   each Opus turn is ~15s of wall-clock.
+2. **Diagnose-from-sampled-failure** (deferred in `REFERENCE.md`): hand the meta agent one
+   sampled failing trajectory instead of the full sanitized report — smaller per-turn
+   context (the agentic claude -p re-reads context each turn) and a sharper signal.
+3. **Staged-eval gating** (deferred): eval a child on 1 world first, full set only if it
+   clears a bar — the cheapest way to add `eval_repeats > 1` variance damping without
+   multiplying episode cost.
+
+**Docker airgap**: parked. Code + tests exist (`hta/sandbox.py`, `tests/test_sandbox.py`)
+but the in-container claude call was never run live (Docker Hub rate-limit here). Revisit
+only when a hard boundary is actually needed; soft airgap (`--sandbox none`) is the default.
