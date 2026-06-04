@@ -89,13 +89,16 @@ class Config:
     parent_novelty_scale: float = 2.0     # smaller -> child-count penalty bites sooner
     parent_quality_sharpness: float = 10.0  # larger -> stronger pull toward higher fitness
 
-    # ---- meta-agent sandbox (production-grade airgap; see hta/sandbox.py) ----
+    # ---- meta-agent sandbox (the WORLD airgap for the self-modifying meta agent) ----
     # "none":   run the meta agent's claude -p in-process; airgapped only by denying
     #           Bash (the lighter mitigation). Default, so mock/tests are unchanged.
-    # "docker": run claude -p INSIDE an ephemeral container that holds no host FS, no
-    #           .env, and no world source; copy the child workspace in, edit, extract
+    # "docker": run claude -p INSIDE an ephemeral container that holds NO repo and NO
+    #           world source (hta/world/*); copy the child workspace in, edit, extract
     #           the result, destroy the container. Fails CLOSED if Docker is
     #           unavailable -- a security boundary must not silently downgrade.
+    # We airgap the WORLD, not the infra: the container authenticates on the host's
+    # subscription (mounted ~/.claude, below). The token is not the secret -- the
+    # hidden rule + scorer are -- so we keep auth simple instead of hiding it.
     sandbox: str = field(default_factory=lambda: _env("HTA_SANDBOX", "none"))
     sandbox_image: str = field(
         default_factory=lambda: _env("HTA_SANDBOX_IMAGE", "hypertaste-agent:latest"))
@@ -106,17 +109,17 @@ class Config:
     sandbox_autobuild: bool = field(
         default_factory=lambda: _env("HTA_SANDBOX_AUTOBUILD", "0") == "1")
     sandbox_docker_bin: str = field(default_factory=lambda: _env("HTA_DOCKER_BIN", "docker"))
-    # Credentials forwarded host->container as ENV (never mounted files): with Bash
-    # denied the model has no tool to read its own process env, so the token cannot be
-    # exfiltrated through Edit/Read/Write -- whereas a mounted credential file could.
-    sandbox_auth_env: Tuple[str, ...] = ("CLAUDE_CODE_OAUTH_TOKEN", "ANTHROPIC_API_KEY")
-    # Opt-in (weaker) fallback for subscription auth stored on disk: mount the claude
-    # config dir read-only. Off by default; the env token above is preferred.
+    # Default auth path: mount the host claude config dir read-only so the in-container
+    # claude runs on the host's subscription. The world airgap is unaffected -- only
+    # ~/.claude is mounted, never the repo or hta/world/*.
     sandbox_mount_claude_config: bool = field(
-        default_factory=lambda: _env("HTA_SANDBOX_MOUNT_CLAUDE_CONFIG", "0") == "1")
+        default_factory=lambda: _env("HTA_SANDBOX_MOUNT_CLAUDE_CONFIG", "1") == "1")
     sandbox_claude_config_dir: str = field(
         default_factory=lambda: _env("HTA_SANDBOX_CLAUDE_CONFIG_DIR",
                                      os.path.expanduser("~/.claude")))
+    # Also forwarded as ENV when present, e.g. an API key or OAuth token in the
+    # environment (an alternative to the mount above; both may be set).
+    sandbox_auth_env: Tuple[str, ...] = ("CLAUDE_CODE_OAUTH_TOKEN", "ANTHROPIC_API_KEY")
 
     # ---- paths ----
     out_dir: str = "outputs"

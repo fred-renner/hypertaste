@@ -11,6 +11,7 @@ echo "Building agent-plane image: ${IMAGE}"
 "${DOCKER_BIN}" build -t "${IMAGE}" -f "${HERE}/docker/Dockerfile.agent" "${HERE}/docker"
 
 echo
-echo "Done. Use it with:"
-echo "  export CLAUDE_CODE_OAUTH_TOKEN=...   # or ANTHROPIC_API_KEY=..."
+echo "Done. Use it with (auth defaults to the host's ~/.claude, mounted read-only):"
 echo "  python run_iteration.py --backend real --sandbox docker [other flags]"
+echo
+echo "To auth with an env token instead, set CLAUDE_CODE_OAUTH_TOKEN or ANTHROPIC_API_KEY."

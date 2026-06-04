@@ -120,15 +120,17 @@ adapts) are averaged, so improvement must be *general* taste, not curriculum ove
    it cannot observe a hidden rule. Its workspace contains just the editable program +
    a **sanitized** eval report (the agent's own probes/booleans/guesses — never rule
    names or sources; enforced by a test).
-4. Any model-generated lambda (candidate, world-smith rule, or agent guess) is
-   AST-validated against a strict whitelist and evaluated with no builtins
-   (`hta/world/grammar.py`) — model output cannot execute arbitrary code.
+4. **Safe-eval** (a separate guard, not the airgap): any model-generated lambda
+   (candidate, world-smith rule, or agent guess) is AST-validated against a strict
+   whitelist and evaluated with no builtins (`hta/world/grammar.py`) — model output
+   cannot execute arbitrary code.
 5. For a hard boundary, run the self-modifying meta agent in a container
    (`--sandbox docker`, see `hta/sandbox.py`): `claude -p` runs **inside** an ephemeral,
-   non-root, resource-limited container with **no host filesystem, no `.env`, and no
-   `hta/world/*`** — the child workspace is copied in, edited, the result copied out, the
-   container destroyed. Credentials are passed as env (a no-Bash agent can't read its own
-   env to exfiltrate them); it **fails closed** if Docker is unavailable. Build once with
+   non-root, resource-limited container with **no repo and no `hta/world/*`** — the child
+   workspace is copied in, edited, the result copied out, the container destroyed. We
+   airgap the **world, not the infra**: the container mounts `~/.claude` read-only so it
+   authenticates on the host subscription (the token is not the secret — the hidden rule
+   is). It **fails closed** if Docker is unavailable. Build once with
    `scripts/build_agent_image.sh`. Default `--sandbox none` keeps the lighter mitigation
    (Bash denied, in-process).
 
@@ -161,7 +163,7 @@ trajectory instead of the whole report) are the main remaining levers; neither i
 | Roadblocker | Handling |
 |---|---|
 | `claude -p` is an agent, not a completion endpoint | two adapters: constrained (task/world) vs agentic (meta) |
-| Reward-hacking / leaking the hidden rule | airgap: meta edits code but never runs eval; sanitized report; ProbeChannel only; optional `--sandbox docker` hard boundary (no host FS/world in the meta agent's container) |
+| Reward-hacking / leaking the hidden rule | airgap: meta edits code but never runs eval; sanitized report; ProbeChannel only; optional `--sandbox docker` hard boundary (no repo or world source in the meta agent's container) |
 | Subscription throughput / cost | Haiku task agent; objective scoring; **single-session episodes** (`episode_mode=single_session`) amortize the ~31k system-prompt tax to once per world |
 | Overfitting vs world-independent taste | frozen transfer suite averaged into fitness |
 | Operationalizing "taste" without Goodhart | objective metrics; LLM judgement only on the world-generation side |

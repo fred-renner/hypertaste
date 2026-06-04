@@ -91,7 +91,8 @@ def test_docker_create_cmd_isolation(monkeypatch):
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
     cfg = _docker_cfg(sandbox_network="none", sandbox_memory="1g",
                       sandbox_cpus="1", sandbox_pids=128,
-                      sandbox_image="hypertaste-agent:test")
+                      sandbox_image="hypertaste-agent:test",
+                      sandbox_mount_claude_config=False)  # isolate: auth mount off here
     argv = ["claude", "-p", "INSTR", "--model", "opus"]
     cmd = sandbox.DockerSandbox()._create_cmd(cfg, "hta_meta_abc", argv)
     joined = " ".join(cmd)
@@ -107,7 +108,8 @@ def test_docker_create_cmd_isolation(monkeypatch):
     # the image must come right before the agent argv
     img_i = cmd.index("hypertaste-agent:test")
     assert cmd[img_i + 1:] == argv
-    # CRUCIAL: no host bind mount at all -> no path to host secrets or world source
+    # with the auth mount off there is no host bind mount at all -> no path to the repo
+    # or world source
     assert "-v" not in cmd
     assert "-e" not in cmd  # no credential env present in this case
 
@@ -115,22 +117,26 @@ def test_docker_create_cmd_isolation(monkeypatch):
 def test_docker_create_cmd_forwards_present_auth_env_only(monkeypatch):
     monkeypatch.setenv("CLAUDE_CODE_OAUTH_TOKEN", "tok-123")
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
-    cfg = _docker_cfg()
+    cfg = _docker_cfg(sandbox_mount_claude_config=False)  # isolate the env-forward path
     cmd = sandbox.DockerSandbox()._create_cmd(cfg, "hta_meta_abc", ["claude"])
     assert "CLAUDE_CODE_OAUTH_TOKEN=tok-123" in cmd
     assert not any("ANTHROPIC_API_KEY" in c for c in cmd)  # absent var not forwarded
-    # credential travels as -e (env), never as a -v mounted file
+    # with the config mount off, the env token is the only auth and travels as -e
     assert "-v" not in cmd
 
 
-def test_docker_create_cmd_optional_config_mount(monkeypatch):
+def test_docker_create_cmd_default_config_mount(monkeypatch):
+    # mounting ~/.claude read-only is the DEFAULT auth path; the world airgap holds
+    # because only the config dir is mounted, never the repo / hta/world/*.
     monkeypatch.delenv("CLAUDE_CODE_OAUTH_TOKEN", raising=False)
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
-    cfg = _docker_cfg(sandbox_mount_claude_config=True,
-                      sandbox_claude_config_dir="/home/u/.claude")
+    cfg = _docker_cfg(sandbox_claude_config_dir="/home/u/.claude")  # mount on by default
     cmd = sandbox.DockerSandbox()._create_cmd(cfg, "n", ["claude"])
-    assert "-v" in cmd
     assert "/home/u/.claude:/home/agent/.claude:ro" in cmd
+    # the ONLY bind mount is the auth config; the repo root is never mounted
+    mounts = [cmd[i + 1] for i, a in enumerate(cmd) if a == "-v"]
+    assert mounts == ["/home/u/.claude:/home/agent/.claude:ro"]
+    assert not any(sandbox._REPO_ROOT in m for m in mounts)
 
 
 # ---------------------------------------------------------------------------

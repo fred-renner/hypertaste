@@ -8,9 +8,10 @@ knowing "the rule is some simple boolean function of three numbers"). It is used
 It is NOT the hidden rule. The hidden rule is held in hta.world.engine and is
 never exposed.
 
-Safety: any lambda we compile (candidate, world-smith output, or an agent's final
-guess) is AST-validated against a strict whitelist and evaluated with no builtins.
-This prevents arbitrary code execution from model-generated strings.
+Safe-eval (distinct from the world airgap -- a separate guard): any lambda we compile
+(candidate, world-smith output, or an agent's final guess) is AST-validated against a
+strict whitelist and evaluated with no builtins. This prevents arbitrary code
+execution from model-generated strings.
 """
 
 import ast

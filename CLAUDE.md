@@ -34,14 +34,15 @@ Edit: `hta/config.py` (knobs), `hta/loop.py` (iteration), `hta/task_agent.py` (e
 `hta/world/world_smith.py` (curriculum), `hta/seed/*` (the evolving program + prompts the
 meta agent rewrites).
 
-Leave alone unless you are deliberately changing the scorer or the airgap:
-`hta/world/{engine,grammar,channel}.py` — and if you do, keep the two invariants below.
+Leave alone unless you are deliberately changing the scorer (`engine.py`), the safe-eval
+whitelist (`grammar.py`), or the probe airgap (`channel.py`) — and if you do, keep the
+two invariants below.
 
 ## The two invariants
 
 - **Objective scoring** — worlds score guesses by empirical equivalence on a fixed
   battery (`hta/world/engine.py`). Keep rules pure deterministic `f(x,y,z) → bool`.
-- **Airgap** — every rule string is AST-validated against a strict whitelist and `eval`'d
+- **Safe-eval** — every rule string is AST-validated against a strict whitelist and `eval`'d
   with no builtins (`hta/world/grammar.py`); model output can't run code.
 
 ## Gotchas
@@ -50,7 +51,8 @@ Leave alone unless you are deliberately changing the scorer or the airgap:
 - Eval runs episodes concurrently on the real backend (`eval_concurrency`).
 - The episode turn budget is `max_probes*2 + buffer`, so probes (not turns) bind.
 - `--sandbox none` is the soft airgap (Bash denied, in-process); `--sandbox docker` is the
-  hard one (slower, same token cost).
+  hard one (slower, same token cost) — it runs the meta agent in a container with no repo
+  or world source, mounting `~/.claude` read-only so it auths on the host subscription.
 - A non-solving agent that spends all its probes is a legitimate worst-score failure —
   worlds are gated to be solvable within budget, so we don't rescue it.
 

@@ -1,17 +1,18 @@
-"""Airgap for the self-modifying META AGENT.
+"""World airgap for the self-modifying META AGENT.
 
 The meta agent runs `claude -p` with Edit/Read/Write. Denying it Bash (DirectSandbox)
-is soft: the Read tool can still open absolute host paths, so host secrets and the
-world source (hta/world/*) are one Read away. DockerSandbox makes it a hard boundary
-by running claude INSIDE an ephemeral container that holds no host filesystem, no
-.env, and no world source. Per child: create (isolated) -> cp workspace in -> start
-(edit in-container) -> cp result out -> apply diff to the node dir -> rm (reset).
+is soft: the Read tool can still open absolute host paths, so the world source
+(hta/world/*) is one Read away. DockerSandbox makes it a hard boundary by running
+claude INSIDE an ephemeral container that holds NO repo and NO world source -- only
+the child workspace (copied in) plus a read-only mount of ~/.claude for auth. Per
+child: create (isolated) -> cp workspace in -> start (edit in-container) -> cp result
+out -> apply diff to the node dir -> rm (reset).
 
-Notes:
+We airgap the WORLD, not the infra: the in-container claude runs on the host's
+subscription (the mounted ~/.claude), because the token is not what we are hiding --
+the hidden rule + scorer are. Notes:
   * claude runs INSIDE the container -- the only way to actually contain Edit/Read/
-    Write (on the host its Read would see the host FS regardless of cwd).
-  * credentials are forwarded as ENV, never mounted files: with Bash denied the model
-    has no tool to read its own process env, so the token can't be exfiltrated.
+    Write (on the host its Read would see the world source regardless of cwd).
   * fails CLOSED: if sandbox=docker but Docker is unavailable we raise, never silently
     downgrade the airgap.
 
@@ -144,9 +145,10 @@ class DockerSandbox:
 
     def _create_cmd(self, cfg: Config, name: str, argv: List[str]) -> List[str]:
         """`docker create` for an isolated, resource-limited, non-root container.
-        Note what is ABSENT: no bind mount of the repo, `hta/world/*`, `.env`, or any
-        host path -- the workspace is copied in afterward, so the container's only view
-        of host data is the child program itself."""
+        Note what is ABSENT: no bind mount of the repo, `hta/world/*`, or `.env`. The
+        only host path mounted is ~/.claude (read-only, for auth); the child workspace
+        is copied in afterward, so the container's view of host data is the child
+        program plus the auth config -- never the world source."""
         cmd = [cfg.sandbox_docker_bin, "create", "--name", name,
                "--workdir", _WORKSPACE,
                "--network", cfg.sandbox_network,

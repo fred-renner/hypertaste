@@ -5,7 +5,7 @@ the thing that wins, without breaking objective scoring or the airgap. Grounded 
 current code; cites the files each change touches.
 
 Axes A (compositional worlds) and B (sampled hypothesis space) are implemented; the
-scorer (`score_guess`) and the AST airgap (`validate_lambda`/`compile_rule`) are
+scorer (`score_guess`) and the AST safe-eval (`validate_lambda`/`compile_rule`) are
 unchanged. Everything under "Explicitly deferred" remains deferred.
 
 ## The constraint that picks the axis
@@ -19,18 +19,18 @@ Two invariants make `hypertaste` work, and any growth axis has to keep both:
    function `f(x,y,z) → bool`** and nothing else: the moment the rule has hidden
    state, history-dependence, or randomness, "agree on a fixed battery of inputs"
    stops being well-defined.
-2. **Airgap.** Every rule — seed, world-smith output, agent guess — is AST-validated
+2. **Safe-eval.** Every rule — seed, world-smith output, agent guess — is AST-validated
    against a strict whitelist and `eval`'d with no builtins (`hta/world/grammar.py` →
    `validate_lambda` / `compile_rule`). Model-generated rule strings can't execute
    arbitrary code.
 
 So the cheapest, safest growth is whatever stays a **pure deterministic boolean
-function of the triple** — it inherits the scorer and the airgap *for free*. The
+function of the triple** — it inherits the scorer and the safe-eval *for free*. The
 expensive growth is whatever breaks invariant (1).
 
 Scoring the candidate axes against that:
 
-| Axis | Stays pure `f(x,y,z)→bool`? | Scorer change | Airgap change | Verdict |
+| Axis | Stays pure `f(x,y,z)→bool`? | Scorer change | Safety change | Verdict |
 |---|---|---|---|---|
 | **Compositional / multi-rule** (regimes, exceptions, conjunctions) | **Yes** | none | none | **PICK — Axis A** |
 | Generative hypothesis space (decouple library) | n/a (metric, not world) | info-gain only | none | **PICK — Axis B (enabler)** |
@@ -61,7 +61,7 @@ exactly where research taste pays off:
   partial hypotheses instead of pattern-matching one.
 
 This is the most direct lever on the project's actual goal, it's the cheapest
-(scorer + airgap untouched), and TODO 1 already showed the meta agent independently
+(scorer + safe-eval untouched), and TODO 1 already showed the meta agent independently
 inventing a *falsification-first probe battery* — exactly the taste these worlds
 exercise. We give that taste something to bite on.
 
@@ -163,5 +163,5 @@ definition of the hypothesis space.
    solvability gate rejects a constant rule, info-gain is non-zero on a compositional
    world, and two near-duplicate worlds are de-duped.
 
-All six keep the scorer and airgap byte-for-byte where they are — the whole point of
+All six keep the scorer and safe-eval byte-for-byte where they are — the whole point of
 picking A+B first.
