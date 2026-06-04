@@ -66,6 +66,9 @@ Token efficiency matters at every level:
   docs rather than letting them accrue.
 - **Working style:** be concise, parallelize independent tool calls, don't re-read files,
   don't pad explanations.
+- **Answers:** lead with the verdict (do/skip + the action), back claims with `file:line`,
+  recommend rather than offload the decision, keep caveats short and last, and don't
+  frontload detail that wasn't asked for — expand on request.
 
 Order of magnitude: a Haiku task call/episode is a few cents; an Opus meta-agent edit is
 ~$1 and dominates the cost of a real iteration. Call out the token/cost impact of changes.
