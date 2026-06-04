@@ -2,11 +2,17 @@
 
 Each node is a directory holding the editable program (solver.py + meta_strategy.md)
 and a node.json with its evaluation summary. Parent selection keeps the search open
-(random among valid parents, as in the DGM/HyperAgents reference) so the archive can
-branch from non-greedy stepping stones, not just the current best.
+(it does not always greedily pick the current best) so the archive can branch from
+non-greedy stepping stones. The default policy is HyperAgents' score_child_prop shape:
+sample a parent with probability proportional to quality (a sigmoid of fitness) times
+novelty (an inverse child-count penalty). That biases toward good, under-explored
+children so lineage compounds across iterations -- the TODO-1 run's pure-random policy
+re-selected the seed all three times and improvements never accumulated. A "random"
+policy (uniform over valid parents) is retained for reproducibility.
 """
 
 import json
+import math
 import os
 import random
 import shutil
@@ -84,12 +90,41 @@ class Archive:
                 out.append(g)
         return out
 
-    def select_parent(self, rng: Optional[random.Random] = None) -> int:
+    def children_count(self, genid: int) -> int:
+        """How many archive nodes were branched from this one (its fan-out)."""
+        return sum(1 for g in self.genids() if self._meta(g).get("parent") == genid)
+
+    def _selection_weights(self, candidates, novelty_scale, sharpness):
+        """quality x novelty per candidate (HyperAgents score_child_prop shape).
+
+        quality = sigmoid(sharpness * (fitness - mean_fitness)) -- centered on the
+        archive's mean so it favors above-average stepping stones regardless of the
+        absolute fitness scale. The seed (and any not-yet-scored node) is imputed the
+        mean, so it stays selectable early but yields to proven children once they exist.
+        novelty = exp(-(children_count / novelty_scale)^3) -- a node already branched many
+        times is damped, pushing the search toward fresh nodes."""
+        scores = [self.fitness(g) for g in candidates]
+        known = [s for s in scores if s is not None]
+        center = (sum(known) / len(known)) if known else 0.5
+        weights = []
+        for g, s in zip(candidates, scores):
+            s = center if s is None else s
+            quality = 1.0 / (1.0 + math.exp(-sharpness * (s - center)))
+            novelty = math.exp(-((self.children_count(g) / novelty_scale) ** 3))
+            weights.append(max(quality * novelty, 1e-9))
+        return weights
+
+    def select_parent(self, rng: Optional[random.Random] = None, *,
+                      policy: str = "weighted", novelty_scale: float = 2.0,
+                      sharpness: float = 10.0) -> int:
         rng = rng or random
         candidates = self.valid_parents()
         if not candidates:
             raise ValueError("archive has no valid parents")
-        return rng.choice(candidates)
+        if policy == "random" or len(candidates) == 1:
+            return rng.choice(candidates)
+        weights = self._selection_weights(candidates, novelty_scale, sharpness)
+        return rng.choices(candidates, weights=weights, k=1)[0]
 
     def best(self) -> Optional[int]:
         scored = [(self.fitness(g), g) for g in self.genids() if self.fitness(g) is not None]

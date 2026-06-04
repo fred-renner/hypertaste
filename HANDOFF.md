@@ -38,18 +38,22 @@ taste doesn't depend on the weak Haiku model). That answers the headline questio
 it edits `solver.py` non-trivially, far beyond the mock's strategy flip.
 
 **But fitness did NOT climb** (child progression 0.609→0.465→0.553; transfer flat→down).
-Three understood causes, each with a fix to carry into the next run:
+Three understood causes, each with a fix — **all three now implemented (2026-06-04)**:
 1. **Meta agent exhausts its turn budget every iteration** (`turns=13, error=True` at
-   `--meta-max-turns 12`) → edits get cut off mid-revision. **Bump `meta_max_turns` to
-   ~25–40.**
-2. **No cumulative lineage** — `select_parent` (random, RNG seeded by iter index) picked
-   the seed `gen_0000` all 3 times, so every child is "seed + one edit" and nothing
-   compounds. **Bias selection toward best/recent children** (the deferred `score×novelty`
-   selector in REFERENCE.md), or fix the RNG seeding so lineage advances.
+   `--meta-max-turns 12`) → edits get cut off mid-revision. ✅ **`meta_max_turns` default
+   raised 30→40** (`hta/config.py`) so a multi-file edit finishes cleanly.
+2. **No cumulative lineage** — `select_parent` (random) picked the seed `gen_0000` all 3
+   times, so every child was "seed + one edit" and nothing compounded. ✅ **Default parent
+   selection is now `weighted`** (`hta/archive.py`): quality (sigmoid of fitness) × novelty
+   (inverse child-count), the `score_child_prop` shape from REFERENCE.md. A thrice-branched
+   seed drops to ~1% selection while the fittest fresh child dominates, so lineage advances.
+   `--parent-selection random` restores the old policy.
 3. **Noisy 4-world fitness + stochastic Haiku** — the same seed program scored
-   0.76/0.43/0.58 across iters (driven by the regenerated curriculum, not the agent), so a
-   better child can still lose. **More worlds/repeats per eval** (+ staged-eval gating to
-   stay cheap).
+   0.76/0.43/0.58 across iters, so a better child can still lose. ✅ **`eval_repeats` knob
+   added** (`hta/config.py`, `--eval-repeats N`): re-runs each world's episode N times and
+   averages the taste metrics (majority-vote on `solved`), damping the variance. Default 1
+   (mock pipeline unchanged); real runs raise it (cost scales ×N — pair with staged-eval
+   gating, still deferred in REFERENCE.md, to stay cheap).
 
 **Loop mechanics that worked:** weak-tag targeting closed (iters 2–3 hit `gen_0001`'s
 `sign_zero`/`arithmetic` weaknesses, making train worlds materially harder); single-session
@@ -57,10 +61,16 @@ economics held (24 Haiku episodes ≈ $1); invalid-child handling never tripped.
 difficulty stayed at 2 (escalation needs ≥75% solved; best agent hit 2/4) — gated behind
 fixes 1–2 above.
 
-**Reproduce:**
+**Reproduce the original run** (pre-fix knobs, for the record):
 ```bash
 python run_loop.py --iterations 3 --backend real --episode-mode single_session \
   --max-probes 8 --n-train 2 --n-transfer 2 --meta-max-turns 12
+```
+**Next run with the fixes** (weighted lineage + repeats + roomy meta budget):
+```bash
+python run_loop.py --iterations 3 --backend real --episode-mode single_session \
+  --max-probes 8 --n-train 3 --n-transfer 2 --eval-repeats 2
+# meta_max_turns now defaults to 40; parent_selection defaults to weighted
 ```
 
 ---

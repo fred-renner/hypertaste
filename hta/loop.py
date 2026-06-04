@@ -82,9 +82,11 @@ def run_iteration(cfg: Config, seed: int = 0, log=print) -> dict:
         archive.seed(SEED_DIR)
         log("seeded gen_0000 from seed program")
 
-    parent = archive.select_parent(rng)
+    parent = archive.select_parent(rng, policy=cfg.parent_selection,
+                                   novelty_scale=cfg.parent_novelty_scale,
+                                   sharpness=cfg.parent_quality_sharpness)
     parent_dir = archive.node_dir(parent)
-    log(f"selected parent: gen_{parent:04d}")
+    log(f"selected parent: gen_{parent:04d} (selection={cfg.parent_selection})")
 
     target_diff = _target_difficulty(archive, cfg)
     frontier_str, weak_tags = _frontier(archive)

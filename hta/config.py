@@ -46,6 +46,12 @@ class Config:
     # ---- evaluation ----
     n_train_worlds: int = 4
     n_transfer_worlds: int = 4  # frozen held-out worlds -> measures generalization
+    # Episodes are stochastic (weak Haiku task model) and a world set is small, so a
+    # single pass is noisy: in the TODO-1 run the SAME seed program scored 0.76/0.43/0.58
+    # across iterations. Re-running each world's episode and averaging shrinks that
+    # variance so a genuinely-better child is not lost to chance. 1 = no repeats (keeps
+    # the deterministic mock pipeline untouched); real runs raise it (cost scales x N).
+    eval_repeats: int = 1
 
     # ---- fitness weights (sum ~1.0); "solve the world" dominates, taste shapes ----
     w_solve: float = 0.50     # exact rule recovery (Occam-correct)
@@ -56,7 +62,21 @@ class Config:
 
     # ---- meta agent (airgap: NO Bash tool, edits code only) ----
     meta_allowed_tools: Tuple[str, ...] = ("Edit", "Read", "Write")
-    meta_max_turns: int = 30
+    # The Read -> diagnose -> Edit loop (often across solver.py + meta_strategy.md +
+    # episode_prompt.md) does not fit in a tight budget: the TODO-1 run hit the cap
+    # (turns=13 at budget 12) every iteration and edits were cut off mid-revision. 40
+    # gives the agent room to finish a multi-file edit cleanly.
+    meta_max_turns: int = 40
+
+    # ---- parent selection (open-ended search over the archive) ----
+    # "weighted": quality x novelty, mirroring HyperAgents' score_child_prop -- a sigmoid
+    #   of fitness (favors better stepping stones) times an inverse child-count penalty
+    #   (favors under-explored nodes), so lineage compounds toward good recent children
+    #   instead of re-branching the seed every iteration (the TODO-1 lineage stall).
+    # "random": uniform over valid parents (the prior behavior; kept for reproducibility).
+    parent_selection: str = "weighted"
+    parent_novelty_scale: float = 2.0     # smaller -> child-count penalty bites sooner
+    parent_quality_sharpness: float = 10.0  # larger -> stronger pull toward higher fitness
 
     # ---- meta-agent sandbox (production-grade airgap; see hta/sandbox.py) ----
     # "none":   run the meta agent's claude -p in-process; airgapped only by denying

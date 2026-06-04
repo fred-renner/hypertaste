@@ -133,17 +133,43 @@ def _default_episode_prompt(max_probes: int) -> str:
     )
 
 
+def _aggregate_repeats(recs: List[dict]) -> dict:
+    """Collapse N repeated episodes of ONE world into a single record: average the
+    numeric taste metrics (shrinking Haiku's run-to-run noise) and majority-vote the
+    boolean `solved`. The first repeat's trajectory/guess is kept for the qualitative
+    parts of the report, so the per_world shape is unchanged downstream."""
+    base = dict(recs[0])
+    metrics_list = [r["metrics"] for r in recs]
+    agg = dict(metrics_list[0])
+    numeric = ("fitness", "agreement", "novelty", "reuse_rate", "avg_info_gain",
+               "hyp_reduced_frac", "occam", "false_frac", "probes_used", "malformed")
+    for k in numeric:
+        vals = [m[k] for m in metrics_list if k in m]
+        if vals:
+            agg[k] = round(sum(vals) / len(vals), 4)
+    solved_votes = sum(1 for m in metrics_list if m.get("solved"))
+    agg["solved"] = solved_votes * 2 >= len(metrics_list)  # majority of repeats recovered it
+    base["metrics"] = agg
+    return base
+
+
 def evaluate(solver_dir: str, worlds: List[WiltWorld], cfg: Config, log=print) -> dict:
     """Evaluate a solver across worlds. Returns aggregate numbers plus a SANITIZED
-    report (no rule names/sources) suitable to hand to the meta agent."""
+    report (no rule names/sources) suitable to hand to the meta agent. With
+    cfg.eval_repeats > 1, each world's episode is run that many times and averaged to
+    damp the weak task model's variance (see Config.eval_repeats)."""
     solver = load_solver(solver_dir)
+    repeats = max(getattr(cfg, "eval_repeats", 1) or 1, 1)
     per_world = []
     for i, w in enumerate(worlds):
-        rec = run_on_world(solver, w, cfg, log=log)
+        recs = [run_on_world(solver, w, cfg, log=log) for _ in range(repeats)]
+        rec = recs[0] if repeats == 1 else _aggregate_repeats(recs)
         per_world.append(rec)
         m = rec["metrics"]
+        rpt = "" if repeats == 1 else f" (avg of {repeats})"
         log(f"  world_{i}: solved={m['solved']} agree={m['agreement']:.2f} "
-            f"probes={m['probes_used']} novelty={m['novelty']:.2f} infogain={m['avg_info_gain']:.2f}")
+            f"probes={m['probes_used']} novelty={m['novelty']:.2f} "
+            f"infogain={m['avg_info_gain']:.2f}{rpt}")
     fitnesses = [r["metrics"]["fitness"] for r in per_world]
     solved = sum(1 for r in per_world if r["metrics"]["solved"])
     agg = {

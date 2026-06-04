@@ -107,6 +107,56 @@ def test_probe_server_protocol(tmp_path):
     assert lines[-1]["type"] == "guess" and lines[-1]["accepted"] is True
 
 
+def test_weighted_parent_selection_advances_lineage(tmp_path):
+    """TODO-1 fix: the default weighted policy must compound lineage -- a fresh,
+    high-fitness child should be selected far more often than an over-branched seed,
+    so improvements accumulate instead of every child being 'seed + one edit'."""
+    import random
+    from collections import Counter
+
+    arch = Archive(str(tmp_path / "archive"))
+    nodes = {0: None, 1: 0.61, 2: 0.46, 3: 0.55}  # seed (unscored) branched 3x + children
+    for g, fit in nodes.items():
+        os.makedirs(arch.node_dir(g), exist_ok=True)
+        parent = None if g == 0 else 0
+        arch._write_meta(g, {"genid": g, "parent": parent, "valid": True, "fitness": fit})
+
+    assert arch.children_count(0) == 3  # seed is the over-branched node
+    rng = random.Random(0)
+    picks = Counter(arch.select_parent(rng) for _ in range(2000))
+    assert picks[0] < picks[1]                 # damped seed loses to the fresh best child
+    assert max(picks, key=picks.get) == 1      # fittest fresh child is selected most often
+
+    # single valid candidate is returned regardless of policy
+    solo = Archive(str(tmp_path / "solo"))
+    os.makedirs(solo.node_dir(0), exist_ok=True)
+    solo._write_meta(0, {"genid": 0, "parent": None, "valid": True, "fitness": None})
+    assert solo.select_parent(random.Random(0)) == 0
+    # random policy still only returns valid parents
+    assert arch.select_parent(random.Random(1), policy="random") in nodes
+
+
+def test_eval_repeats_damps_variance(tmp_path):
+    """TODO-1 fix: cfg.eval_repeats>1 averages a world's numeric metrics and
+    majority-votes `solved`, while keeping per_world 1:1 with worlds."""
+    def rec(fit, solved, agree):
+        return {"metrics": {"fitness": fit, "solved": solved, "agreement": agree,
+                            "novelty": 1.0, "reuse_rate": 0.0, "avg_info_gain": 0.2,
+                            "hyp_reduced_frac": 0.5, "occam": 0.5, "false_frac": 0.3,
+                            "probes_used": 5, "malformed": 0, "guess": "lambda x,y,z: x<y"},
+                "history": [{"triple": [1, 2, 3], "label": True}], "guess": "x<y"}
+    agg = task_agent._aggregate_repeats([rec(0.8, True, 1.0), rec(0.4, False, 0.5),
+                                         rec(0.6, True, 0.8)])
+    assert agg["metrics"]["fitness"] == 0.6          # averaged
+    assert agg["metrics"]["solved"] is True          # 2/3 majority
+
+    cfg = _cfg(str(tmp_path))
+    cfg.eval_repeats = 2
+    worlds = world_smith.transfer_suite(cfg)
+    out = task_agent.evaluate(loop.SEED_DIR, worlds, cfg, log=lambda *a, **k: None)
+    assert len(out["per_world"]) == len(worlds)      # alignment preserved for weak_tags
+
+
 def test_curriculum_escalates(tmp_path):
     """ZPD: as the best agent keeps solving, the world-smith's target difficulty must
     climb above its starting point, and weak tags are computed + persisted."""

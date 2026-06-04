@@ -91,3 +91,15 @@ it's robust, not luck. It never touched `episode_prompt.md` or `meta_strategy.md
 Difficulty stayed at **2** for the whole run: escalation needs the best agent to solve
 ≥75% of a curriculum, and it never did (best `gen_0001` solved 2/4). Escalation will only
 show up once a child is strong enough — which (1) and (2) above are prerequisites for.
+
+## Follow-ups applied (2026-06-04)
+All three "what to change" fixes above are now in code (tests in `tests/test_pipeline.py`):
+1. **Meta turn budget** — `meta_max_turns` default raised 30→40 (`hta/config.py`).
+2. **Cumulative lineage** — `select_parent` defaults to **weighted** quality×novelty
+   selection (`hta/archive.py`, the `score_child_prop` shape): the over-branched seed is
+   damped toward ~1% while the fittest fresh child dominates, so lineage compounds.
+   `--parent-selection random` restores the prior uniform policy.
+3. **Variance** — new `eval_repeats` knob (`--eval-repeats N`) re-runs each world's episode
+   N times and averages the taste metrics (majority-vote on `solved`). Default 1 leaves the
+   mock pipeline byte-for-byte unchanged.
+See `HANDOFF.md` for the next-run command that exercises all three.
