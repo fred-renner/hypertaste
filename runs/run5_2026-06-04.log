@@ -1,0 +1,128 @@
+Running 5 iterations [backend=real] ...
+
+
+########## ITERATION 1/5 ##########
+seeded gen_0000 from seed program
+selected parent: gen_0000 (selection=weighted)
+curriculum: target_difficulty=2
+  world-smith built 2 training worlds (target_difficulty=2, weak_tags=none, structures={'exception': 1, 'regime': 1})
+
+[evaluate PARENT]
+ train worlds:
+  episode error: 
+  world_0: solved=False agree=0.00 probes=0 novelty=1.00 infogain=0.00
+  world_1: solved=False agree=0.91 probes=6 novelty=1.00 infogain=0.27
+ transfer worlds (held-out):
+  world_0: solved=False agree=0.89 probes=6 novelty=1.00 infogain=0.11
+
+[meta agent: branch + self-modify]
+  meta agent [none]: turns=18 error=False cost=$0.862
+
+[evaluate CHILD]
+ train worlds:
+  world_0: solved=False agree=0.88 probes=6 novelty=1.00 infogain=0.32
+  world_1: solved=False agree=0.91 probes=6 novelty=1.00 infogain=0.29
+ transfer worlds (held-out):
+  episode error: 
+  world_0: solved=False agree=0.00 probes=0 novelty=1.00 infogain=0.00
+  -> gen_0001 fitness=0.2324 (parent gen_0000=0.2875) 
+
+########## ITERATION 2/5 ##########
+selected parent: gen_0000 (selection=weighted)
+curriculum: target_difficulty=1, targeting weak modes ['falsification', 'edge_cases', 'exceptions', 'regime_shift', 'sign_cases', 'ordering']
+  world-smith built 2 training worlds (target_difficulty=1, weak_tags=['falsification', 'edge_cases', 'exceptions', 'regime_shift', 'sign_cases', 'ordering'], structures={'exception': 1, 'regime': 1})
+
+[evaluate PARENT]
+ train worlds:
+  world_0: solved=False agree=0.99 probes=5 novelty=1.00 infogain=0.38
+  world_1: solved=False agree=0.91 probes=6 novelty=1.00 infogain=0.37
+ transfer worlds (held-out):
+  world_0: solved=True agree=1.00 probes=6 novelty=1.00 infogain=0.27
+
+[meta agent: branch + self-modify]
+  meta agent [none]: turns=27 error=False cost=$1.303
+
+[evaluate CHILD]
+ train worlds:
+  world_0: solved=False agree=0.99 probes=5 novelty=1.00 infogain=0.38
+  world_1: solved=False agree=0.91 probes=6 novelty=1.00 infogain=0.26
+ transfer worlds (held-out):
+  world_0: solved=True agree=1.00 probes=5 novelty=1.00 infogain=0.29
+  -> gen_0002 fitness=0.6311 (parent gen_0000=0.6334) 
+
+########## ITERATION 3/5 ##########
+selected parent: gen_0002 (selection=weighted)
+curriculum: target_difficulty=1, targeting weak modes ['exceptions', 'edge_cases', 'falsification', 'sign_cases', 'regime_shift', 'ordering']
+  world-smith built 2 training worlds (target_difficulty=1, weak_tags=['exceptions', 'edge_cases', 'falsification', 'sign_cases', 'regime_shift', 'ordering'], structures={'exception': 1, 'regime': 1})
+
+[evaluate PARENT]
+ train worlds:
+  world_0: solved=False agree=0.98 probes=5 novelty=1.00 infogain=0.45
+  episode error: 
+  world_1: solved=False agree=0.00 probes=0 novelty=1.00 infogain=0.00
+ transfer worlds (held-out):
+  world_0: solved=True agree=1.00 probes=6 novelty=1.00 infogain=0.22
+
+[meta agent: branch + self-modify]
+  meta agent [none]: turns=14 error=False cost=$0.636
+
+[evaluate CHILD]
+ train worlds:
+  world_0: solved=False agree=0.85 probes=6 novelty=1.00 infogain=0.24
+  world_1: solved=False agree=0.99 probes=6 novelty=1.00 infogain=0.40
+ transfer worlds (held-out):
+  world_0: solved=True agree=1.00 probes=6 novelty=1.00 infogain=0.32
+  -> gen_0003 fitness=0.6248 (parent gen_0002=0.5578) IMPROVED
+
+########## ITERATION 4/5 ##########
+selected parent: gen_0002 (selection=weighted)
+curriculum: target_difficulty=1, targeting weak modes ['exceptions', 'edge_cases', 'falsification', 'sign_cases', 'regime_shift', 'ordering']
+  world-smith built 2 training worlds (target_difficulty=1, weak_tags=['exceptions', 'edge_cases', 'falsification', 'sign_cases', 'regime_shift', 'ordering'], structures={'exception': 1, 'regime': 1})
+
+[evaluate PARENT]
+ train worlds:
+  world_0: solved=False agree=0.90 probes=5 novelty=1.00 infogain=0.29
+  world_1: solved=False agree=0.91 probes=6 novelty=1.00 infogain=0.25
+ transfer worlds (held-out):
+  world_0: solved=True agree=1.00 probes=6 novelty=1.00 infogain=0.29
+
+[meta agent: branch + self-modify]
+  meta agent [none]: turns=18 error=False cost=$1.071
+
+[evaluate CHILD]
+ train worlds:
+  world_0: solved=False agree=0.95 probes=6 novelty=1.00 infogain=0.24
+  world_1: solved=False agree=0.91 probes=5 novelty=1.00 infogain=0.31
+ transfer worlds (held-out):
+  world_0: solved=True agree=1.00 probes=6 novelty=1.00 infogain=0.37
+  -> gen_0004 fitness=0.6269 (parent gen_0002=0.6181) IMPROVED
+
+########## ITERATION 5/5 ##########
+selected parent: gen_0002 (selection=weighted)
+curriculum: target_difficulty=1, targeting weak modes ['exceptions', 'edge_cases', 'falsification', 'sign_cases', 'regime_shift', 'ordering']
+  world-smith built 2 training worlds (target_difficulty=1, weak_tags=['exceptions', 'edge_cases', 'falsification', 'sign_cases', 'regime_shift', 'ordering'], structures={'exception': 1, 'regime': 1})
+
+[evaluate PARENT]
+ train worlds:
+  world_0: solved=False agree=0.90 probes=5 novelty=1.00 infogain=0.29
+  world_1: solved=False agree=0.91 probes=5 novelty=1.00 infogain=0.35
+ transfer worlds (held-out):
+  episode error: 
+  world_0: solved=False agree=0.00 probes=0 novelty=1.00 infogain=0.00
+
+[meta agent: branch + self-modify]
+  meta agent [none]: turns=22 error=False cost=$1.080
+
+[evaluate CHILD]
+ train worlds:
+  world_0: solved=False agree=0.98 probes=6 novelty=1.00 infogain=0.24
+  world_1: solved=False agree=0.91 probes=5 novelty=1.00 infogain=0.27
+ transfer worlds (held-out):
+  world_0: solved=False agree=0.50 probes=6 novelty=1.00 infogain=0.12
+  -> gen_0005 fitness=0.3014 (parent gen_0002=0.2301) IMPROVED
+
+======================================================================
+PROGRESSION (child fitness per iteration):
+  0.232 -> 0.631 -> 0.625 -> 0.627 -> 0.301
+best stepping stone: gen_0002 fitness=0.6311
+LLM calls: 40  est_cost=$6.4089  by_role={'world_smith': 5, 'task_episode': 30, 'meta': 5}
