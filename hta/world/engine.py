@@ -9,11 +9,13 @@ Equivalence checking and info-gain computation happen here, in the world plane,
 never in the agent's reach.
 """
 
+import hashlib
 import random
-from typing import List, Optional
+from typing import Callable, List, Optional, Tuple
 
 from .channel import ProbeChannel
-from .grammar import RuleSpec, compile_rule, candidate_library, consistent_candidates
+from .grammar import (RuleSpec, compile_rule, consistent_candidates,
+                      sample_hypotheses)
 
 
 def _battery(seed: int = 0) -> List[tuple]:
@@ -37,14 +39,44 @@ def _battery(seed: int = 0) -> List[tuple]:
 _BATTERY = _battery()
 
 
+def battery() -> List[tuple]:
+    """The fixed deterministic equivalence/behavior battery (read-only)."""
+    return _BATTERY
+
+
+def behavior_vector(fn: Callable) -> Tuple[bool, ...]:
+    """A rule's label over the whole battery -- its objective behavioral signature.
+    Two rules with the same vector are empirically equivalent; the Hamming distance
+    between vectors is a model-free measure of how different two worlds are."""
+    return tuple(bool(fn(*t)) for t in _BATTERY)
+
+
+# How many sampled rules form a world's measurable hypothesis space (Axis B). Big
+# enough to stay informative on compositional worlds, small enough to stay cheap.
+_HYP_K = 64
+
+
 class WiltWorld:
-    def __init__(self, rule: RuleSpec, max_probes: int = 30):
+    def __init__(self, rule: RuleSpec, max_probes: int = 30, hyp_k: int = _HYP_K):
         self.rule = rule
         self.max_probes = max_probes
+        self.hyp_k = hyp_k
+        self._hyps: Optional[List[RuleSpec]] = None
 
     @property
     def name(self) -> str:
         return self.rule.name
+
+    def hypotheses(self) -> List[RuleSpec]:
+        """The world's measurable hypothesis space: rules sampled from the grammar,
+        seeded deterministically from the hidden rule's source (so the info-gain
+        metric is reproducible per world) and grounded by the library prior. This
+        replaces the fixed candidate library so the metric no longer depends on the
+        true rule happening to be one of a handful of hand-written templates."""
+        if self._hyps is None:
+            seed = int(hashlib.md5(self.rule.source.encode()).hexdigest()[:8], 16)
+            self._hyps = sample_hypotheses(seed, self.hyp_k, max_structure="exception")
+        return self._hyps
 
     def open_channel(self) -> ProbeChannel:
         return ProbeChannel(self.rule.fn, self.max_probes)
@@ -68,14 +100,16 @@ class WiltWorld:
 
     # ---- info-gain ground truth (taste plane helper; agent-inaccessible) ----
     def hypothesis_reduction(self, history) -> dict:
-        """How much the probes narrowed the candidate hypothesis space.
-        Uses the candidate library as the measurable hypothesis space."""
-        lib = candidate_library()
-        start = len(lib)
+        """How much the probes narrowed the measurable hypothesis space. The space is
+        the world's sampled version space (Axis B), not the fixed 25-rule library, so
+        info-gain stays meaningful on compositional worlds whose true rule falls
+        outside the library templates."""
+        hyps = self.hypotheses()
+        start = len(hyps)
         # progressive: consistent set after each prefix of history
         sizes = [start]
         for i in range(1, len(history) + 1):
-            sizes.append(len(consistent_candidates(history[:i], lib)))
+            sizes.append(len(consistent_candidates(history[:i], hyps)))
         end = sizes[-1]
         reduced = (start - end) / start if start else 0.0
         # average per-probe fractional reduction (rewards splitting probes)

@@ -5,6 +5,28 @@ numeric WILT so that *research taste* keeps being the thing that wins, **without
 breaking objective scoring or the airgap**. Grounded in the current code; cites the
 files each change touches.
 
+> **Status (2026-06-04): the "smallest shippable first slice" below is implemented.**
+> Axis A (compositional worlds) + Axis B (sampled hypothesis space) are live; the
+> scorer (`score_guess`) and the AST airgap (`validate_lambda`/`compile_rule`) are
+> byte-for-byte unchanged, as promised. What landed:
+> - `RuleSpec.structure` (`atomic|conjunction|regime|exception`) + 7 compositional
+>   seed rules in `grammar.py` (library now 32 rules spanning all four structures).
+> - `grammar.sample_hypotheses(seed, k, max_structure)` — the generative version
+>   space; `engine.WiltWorld.hypothesis_reduction` now measures collapse over a
+>   per-world sampled set (seeded from the rule source) instead of the fixed library.
+> - Solvability gate (`world_smith.is_admissible`): non-degeneracy (both labels occur)
+>   + a reference Occam inductor that confirms an optimal prober recovers the rule's
+>   equivalence class. Behavior-vector novelty (`select_worlds`) de-dups worlds whose
+>   battery label-vectors are within a small Hamming distance, incl. vs. transfer.
+> - `world_smith.transfer_suite` is now an independently-seeded held-out draw (fixed
+>   `_TRANSFER_SEED`, never conditioned on `weak_tags`) over admissible worlds, instead
+>   of a fixed 6-name list. `_SMITH_PROMPT` now instructs the smith to compose rules
+>   and emit `structure`.
+> - Tests: `tests/test_world_design.py` (8 cases) covers all six slice items.
+>
+> Everything still deferred below (stochastic/latent/N>3/"real research" worlds)
+> remains deferred for the documented reasons.
+
 ## The constraint that picks the axis
 
 Two invariants make `hypertaste` work, and any growth axis has to keep both:

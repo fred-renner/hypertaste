@@ -174,10 +174,11 @@ hta/
   sandbox.py           meta-agent airgap strategies: Direct (Bash-denied) | Docker (container)
   loop.py              one DGM-H iteration (parent eval → self-modify → child eval)
   world/               AGENT-INACCESSIBLE
-    grammar.py         safe lambda compilation + candidate hypothesis library
+    grammar.py         safe lambda compilation + candidate library + sampled hypothesis space
     channel.py         ProbeChannel — the only agent↔world interface
     engine.py          WiltWorld: hidden rule + empirical-equivalence scorer + info gain
-    world_smith.py     Opus curriculum generator (ZPD + weak-tag targeting) + frozen transfer
+    world_smith.py     Opus curriculum generator (ZPD + weak-tag targeting, compositional
+                       worlds, solvability + novelty gates) + independently-seeded transfer
     probe_server.py    stdlib stdio-MCP server: exposes ONE world as narrow probe tools
   seed/
     solver.py          seed task-agent program (STRATEGY knob; run() + episode_prompt())
@@ -190,6 +191,7 @@ run_iteration.py       run one iteration, report improvement + cost
 run_loop.py            run N iterations, print progression
 scripts/real_eval_demo.py  live Haiku eval on one world (--episode-mode per_probe|single_session)
 tests/test_pipeline.py mock end-to-end + airgap + sandbox + probe-server + curriculum tests
+tests/test_world_design.py  compositional worlds + sampled hypothesis space + solvability/novelty gates
 REFERENCE.md           how HyperAgents does it + patterns to adopt next (pointers, no code copied)
 ```
 

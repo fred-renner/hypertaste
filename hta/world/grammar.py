@@ -14,7 +14,8 @@ This prevents arbitrary code execution from model-generated strings.
 """
 
 import ast
-from typing import Callable, List, Tuple
+import random
+from typing import Callable, List, Optional, Tuple
 
 # Functions an expression may call.
 ALLOWED_FUNCS = {"abs": abs, "min": min, "max": max}
@@ -80,10 +81,15 @@ def compile_rule(src: str) -> Callable:
 
 # ---------------------------------------------------------------------------
 # Candidate hypothesis library (ordered roughly easy -> hard).
-# tags mark which research-taste behavior a rule rewards.
+# tags mark which research-taste behavior a rule rewards; `structure` marks the
+# compositional shape (atomic | conjunction | regime | exception) -- the axis the
+# world-smith climbs (WORLD_DESIGN.md Axis A). Entries are 4-tuples (atomic, the
+# default) or 5-tuples that name an explicit structure.
 # ---------------------------------------------------------------------------
-_RAW_CANDIDATES: List[Tuple[str, str, int, Tuple[str, ...]]] = [
-    # name, source, difficulty, taste_tags
+STRUCTURES = ("atomic", "conjunction", "regime", "exception")
+
+_RAW_CANDIDATES: List[Tuple] = [
+    # name, source, difficulty, taste_tags[, structure]
     ("strict_increasing", "lambda x, y, z: x < y < z", 1, ("ordering",)),
     ("non_decreasing", "lambda x, y, z: x <= y <= z", 2, ("boundary", "edge_cases")),
     ("strict_decreasing", "lambda x, y, z: x > y > z", 1, ("ordering",)),
@@ -105,21 +111,33 @@ _RAW_CANDIDATES: List[Tuple[str, str, int, Tuple[str, ...]]] = [
     ("y_is_avg", "lambda x, y, z: x + z == 2 * y", 3, ("arithmetic",)),
     ("abs_sum_eq", "lambda x, y, z: abs(x) + abs(y) == abs(z)", 4, ("arithmetic", "sign")),
     ("two_equal", "lambda x, y, z: x == y or y == z or x == z", 2, ("equality", "edge_cases")),
-    ("inc_not_const", "lambda x, y, z: x < y < z and not (z - x == 4)", 5, ("ordering", "edge_cases", "falsification")),
+    ("inc_not_const", "lambda x, y, z: x < y < z and not (z - x == 4)", 5, ("ordering", "edge_cases", "falsification"), "exception"),
     ("sum_lt_z2", "lambda x, y, z: x + y < z", 2, ("arithmetic",)),
-    ("monotone", "lambda x, y, z: (x <= y <= z) or (x >= y >= z)", 3, ("ordering", "boundary")),
-    ("first_smallest_last_largest", "lambda x, y, z: x < z and x <= y and y <= z", 4, ("ordering", "boundary")),
+    ("monotone", "lambda x, y, z: (x <= y <= z) or (x >= y >= z)", 3, ("ordering", "boundary"), "conjunction"),
+    ("first_smallest_last_largest", "lambda x, y, z: x < z and x <= y and y <= z", 4, ("ordering", "boundary"), "conjunction"),
+    # ---- compositional seeds (Axis A): regimes, conjunctions, exceptions. The
+    # grammar already admits and/or/not + ternaries, so these are safe to compile
+    # today; they are where research taste (hypothesis decomposition, falsification)
+    # pays off, and they let the offline Occam inductor cover the harder curriculum.
+    ("regime_sign_order", "lambda x, y, z: (x < y < z) if x < 0 else (x > y > z)", 4, ("ordering", "sign", "edge_cases"), "regime"),
+    ("regime_sum_sign", "lambda x, y, z: (x + y + z > 0) if z >= 0 else (x + y + z < 0)", 4, ("sign", "arithmetic", "boundary"), "regime"),
+    ("inc_and_sum_pos", "lambda x, y, z: x < y < z and x + y + z > 0", 3, ("ordering", "sign", "arithmetic"), "conjunction"),
+    ("strict_inc_or_dec", "lambda x, y, z: (x < y < z) or (x > y > z)", 3, ("ordering",), "conjunction"),
+    ("inc_mid_nonzero", "lambda x, y, z: x < y < z and not (y == 0)", 4, ("ordering", "sign", "falsification"), "exception"),
+    ("nondec_not_const", "lambda x, y, z: x <= y <= z and not (x == y == z)", 4, ("ordering", "equality", "edge_cases", "falsification"), "exception"),
+    ("sum_eq_and_ordered", "lambda x, y, z: x + y == z and x < y", 4, ("arithmetic", "ordering"), "conjunction"),
 ]
 
 
 class RuleSpec:
-    __slots__ = ("name", "source", "difficulty", "tags", "_fn")
+    __slots__ = ("name", "source", "difficulty", "tags", "structure", "_fn")
 
-    def __init__(self, name: str, source: str, difficulty: int, tags):
+    def __init__(self, name: str, source: str, difficulty: int, tags, structure: str = "atomic"):
         self.name = name
         self.source = source
         self.difficulty = int(difficulty)
         self.tags = tuple(tags)
+        self.structure = structure if structure in STRUCTURES else "atomic"
         self._fn = None
 
     @property
@@ -132,19 +150,26 @@ class RuleSpec:
         return self.fn(*triple)
 
     def to_dict(self):
-        return {"name": self.name, "source": self.source,
-                "difficulty": self.difficulty, "tags": list(self.tags)}
+        return {"name": self.name, "source": self.source, "difficulty": self.difficulty,
+                "tags": list(self.tags), "structure": self.structure}
 
     @staticmethod
     def from_dict(d) -> "RuleSpec":
-        return RuleSpec(d["name"], d["source"], d.get("difficulty", 3), d.get("tags", ()))
+        return RuleSpec(d["name"], d["source"], d.get("difficulty", 3),
+                        d.get("tags", ()), d.get("structure", "atomic"))
 
     def __repr__(self):
-        return f"RuleSpec({self.name!r}, diff={self.difficulty})"
+        return f"RuleSpec({self.name!r}, diff={self.difficulty}, structure={self.structure!r})"
 
 
 def candidate_library() -> List[RuleSpec]:
-    return [RuleSpec(n, s, d, t) for (n, s, d, t) in _RAW_CANDIDATES]
+    # entries are (name, source, difficulty, tags) or (..., structure); 4-tuples
+    # default to atomic.
+    out = []
+    for e in _RAW_CANDIDATES:
+        structure = e[4] if len(e) > 4 else "atomic"
+        out.append(RuleSpec(e[0], e[1], e[2], e[3], structure))
+    return out
 
 
 def consistent_candidates(history, candidates=None) -> List[RuleSpec]:
@@ -171,3 +196,106 @@ def simplest_consistent(history, candidates=None) -> RuleSpec:
     if not cands:
         return None
     return min(cands, key=lambda c: (len(c.source), c.difficulty))
+
+
+# ---------------------------------------------------------------------------
+# Generative hypothesis space (WORLD_DESIGN.md Axis B).
+#
+# `hypothesis_reduction` (the info-gain metric) used to measure version-space
+# collapse over the fixed 25-rule candidate library, which doubled as both the
+# measurable hypothesis space AND the smith's fallback. The instant Axis A produces
+# rules outside those templates the library no longer contains the true rule and the
+# metric goes noisy. `sample_hypotheses` decouples them: it draws valid (AST-checked)
+# rules straight from the grammar -- including compositional structures -- so the
+# metric measures hypothesis-space collapse over a *sampled* version space, a pure
+# function of the hidden rule + the probes. Every sampled rule is built from the same
+# whitelist and re-validated, so it is safe by construction.
+# ---------------------------------------------------------------------------
+_PERMS = (("x", "y", "z"), ("x", "z", "y"), ("y", "x", "z"),
+          ("y", "z", "x"), ("z", "x", "y"), ("z", "y", "x"))
+_CMP = ("<", "<=", ">", ">=")
+_STRUCT_WEIGHTS = {"atomic": 5, "conjunction": 3, "regime": 2, "exception": 2}
+
+
+def _gen_atomic(rng: random.Random) -> str:
+    kind = rng.choice(["chain", "pair", "sum_k", "two_sum", "avg", "parity",
+                       "absrel", "gap", "range"])
+    a, b, c = rng.choice(_PERMS)
+    if kind == "chain":
+        op = rng.choice(_CMP)
+        return f"{a} {op} {b} {op} {c}"
+    if kind == "pair":
+        op = rng.choice(_CMP + ("==", "!="))
+        return f"{a} {op} {b}"
+    if kind == "sum_k":
+        op = rng.choice(["==", ">", "<", ">=", "<="])
+        return f"x + y + z {op} {rng.randint(-3, 3)}"
+    if kind == "two_sum":
+        op = rng.choice(["==", ">", "<", ">=", "<="])
+        return f"{a} + {b} {op} {c}"
+    if kind == "avg":
+        op = rng.choice(["==", ">", "<"])
+        return f"{a} + {c} {op} 2 * {b}"
+    if kind == "parity":
+        return f"({a} + {b}) % 2 == 0" if rng.random() < 0.5 else f"{a} % 2 == 0"
+    if kind == "absrel":
+        op = rng.choice(["==", ">", "<", ">=", "<="])
+        return f"abs({a}) + abs({b}) {op} abs({c})"
+    if kind == "gap":
+        op = rng.choice(["==", ">", "<", ">=", "<="])
+        return f"{b} - {a} {op} {rng.randint(-2, 4)}"
+    # range
+    op = rng.choice(["<=", ">=", "<", ">", "=="])
+    return f"max(x, y, z) - min(x, y, z) {op} {rng.randint(1, 10)}"
+
+
+def _build(rng: random.Random, structure: str) -> str:
+    if structure == "atomic":
+        return _gen_atomic(rng)
+    if structure == "conjunction":
+        op = rng.choice(["and", "or"])
+        return f"({_gen_atomic(rng)}) {op} ({_gen_atomic(rng)})"
+    if structure == "regime":
+        return f"({_gen_atomic(rng)}) if ({_gen_atomic(rng)}) else ({_gen_atomic(rng)})"
+    # exception
+    return f"({_gen_atomic(rng)}) and not ({_gen_atomic(rng)})"
+
+
+def _weighted_structure(rng: random.Random, allowed: Tuple[str, ...]) -> str:
+    weights = [_STRUCT_WEIGHTS[s] for s in allowed]
+    return rng.choices(allowed, weights=weights, k=1)[0]
+
+
+_DIFF_FOR = {"atomic": 2, "conjunction": 3, "regime": 4, "exception": 4}
+
+
+def sample_hypotheses(seed: int, k: int, max_structure: str = "exception",
+                      include_library: bool = True) -> List[RuleSpec]:
+    """Draw `k` valid rules from the grammar, deterministically per `seed`, biased
+    toward the curriculum's structure mix and capped at `max_structure` complexity.
+    With `include_library` the candidate library is prepended as a prior so the
+    version space is always grounded. Every rule is re-validated, so the returned set
+    is safe to compile."""
+    if max_structure not in STRUCTURES:
+        max_structure = "exception"
+    allowed = STRUCTURES[:STRUCTURES.index(max_structure) + 1]
+    rng = random.Random(seed)
+    out: List[RuleSpec] = []
+    seen = set()
+    if include_library:
+        for r in candidate_library():
+            if r.source not in seen:
+                seen.add(r.source)
+                out.append(r)
+    made, attempts = 0, 0
+    while made < k and attempts < k * 50 + 100:
+        attempts += 1
+        structure = _weighted_structure(rng, allowed)
+        body = f"lambda x, y, z: {_build(rng, structure)}"
+        if body in seen or not validate_lambda(body):
+            continue
+        seen.add(body)
+        out.append(RuleSpec(f"hyp_{seed & 0xffff}_{made}", body,
+                            _DIFF_FOR[structure], ("sampled", structure), structure))
+        made += 1
+    return out

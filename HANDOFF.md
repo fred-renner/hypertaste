@@ -15,11 +15,20 @@ for what we borrow from HyperAgents, see `REFERENCE.md`; for the container airga
   (1 call vs 7), trending to ~30× at the full 30-probe budget.
 - **Loop closed**: ZPD difficulty escalation + world-smith targeting the agent's weak
   taste-modes; frozen transfer guards generalization.
-- 6/6 tests pass. Mock loop improves 0.30→0.88 and escalates difficulty 2→3.
+- 26/26 tests pass (8 pipeline + 10 sandbox + 8 world-design). Mock loop improves
+  0.28→0.76 and escalates difficulty 2→3.
 - Open gotcha recorded: `--permission-mode bypassPermissions` is refused as root; we use
   `acceptEdits` + an explicit `--allowedTools mcp__probe__*` allowlist.
 - **TODO 1 done** (2026-06-03): first real 3-iteration evolution run completed. See below.
 - **TODO 2 done** (2026-06-03): world-growth design note (`WORLD_DESIGN.md`). See below.
+- **TODO 2 first slice IMPLEMENTED** (2026-06-04): Axis A (compositional worlds) +
+  Axis B (sampled hypothesis space) are live. `RuleSpec.structure` + 7 compositional
+  seed rules; `grammar.sample_hypotheses`; `engine.hypothesis_reduction` measures
+  collapse over a per-world sampled version space (not the fixed library); a
+  solvability gate (non-degenerate + reference-Occam recoverable) and behavior-vector
+  novelty de-dup in `world_smith`; an independently-seeded `transfer_suite`. Scorer +
+  AST airgap unchanged. Covered by `tests/test_world_design.py`. See `WORLD_DESIGN.md`
+  status banner.
 - **TODO 3 done** (2026-06-03): production-grade container airgap for the meta agent
   (`--sandbox docker`, `hta/sandbox.py`, `docker/Dockerfile.agent`). See below.
 
