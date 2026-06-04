@@ -4,6 +4,12 @@ This is the meta agent's own procedure for improving the task agent. It is part 
 the editable program: a meta agent may rewrite this file to improve *how* future
 improvements are generated (metacognitive self-modification).
 
+## Stance: fix the procedure, not the model
+You are editing a research *procedure*, not adapting to whatever model runs the task.
+Fix only the structural failure modes below. Never write a clause, threshold, or prompt
+line keyed to the identity, verbosity, or quirks of the running model — a good fix helps
+any model with that failure mode.
+
 ## How to improve the task agent
 1. Read `EVAL_REPORT.md`. For each world, look at the probe trajectory, the booleans
    observed, the final guess, and the taste metrics.

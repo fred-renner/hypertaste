@@ -217,16 +217,22 @@ def weak_tags(worlds: List[WiltWorld], per_world: List[dict], threshold: float =
 
 
 def weakness_flags(per_world: List[dict]) -> List[str]:
-    """Behavioral failure modes aggregated across worlds (human-readable)."""
+    """Dominant structural failure modes, measured against MODEL-FREE reference points
+    rather than an absolute bar tuned to one task model -- so the diagnosis stays valid
+    when the task model changes. The information ideal is 0.5: a binary-splitting probe
+    halves the version space (avg_info_gain -> 0.5) and balanced, falsification-seeking
+    probing returns False about half the time (false_frac -> 0.5). An axis is flagged
+    when the agent sits below half of that ideal."""
     n = len(per_world) or 1
     mig = sum(r["metrics"]["avg_info_gain"] for r in per_world) / n
     mff = sum(r["metrics"]["false_frac"] for r in per_world) / n
     overcomplex = sum(1 for r in per_world
                       if r["metrics"]["agreement"] >= 0.95 and not r["metrics"]["solved"])
+    ideal = 0.5  # halving / balanced-probing point; information-theoretic, not model-tuned
     flags = []
-    if mig < 0.15:
+    if mig < ideal / 2:
         flags.append("weak hypothesis-space reduction (low info gain)")
-    if mff < 0.15:
+    if mff < ideal / 2:
         flags.append("confirmation bias (rarely seeks falsifying cases)")
     if overcomplex > 0:
         flags.append("over-complex guesses (near-correct but not exact)")
