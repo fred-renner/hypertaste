@@ -7,9 +7,10 @@ Guidance for Claude Code working in this repository.
 `hypertaste` is a self-improving research-taste harness (DGM-H pipeline): it co-evolves a
 task agent and its curriculum on a "discover the hidden rule by probing" world.
 
-- Architecture and run instructions: `README.md`.
+- Architecture and run instructions for the **running code** (still Chapter 1): `README.md`.
 - Long-term direction (the two-loop model, staircase of judges, closing the loop): `ROADMAP.md`.
-- World-growth design and rationale for *today's* world (Chapter 1): `WORLD_DESIGN.md`.
+- World-growth design and rationale for the **current chapter** (Chapter 2 — the
+  investigation-map we're building toward): `WORLD_DESIGN.md`.
 
 This file plus `README.md` are the orientation — open only the files you're about to
 change rather than re-reading the whole tree. `ROADMAP.md` is the direction; `WORLD_DESIGN.md`
@@ -38,9 +39,12 @@ questions — match the depth and tone of a genuine research-design conversation
 
 ## Run & test
 
-**Next action (pick this up):** Chapter 2 — redesign the world so progress *is* the taste
-signal. The real runs proved Chapter 1's binary rule-guessing world gives no climbable
-gradient; see `ROADMAP.md` → "Next action — Chapter 2" for the finding and the design brief.
+**Next action (pick this up):** Chapter 2 is **designed** — a navigable investigation-map
+judged by **coverage** (`WORLD_DESIGN.md`). The repo still runs Chapter 1; the concrete next
+build is the **thin de-risking slice** (`WORLD_DESIGN.md` → "First slice"): a hand-built tiny
+grammar-map + DP oracle + vanilla-vs-taste Haiku, measuring the two empirical bets (the
+taste-gap is **realizable by Haiku**; inference is a **ramp not a cliff**) *before* building
+the loop. `ROADMAP.md` → "Chapter 2" is the arc. The bash below still runs Chapter 1.
 
 
 ```bash
@@ -66,12 +70,18 @@ Leave alone unless you are deliberately changing the scorer (`engine.py`), the s
 whitelist (`grammar.py`), or the probe airgap (`channel.py`) — and if you do, keep the
 two invariants below.
 
-## The two invariants
+## The two invariants (the integrity floor — they survive every chapter)
 
-- **Objective scoring** — worlds score guesses by empirical equivalence on a fixed
-  battery (`hta/world/engine.py`). Keep rules pure deterministic `f(x,y,z) → bool`.
-- **Safe-eval** — every rule string is AST-validated against a strict whitelist and `eval`'d
-  with no builtins (`hta/world/grammar.py`); model output can't run code.
+- **Objective, agent-inaccessible scoring** — worlds are scored by a **dumb deterministic
+  function**, never an LLM judge (the agent is optimized *against* the score, so a movable
+  score is reward-hacking). *Ch1:* empirical equivalence on a fixed battery — pure
+  `f(x,y,z) → bool` (`hta/world/engine.py`). *Ch2:* information-weighted **coverage** via
+  **DP on a fixed graph** (`WORLD_DESIGN.md`). The world stays **deterministic** so optimal
+  play (the oracle) is computable.
+- **Safe-eval** — model output never executes. *Ch1:* every rule string is AST-validated
+  against a strict whitelist and `eval`'d with no builtins (`hta/world/grammar.py`). *Ch2:*
+  the smith proposes a **validated declarative spec** that our deterministic expander
+  realizes — same principle, lifted from rule-lambdas to grammar-specs.
 
 ## Gotchas
 

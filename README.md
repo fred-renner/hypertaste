@@ -12,14 +12,18 @@ its own improvement procedure**), specialized so that:
 - the world (hidden rule + scorer) is **airgapped** from the agent's editable surface,
   which is simultaneously the anti-leak wall and the scientific-validity wall.
 
-> Status: classic numeric WILT. Multi-iteration evolution is verified end-to-end on both
-> backends — the offline mock and live `claude -p`. Episodes run concurrently; lineage
-> compounds and children improve over their parents.
+> Status: **Chapter 1 (classic numeric WILT) — this is what the code runs.** Multi-iteration
+> evolution is verified end-to-end on both backends (offline mock + live `claude -p`);
+> episodes run concurrently and lineage compounds. But Chapter 1's binary judge gave a *flat*
+> taste signal (recover the rule exactly or score ~nothing), so the project has **pivoted to
+> Chapter 2 — a navigable investigation-map judged by coverage** (`WORLD_DESIGN.md`; design,
+> not yet built). This README documents the running Chapter-1 code.
 
 **Where it's going:** `ROADMAP.md` is the North Star — the two-loop model (worlds
 self-evolve to the student's edge; judges change between chapters as taste saturates), the
 staircase of objective judges, and the staged path to a closed, hands-off loop. This
-README + `WORLD_DESIGN.md` are *Chapter 1*; `ROADMAP.md` is the arc.
+README documents the *running Chapter-1 code*; `WORLD_DESIGN.md` is the **Chapter-2 design**
+we're building toward; `ROADMAP.md` is the arc.
 
 ## The three planes
 

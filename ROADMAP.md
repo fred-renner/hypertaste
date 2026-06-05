@@ -31,26 +31,41 @@ The essence of *why* (this is the finding to carry forward):
 Net: patching the *scorer* of a binary rule-guessing world is rearranging deck chairs. The
 session's edge-calibration code was reverted as a dead-end; only this finding is kept.
 
-## Next action — Chapter 2: design a world where progress *is* the signal (fresh session)
+## Chapter 2 — the investigation-map (designed; build the thin slice next)
 
-The redirect (PI): stop scoring a binary answer and bolting taste-metrics onto it. Build a
-**research world** — complex, odd, surprising — where *better taste gets you further*, and
-fitness is simply **how far / how much you uncovered**. Then info-gain, falsification,
-decomposition, Occam aren't side-bonuses; they're the behaviors that unlock coverage. Taste
-becomes the thing that wins the game instead of a term in a formula. (Tasteful behaviors we
-want but don't yet see can be *planted* into episodes as what the world rewards.)
+The pivot (PI): stop scoring a binary answer and bolting taste-metrics onto it. Build a
+**navigable investigation-map** — a hidden, deterministic, grammar-generated graph the agent
+probes under a **scarce budget** — and let fitness be simply **how much of the structure it
+uncovered**. Then info-gain, falsification, decomposition aren't side-bonuses; they're the
+behaviors that **unlock coverage**. Taste becomes the thing that wins the game.
 
-**The needle to thread** (the integrity floor, non-negotiable): progress must be measured by
-a **dumb deterministic function**, never an LLM judge — or the agent games the judge. The
-current world is ugly but ungameable for exactly this reason (equivalence-on-a-battery). The
-Chapter-2 design problem in one line: *a world rich and weird enough that taste is what gets
-you through, whose progress is still objectively, cheaply computable.*
+The design is settled and lives in `WORLD_DESIGN.md`. The spine:
 
-Open questions for the fresh session: what is the world (a multi-step investigation? a
-structure to map? a space to cover?); what is the objective "how far you got" metric; how do
-episodes plant the tasteful behaviors; how does the held-out exam work so progress is real
-transfer, not curriculum overfit. `WORLD_DESIGN.md` is Chapter 1's mechanics — Chapter 2 is
-a fresh design on top of the same three-plane skeleton (world / agent / taste).
+- **Judge = information-weighted coverage**, normalized by a **model-free DP oracle** on the
+  fixed graph (region value = how much it reveals about the *rest* of the grammar, so
+  maximizing coverage *is* predict-the-unseen inference). Deterministic, cheap, ungameable —
+  the integrity floor is intact, only the function is richer than equivalence. *The
+  determinism the floor demands is the same property that yields a computable oracle.*
+- **What grows = the allocator** — the multi-drive meta-policy (exploit toward the goal /
+  drop everything to chase an anomaly / consolidate). **Deception** (novelty anti-correlated
+  with value where it counts) is what makes coverage **discriminate** taste from a
+  brute-force walk. Taste is *instrumentally* optimal, never a score-term.
+- **Small, dense, deceptive worlds** — value is ambiguity-per-decision, not node count. A
+  **propose/expand split** (Opus proposes a compact grammar spec; a fuel-bounded stdlib
+  expander realizes it) keeps generation from exploding and near-free in tokens; a
+  **taste-gap gate** admits only worlds where a model-free oracle ≫ greedy/random.
+- **The science:** one loop; a **frozen ruler** (vanilla Haiku) gates worlds so held-out
+  climb = discovery by construction; **MDL on the agent program** as the generality prior;
+  **stay-Haiku** as a fixed control; cross-model port as a periodic generality check. The
+  taste-prompt is an instrument (gate + bar), **never a target**.
+
+**Next concrete action — the thin de-risking slice** (`WORLD_DESIGN.md` → "First slice").
+Two empirical bets gate everything: (1) the taste-gap must be **realizable by Haiku**, not
+just present in the world; (2) inference must be a **ramp, not a cliff** (partial grammar →
+partial coverage). Build a hand-built tiny map + DP oracle + vanilla-vs-taste Haiku, measure
+both bets, and only then build the loop. Chapter 2 is a fresh design on the **same
+three-plane skeleton** — it reuses the agent / loop / airgap and replaces the world
+substrate, the judge, and the probe payload.
 
 ## The thesis
 
@@ -86,9 +101,10 @@ makes a **new research virtue** necessary to win:
 
 | Chapter | World kind | Judge (objective principle) | Virtue it forces | Status |
 |---|---|---|---|---|
-| **1** | deterministic hidden rule `f(x,y,z)→bool` | **exact equivalence** — your rule behaves identically to mine on a fixed battery | falsification, hypothesis decomposition, Occam | **current** |
-| **2** | no exact rule — an uncertain/noisy process | **calibration** — how much probability you put on what actually happened | weighing evidence, quantifying uncertainty, knowing what you don't know | future |
-| **3+** | worlds you must act on, not just observe | **intervention quality** — the soundness of the experiment you designed | experimental design, controlling confounds, causal reasoning | future |
+| **1** | deterministic hidden rule `f(x,y,z)→bool` | **exact equivalence** — your rule behaves identically to mine on a fixed battery | falsification, hypothesis decomposition, Occam | done — pivoted (binary oracle → flat signal) |
+| **2** | navigable hidden **investigation-map** (grammar-generated graph) | **coverage** — how much of the structure you uncovered under a scarce budget | budget allocation, value-of-information, reading global structure, predict-the-unseen | **current (design)** |
+| **3** | no exact rule — an uncertain/noisy process | **calibration** — how much probability you put on what actually happened | weighing evidence, quantifying uncertainty, knowing what you don't know | future |
+| **4+** | worlds you must act on, not just observe | **intervention quality** — the soundness of the experiment you designed | experimental design, controlling confounds, causal reasoning | future |
 
 The principle behind the staircase: **the judge is the most stable thing *within* a
 chapter and the most deliberate thing to change *between* chapters.** Worlds and difficulty
@@ -102,10 +118,16 @@ what resets is the judge and the world substrate. You extract what the student l
 seed the next chapter with it.
 
 This makes the boundary the **cleanest test of the thesis**: if taste is really general,
-an agent that mastered Chapter 1 should enter Chapter 2 with a *head start* even though the
+an agent that mastered one chapter should enter the next with a *head start* even though the
 judge is new. If it transfers, taste is real and portable. If it doesn't, what we measured
 was game-specific skill wearing taste's clothes — also a finding. Either way the transition
 *is* the experiment.
+
+**Exception — Chapter 1 → 2 is started fresh.** Chapter 1's fitness never climbed (binary
+oracle → flat signal), so there is no accumulated taste to warm-start from. We therefore
+treat Chapter 2 as a fresh start and measure climb-from-zero against a frozen ruler; the
+warm-start/transfer test above lands at the *first transition out of a chapter that actually
+produced taste* (Chapter 2 → 3 onward).
 
 ## The smooth dial (within a chapter)
 
@@ -195,10 +217,14 @@ versus a reset (everything collapses).
    deterministic rules; held-out taste climbs, then flattens. Success criterion: that flat
    line. (Build the smooth dial: continuous difficulty, calibrate-to-live-student, uncapped
    composition.)
-2. **First transition, by hand.** Author Chapter 2's judge (calibration). Warm-start the
-   agent from Chapter 1's lineage. Headline measurement: **transfer** — did Chapter-1 taste
-   give a head start? This is the thesis on the line.
-3. **One or two more hand transitions.** Extract the pattern of a healthy transition.
+2. **First transition, by hand (now).** Author Chapter 2's judge (**coverage** on the
+   investigation-map). Start **fresh** — Chapter 1 never climbed, so there is no taste to
+   warm-start from; the headline measurement is whether **held-out coverage climbs from a
+   fresh start above the frozen ruler** (vanilla Haiku). The warm-start *transfer* test —
+   does mastering one chapter give a head start in the next — becomes meaningful at the
+   *next* transition, once a chapter actually produces climbing taste to carry.
+3. **One or two more hand transitions.** Extract the pattern of a healthy transition
+   (taste carries, headroom appears) vs. a reset.
 4. **Close the outer loop.** Encode that pattern into the substrate-designer: propose the
    next judge — objective, agent-inaccessible, selected for low-transfer-but-solvable. From
    here the human supervises the constitution, not each judge.
