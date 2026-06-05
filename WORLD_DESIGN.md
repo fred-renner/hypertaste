@@ -11,7 +11,9 @@ current code; cites the files each change touches.
 
 Axes A (compositional worlds) and B (sampled hypothesis space) are implemented; the
 scorer (`score_guess`) and the AST safe-eval (`validate_lambda`/`compile_rule`) are
-unchanged. Everything under "Explicitly deferred" remains deferred.
+unchanged. Everything under "Deferred within Chapter 1 / handed to later chapters" stays
+deferred. The "Recommendation" and "What changes (code)" sections below are kept as the
+*record* of how Chapter 1 was built — present-tense mechanics, not an open to-do.
 
 ## The constraint that picks the axis
 
@@ -125,7 +127,10 @@ definition of the hypothesis space.
   (Axis A) is the floor (non-degenerate + recoverable-in-principle); the
   `_target_difficulty` escalator (`hta/loop.py`, escalate at ≥75% solved) is the ceiling.
   `structure` is a difficulty axis the smith climbs (atomic → conjunction → regime →
-  exception) rather than just nudging an integer 1–5.
+  exception) rather than just nudging an integer 1–5. **Next within Chapter 1:** replace
+  this coarse integer escalator from a fixed cold start with the *smooth dial* — continuous
+  difficulty, calibrated to the live student, with uncapped composition (`ROADMAP.md`). The
+  current escalator is the present state, not the end state.
 - **World novelty / anti-degeneracy across generations.** Kept objective: a world's
   *behavior vector* is its label over `_BATTERY`. A generated world is rejected when its
   behavior vector is within a small Hamming distance of any world already used this run
@@ -166,17 +171,19 @@ session doesn't relitigate.
 - **"Solve the world" program/dataset/simulation worlds → the long-term target.** The top
   of the staircase; out of scope until the outer loop is closing on its own.
 
-## Suggested first slice (smallest shippable)
+## First slice — shipped
 
-1. Add `structure` to `RuleSpec`; add ~6–8 compositional seed rules to the library.
-2. Add the **non-degeneracy + solvability gate** in `world_smith.build_worlds`.
-3. Add `grammar.sample_hypotheses(...)` and switch `engine.hypothesis_reduction` to it.
-4. Update `_SMITH_PROMPT` to compose rules and emit `structure`.
-5. Add the **behavior-vector novelty** reject and the **independently-seeded transfer**
+The smallest A+B slice that landed, kept as the build record:
+
+1. `structure` on `RuleSpec`; ~6–8 compositional seed rules in the library.
+2. The **non-degeneracy + solvability gate** in `world_smith`.
+3. `grammar.sample_hypotheses(...)`, with `engine.hypothesis_reduction` switched to it.
+4. `_SMITH_PROMPT` composes rules and emits `structure`.
+5. The **behavior-vector novelty** reject and the **independently-seeded transfer**
    distribution.
-6. Extend tests: a compositional rule round-trips (validate → compile → score), the
-   solvability gate rejects a constant rule, info-gain is non-zero on a compositional
-   world, and two near-duplicate worlds are de-duped.
+6. Tests (`tests/test_world_design.py`): a compositional rule round-trips (validate →
+   compile → score), the solvability gate rejects a constant rule, info-gain is non-zero on
+   a compositional world, near-duplicate worlds are de-duped.
 
-All six keep the scorer and safe-eval byte-for-byte where they are — the whole point of
-picking A+B first.
+All of it keeps the scorer and safe-eval byte-for-byte where they are — the whole point of
+picking A+B first, and the floor every later chapter builds on.

@@ -80,8 +80,10 @@ Order of magnitude: a Haiku task call/episode is a few cents; an Opus meta-agent
 ## Finalizing work — always land on `main`
 
 A task is not finished until it is merged into `main` and `main` is pushed to origin.
-Pushing only a feature branch is not "done".
+Pushing only a feature branch is not "done". When the session's work is complete, merge to
+`main` and push it **without asking for confirmation** — this is standing permission; just
+do it as the final step.
 
 1. Develop on a working branch and commit there.
-2. Run `python -m pytest tests/ -q` and make it green.
+2. Run `python -m pytest tests/ -q` and make it green (skip only for docs-only changes).
 3. Merge the working branch into `main` (fast-forward when possible) and `git push origin main`.
