@@ -7,23 +7,37 @@ mechanics.
 
 ## Next action
 
-Run the **first real-backend run** (staged-plan step 1 below): 3 iterations to validate the
-loop end-to-end in the current state and calibrate cost before scaling. Not 5+ yet — the
-first run's job is to confirm the machinery and size cost (the Opus meta edit dominates,
-~$1/iter), not to reach Chapter 1's flatline.
+**Step 1 — first real-backend run: done (2026-06-05).** 3 iterations validated the loop
+end-to-end on live `claude -p`. Every child improved (fitness `0.586 → 0.610 → 0.620`), the
+held-out transfer world was solved in every iteration (general taste, not curriculum
+overfit), and the world-smith built taste-bearing `structures={'exception','regime'}` off
+the agent's `weak_tags`. Cost landed exactly at the prediction: **~$1/iter** ($3.00 total,
+of which the Opus meta edit is $2.02). The signature result — the meta agent didn't flip a
+flag, it wrote **version-space active learning** (a `_splitting_probe` that picks the probe
+most evenly splitting the hypotheses still consistent with the evidence), and its own
+comment cites the exact failure it was repairing. The machinery works.
+
+Two caveats to carry into scaling: `target_difficulty` held at 2 (correct — the agent isn't
+yet *mastering* level 2, so the dial shouldn't climb; the ZPD is doing its job), and one
+episode hit `error_max_turns`. With `--n-transfer 1` the transfer signal is still n=1 noisy.
+
+**Step 2 — the ~10–15 iteration run.** Long enough to watch the taste curve
+climb-then-flatten inside Chapter 1; bump transfer to ≥2 to firm up that signal. Budget
+~$10–15 (meta-dominated).
 
 ```bash
-python run_loop.py --iterations 3 --backend real --episode-mode single_session \
-  --max-probes 6 --n-train 2 --n-transfer 1
+python run_loop.py --iterations 12 --backend real --episode-mode single_session \
+  --max-probes 6 --n-train 2 --n-transfer 2
 ```
 
 Watch, tied to the inner-loop success criterion:
 - **world-smith log** — `structures={...}` carrying conjunction/regime/exception (the
-  taste-bearing worlds) and `target_difficulty` escalating off the agent's `weak_tags`;
+  taste-bearing worlds) and `target_difficulty` escalating *once the agent starts mastering*
+  the current level;
 - **child > parent fitness** — the meta agent's edits actually improving the task agent;
 - **transfer tracking train** — the honest signal of *general* taste, not curriculum overfit;
-- **cost/iteration** — to size the follow-up ~10–15 iteration run that watches the taste
-  curve climb-then-flatten.
+- **the flatten** — where fitness saturates is where Chapter 1's judge stops discriminating
+  and the outer loop should swap it.
 
 ## The thesis
 
