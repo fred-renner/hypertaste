@@ -6,15 +6,17 @@ The world is a hidden tape of M cells, each an integer color in 0..K-1. The tape
 partitioned into G contiguous **segments**; each segment is generated INDEPENDENTLY by
 one member of a small known **family** of patterns:
 
-    const(v)   : v, v, v, ...
-    arith(v,s) : (v + s*i) mod K           (a "hidden step" the agent must read)
-    alt(v,w)   : v, w, v, w, ...
+    const(v)    : v, v, v, ...
+    arith(v,s)  : (v + s*i) mod K          (a "hidden step" the agent must read)
+    alt(v,w)    : v, w, v, w, ...
+    cycle(a,b,c): a, b, c, a, b, c, ...    (period 3)
 
-The grammar STRUCTURE (segment boundaries + the family) is known to everyone; the SEED
-(which pattern + which params per segment) is the genuinely hidden information that must
-be probed. This is the Chapter-1 safe-eval invariant lifted from rule-lambdas to a
-declarative spec: the smith would propose a validated spec, a deterministic expander
-realizes it (here, `expand`), and model output never executes.
+The grammar STRUCTURE (the family) is known to everyone; the SEED (which pattern + which
+params per segment) AND the segmentation (how many segments and where the boundaries are)
+are the genuinely hidden information that must be probed. This is the Chapter-1 safe-eval
+invariant lifted from rule-lambdas to a declarative spec: the smith would propose a
+validated spec, a deterministic expander realizes it (here, `expand`), and model output
+never executes.
 
 Why this shape (the design, in code):
 - **Intrinsic-information weighting falls out of the structure, not a hand-picked list.**
@@ -24,9 +26,16 @@ Why this shape (the design, in code):
   "interesting" weight that would smuggle our taste prior into the judge.
 - **Ramp, not cliff (bet 2).** Segments are independent, so inferring one buys exactly its
   cells regardless of the others -> coverage is ~linear in the fraction inferred.
+- **Deception is the engine (bet 1's headroom).** `cycle`'s 3-cell prefix masquerades as an
+  `arith` run, so a cheap local read (2-3 adjacent probes) extrapolates *confidently wrong*
+  and only a far confirm-probe tells them apart; and the agent is NOT told the boundaries,
+  so it must read the global structure to segment the tape. The locally-attractive move is
+  wrong exactly where it counts — which is what makes coverage discriminate taste from a
+  curiosity walker rather than rewarding either.
 - **Determinism hands us the oracle (bet 1's ceiling).** On a fixed tape with a budget the
   optimal probe set is a small knapsack over per-segment value curves — computed exactly,
-  model-free, by `oracle_determined`.
+  model-free, by `oracle_determined`. The oracle knows the boundaries (it knows the
+  grammar); the student must infer them, so it cannot match omniscient play.
 """
 
 from dataclasses import dataclass
@@ -34,7 +43,7 @@ from functools import lru_cache
 from itertools import combinations
 from typing import List, Tuple
 
-KINDS = ("const", "arith", "alt")
+KINDS = ("const", "arith", "alt", "cycle")
 
 
 @dataclass(frozen=True)
@@ -83,6 +92,9 @@ def realize_segment(seg: Segment, K: int) -> Tuple[int, ...]:
     if seg.kind == "alt":
         v, w = seg.params
         return tuple((v if i % 2 == 0 else w) % K for i in range(n))
+    if seg.kind == "cycle":
+        pat = tuple(p % K for p in seg.params)
+        return tuple(pat[i % 3] for i in range(n))
     raise ValueError(f"unknown segment kind {seg.kind!r}")
 
 
@@ -109,6 +121,11 @@ def seg_candidates(n: int, K: int) -> Tuple[Tuple[int, ...], ...]:
             seqs.add(tuple((v + s * i) % K for i in range(n)))     # arith
         for w in range(K):
             seqs.add(tuple((v if i % 2 == 0 else w) for i in range(n)))  # alt
+    for a in range(K):
+        for b in range(K):
+            for c in range(K):
+                pat = (a, b, c)                                    # cycle (period 3)
+                seqs.add(tuple(pat[i % 3] for i in range(n)))
     return tuple(sorted(seqs))
 
 

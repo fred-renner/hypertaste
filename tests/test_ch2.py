@@ -29,15 +29,22 @@ def test_expander_is_deterministic_and_bounded():
 
 
 def test_determination_is_monotone_and_exact():
-    # placement matters: two ADJACENT same-valued probes pin a whole const segment (only
-    # const survives), but two same-PARITY probes leave the period-2 alt/arith ambiguity,
-    # so they determine strictly fewer than the whole segment.
+    # The enlarged family (const/arith/alt/cycle) is the deception lever: 2-3 adjacent probes
+    # no longer trivially pin a segment, because a period-3 `cycle` survives the gaps.
     n, K = 5, 4
     assert grammar.determined_count(n, K, (0,), (2,)) >= 1
-    assert grammar.determined_count(n, K, (0, 1), (2, 2)) == n
-    assert grammar.determined_count(n, K, (0, 2), (2, 2)) < n
+    # two adjacent same-valued probes leave the period-3 cell ambiguous (cycle(2,2,c) fits),
+    # so they determine strictly fewer than the whole const segment...
+    assert grammar.determined_count(n, K, (0, 1), (2, 2)) < n
+    # ...but a third adjacent probe kills the cycle and pins the whole run.
+    assert grammar.determined_count(n, K, (0, 1, 2), (2, 2, 2)) == n
+    # the arith/cycle mirage: a [0,1,2] prefix is consistent with BOTH an arith run and a
+    # period-3 cycle, so a local read cannot resolve it -> fewer than n cells determined...
+    assert grammar.determined_count(n, K, (0, 1, 2), (0, 1, 2)) < n
+    # ...until a far confirm-probe (here the next cell, =3 for arith) rules the cycle out.
+    assert grammar.determined_count(n, K, (0, 1, 2, 3), (0, 1, 2, 3)) == n
     # more evidence never determines fewer cells (monotonicity of information).
-    seq = grammar.realize_segment(MAPS[0].segments[1], K)  # an arith segment
+    seq = grammar.realize_segment(grammar.Segment("arith", (1, 1), 5), K)  # an arith segment
     c1 = grammar.determined_count(len(seq), K, (0,), (seq[0],))
     c2 = grammar.determined_count(len(seq), K, (0, len(seq) - 1), (seq[0], seq[-1]))
     assert c2 >= c1

@@ -2,11 +2,13 @@
 hand-written taste prompt), a deterministic mock solver for free plumbing tests, and the
 real single-session runner (reusing hta.llm.episode + the Chapter-2 probe server).
 
-Fairness note: BOTH prompts describe the world fully (size, alphabet, segment ranges, the
-family). The only difference is research *taste* — the taste prompt adds the investigative
-strategy (find the generative pattern, spend probes to identify it, then predict the
-unseen; prioritize long segments under scarcity; don't re-confirm). It carries no secret
-task information, so the gap it produces is a taste gap, not an information advantage.
+Fairness note: BOTH prompts describe the world identically (size, alphabet, the family, and
+that the tape splits into contiguous segments). NEITHER is told how many segments there are
+or where the boundaries fall — segmentation must be inferred. The only difference is research
+*taste* — the taste prompt adds the investigative strategy (infer the boundaries, distrust a
+local read and confirm an extrapolation with a far probe, bank the long boring runs first).
+It names no boundary, count, or value, so the gap it produces is a taste gap, not an
+information advantage.
 """
 
 import json
@@ -26,19 +28,16 @@ _REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__f
 _ALLOWED_TOOLS = ("mcp__probe__probe", "mcp__probe__remaining", "mcp__probe__submit_map")
 
 
-def _segment_table(spec: TapeSpec) -> str:
-    return "; ".join(f"segment {i}: cells [{a}..{b - 1}] (length {b - a})"
-                     for i, (a, b) in enumerate(spec.bounds()))
-
-
 _COMMON = """\
 You are reconstructing a hidden tape of {M} cells, indexed 0..{M_1}. Each cell holds an
-integer color in 0..{K_1}. The tape is divided into {G} consecutive segments at KNOWN
-boundaries; within each segment the colors follow ONE simple pattern from this family:
+integer color in 0..{K_1}. The tape is divided into some number of consecutive segments;
+within each segment the colors follow ONE simple pattern from this family:
   - const:  every cell the same value v
   - arith:  v, v+s, v+2s, ... (mod {K}); a hidden start v and step s
   - alt:    v, w, v, w, ... ; two alternating values
-Segment boundaries: {segments}.
+  - cycle:  a, b, c, a, b, c, ... ; three values repeating with period 3
+You are NOT told how many segments there are or where the boundaries fall — you must infer
+the segmentation from what you probe.
 
 You have {budget} probes total. Tools:
   - probe(index): reveal one cell's color; returns the value and probes remaining.
@@ -53,24 +52,26 @@ Probe cells and then submit your best reconstruction of all {M} cells.
 
 TASTE = _COMMON + """\
 Strategy (research taste):
-1. Your budget is too small to probe every cell — so spend probes to IDENTIFY each
-   segment's pattern, then PREDICT the rest of that segment without probing it. Probing
-   2-3 CONSECUTIVE cells near a segment's start is enough: three consecutive colors tell
-   you whether it is constant, arithmetic (a fixed step), or alternating. Further probes
-   in an already-identified segment are wasted.
-2. Value-of-information: a long segment is worth more cells per probe than a short one. If
-   probes are scarce, identify the LONGEST segments first; the flashiest-looking cells are
-   not the most informative.
-3. After identifying a segment, fill in every one of its cells by continuing the pattern.
-   For any segment you could not identify, put your single best guess for each cell.
-4. Submit a complete {M}-cell reconstruction — never leave a cell out.
+1. Your budget is far too small to probe every cell — so you must infer the generative
+   pattern, then PREDICT the unprobed cells. Find where the boundaries are: probe a SPREAD
+   of cells across the tape first to locate where the pattern changes, rather than clustering
+   all your probes in one place.
+2. Distrust a local read. A few adjacent cells can look like a clean pattern but be a
+   coincidence: [0,1,2] is the start of an arith run AND of a cycle (which repeats at the
+   next cell). Before you trust an extrapolation, spend one probe on a FAR cell it predicts;
+   if the prediction holds, the rest of that segment is free.
+3. Value-of-information: a long uniform run is worth many cells per probe — find its extent
+   and bank it. Do not pour scarce probes into short, flashy, high-variation stretches; the
+   most eye-catching cells are usually the least informative.
+4. Fill in every cell by continuing the pattern you inferred; for any region you could not
+   pin down, put your single best guess. Submit a complete {M}-cell reconstruction — never
+   leave a cell out.
 """
 
 
 def build_prompt(spec: TapeSpec, taste: bool) -> str:
     tmpl = TASTE if taste else VANILLA
     return tmpl.format(M=spec.M, M_1=spec.M - 1, K_1=spec.K - 1, K=spec.K,
-                       G=len(spec.segments), segments=_segment_table(spec),
                        budget=spec.budget)
 
 
@@ -102,18 +103,19 @@ def mock_solve(spec: TapeSpec, taste: bool) -> List[int]:
         for i in range(min(spec.budget, spec.M)):
             recon[i] = ch.probe(i)
         return recon
-    # taste: allocate probes longest-first; probe a few CONSECUTIVE cells per segment
-    # (three consecutive colors reveal const/arith/alt and break the period-2
-    # alt-vs-arith ambiguity that same-parity probes miss), then extrapolate.
-    # knapsack-greedy under scarcity: fully pin (3 consecutive probes) the LONGEST segments
-    # first; a half-probed segment is worth little, so spend to pin the high-yield ones and
-    # guess the rest. This is the value-of-information allocation the oracle also makes.
+    # taste: allocate probes longest-first; probe a few CONSECUTIVE cells per segment, then
+    # extrapolate. Four consecutive colors break every short-window ambiguity in the family
+    # (const/arith/alt, and the arith-vs-cycle mirage that a 3-cell read cannot resolve).
+    # knapsack-greedy under scarcity: fully pin the LONGEST segments first; a half-probed
+    # segment is worth little, so spend to pin the high-yield ones and guess the rest. This
+    # is the value-of-information allocation the oracle also makes. (mock cheats with the
+    # known bounds; it is a plumbing/scorer check, NOT a claim about Haiku.)
     order = sorted(range(len(bounds)), key=lambda j: -(bounds[j][1] - bounds[j][0]))
     plan = {j: [] for j in range(len(bounds))}
     budget = spec.budget
     for j in order:
         n = bounds[j][1] - bounds[j][0]
-        for p in range(min(3, n)):
+        for p in range(min(4, n)):
             if budget <= 0:
                 break
             plan[j].append(p)
