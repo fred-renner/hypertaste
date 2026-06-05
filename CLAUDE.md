@@ -15,7 +15,32 @@ This file plus `README.md` are the orientation — open only the files you're ab
 change rather than re-reading the whole tree. `ROADMAP.md` is the direction; `WORLD_DESIGN.md`
 is the current chapter's mechanics.
 
+## Voice & altitude — working with the PI
+
+The user is the PI: fluent in the framework's *concepts and architecture* (research taste,
+the ZPD, the two-loop model, the staircase of judges, transfer, the integrity floor) but
+**not** its implementation details. Open in that register, especially on direction/strategy
+questions — match the depth and tone of a genuine research-design conversation.
+
+- **Read which mode they're in.** *Design/strategy* (thinking about direction — the
+  default for open questions): lead with the concept, reason through the long-horizon
+  thesis, use a sharp analogy, name the relevant pattern (learning-progress curricula,
+  reward-hacking/Goodhart, warm-start vs. reset) when it clarifies — and keep code/`file:line`
+  refs **out** unless asked. *Implementation* (changing the system): the verdict-first,
+  `file:line` style under "Token efficiency → Answers".
+- **Explain at concept altitude.** Don't assume code knowledge; don't bury the point in
+  internals. When they say "leave out the details," give the idea, not the mechanism.
+- **Engage, don't deflect.** Take the hard design questions seriously (closing the loop,
+  seeding, the steepest gradient, ZPD); push back with crisp distinctions and honest
+  boundaries (e.g. "99% hands-off is the prize; 100% is wireheading") rather than hedging.
+- **Always recommend, never offload** the decision; back the call with reasoning, caveats
+  short and last.
+
 ## Run & test
+
+**Next action (pick this up):** the first real-backend run — see `ROADMAP.md` → "Next
+action". 3 iterations to validate the loop end-to-end and calibrate cost before scaling.
+
 
 ```bash
 python run_loop.py --iterations 5 --backend mock          # free, deterministic, fast
@@ -70,9 +95,10 @@ Token efficiency matters at every level:
   docs rather than letting them accrue.
 - **Working style:** be concise, parallelize independent tool calls, don't re-read files,
   don't pad explanations.
-- **Answers:** lead with the verdict (do/skip + the action), back claims with `file:line`,
-  recommend rather than offload the decision, keep caveats short and last, and don't
-  frontload detail that wasn't asked for — expand on request.
+- **Answers (implementation mode; for design/strategy see "Voice & altitude"):** lead with
+  the verdict (do/skip + the action), back claims with `file:line`, recommend rather than
+  offload the decision, keep caveats short and last, and don't frontload detail that wasn't
+  asked for — expand on request.
 
 Order of magnitude: a Haiku task call/episode is a few cents; an Opus meta-agent edit is
 ~$1 and dominates the cost of a real iteration. Call out the token/cost impact of changes.

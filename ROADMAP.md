@@ -5,6 +5,26 @@ The North Star and the staged path to it. `WORLD_DESIGN.md` is the technical det
 staging is the way it is. Read this for direction, `WORLD_DESIGN.md` for the current
 mechanics.
 
+## Next action
+
+Run the **first real-backend run** (staged-plan step 1 below): 3 iterations to validate the
+loop end-to-end in the current state and calibrate cost before scaling. Not 5+ yet — the
+first run's job is to confirm the machinery and size cost (the Opus meta edit dominates,
+~$1/iter), not to reach Chapter 1's flatline.
+
+```bash
+python run_loop.py --iterations 3 --backend real --episode-mode single_session \
+  --max-probes 6 --n-train 2 --n-transfer 1
+```
+
+Watch, tied to the inner-loop success criterion:
+- **world-smith log** — `structures={...}` carrying conjunction/regime/exception (the
+  taste-bearing worlds) and `target_difficulty` escalating off the agent's `weak_tags`;
+- **child > parent fitness** — the meta agent's edits actually improving the task agent;
+- **transfer tracking train** — the honest signal of *general* taste, not curriculum overfit;
+- **cost/iteration** — to size the follow-up ~10–15 iteration run that watches the taste
+  curve climb-then-flatten.
+
 ## The thesis
 
 `hypertaste` is a bet that **research taste is a real, portable, learnable thing** — and
