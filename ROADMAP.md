@@ -50,22 +50,50 @@ almost no dynamic range, so there is no taste gradient to climb.** Three coupled
 **Verdict: do not scale to 30 iterations yet — fix the signal first.** The loop is
 optimizing against a near-constant; more iterations just buy more random walk.
 
-## Next action — Step 3: give the eval dynamic range
+**Step 3 — edge-calibration + diagnostics: done (2026-06-05). The measurement is now
+honest, and it proves the worlds are still too hard for the task model.** 5 iterations,
+`$8.68` (as estimated), `eval_repeats=2`. The three levers shipped: a model-free *edge
+classifier* (a falsifier solves the world in budget, a confirm-biased prober does not)
+calibrating the frozen transfer set and biasing training worlds; the dial floored at the
+edge band; and per-iteration + end-of-run diagnostics that split the signals. The
+calibration did its job at the measurement level — the one-trivial + one-impossible transfer
+pair is gone — and the diagnostics reveal the truth the step-2 flat curve was hiding:
 
-Recommended order (steepest gradient first):
+```
+composite fitness : 0.379 → 0.456 → 0.358 → 0.364 → 0.438
+solve-rate (all)  : 0.17 → 0.17 → 0.00 → 0.00 → 0.17
+transfer-solve    : 0.00 → 0.00 → 0.00 → 0.00 → 0.00   (held-out, every iteration)
+info-gain (taste) : 0.35 → 0.38 → 0.35 → 0.34 → 0.37
+target_difficulty : 2 (pinned at the floor)
+```
 
-1. **Recalibrate the held-out transfer set to the agent's edge.** Frozen is right; one
-   trivial + one impossible is not. The set must sit in the band where solve-rate is
-   *sensitive* to taste. This is the single highest-leverage fix.
-2. **Unpin the difficulty dial.** Define *mastery* so the dial can climb, and decouple
-   weak-tag targeting from difficulty — stacking many hard modes onto a nominal
-   "difficulty 1" world makes "easy" worlds actually hard, which is likely why the agent
-   never masters the floor.
-3. **Raise eval signal-to-noise.** More worlds per eval and/or staged repeated episodes
-   (cost-gated per CLAUDE.md) so the between-generation gradient clears the noise floor.
+The held-out transfer-solve is a clean ZERO across all five iterations — the agent genuinely
+does not recover these rules. This **confirms the PI's hypothesis** ("maybe the agent isn't
+actually getting better — proven by the heldout set"): it isn't, and now it's visible. Two
+coupled causes, both "too hard for THIS model":
 
-Re-run the 12-iteration probe after each lever and watch the curve: the success criterion
-is a *visible climb*, then a flatten. Until the curve climbs, the taste pressure isn't real.
+- **Calibrated to the wrong agent's edge.** `at_edge` uses an *optimal* falsifier as the
+  "good taste" reference, but Haiku-with-good-taste is far weaker than optimal, so every
+  edge world sits above Haiku's reach. The real ZPD is *easier* than the optimal-prober edge.
+- **The exact-recovery bar is too harsh / agreement is saturated.** Haiku lands `agree~0.9`
+  but `solved=0` almost everywhere — consistently *close but not exact*. The 0.50-weight
+  `solved` term is all-or-nothing (a weak model rarely flips it) and `agreement` is pinned
+  near 0.9 by battery class-imbalance, so neither hands the meta agent a smooth gradient.
+
+The infrastructure (edge classifier, honest diagnostics, faithful mock smart agent) is
+correct and stays; the *band* and the *scorer* are what need tuning.
+
+## Next action — Step 4: a gradient the weak model can actually climb
+
+1. **Smooth the fitness gradient (highest leverage).** Replace saturated raw `agreement`
+   with *balanced* accuracy (mean of true-case and false-case agreement) so "getting closer"
+   registers continuously before exact recovery — a gradient Haiku can climb. Keep `solved`
+   (exact empirical equivalence) as the dominant term and the integrity invariant intact.
+2. **Calibrate the band to the TASK MODEL, not an optimal prober.** Either weaken the
+   reference falsifier toward Haiku's strength, or do a one-time cached measurement of the
+   seed model's solve-rate and keep worlds where it sits ~10–40% — real headroom to climb.
+3. Re-run 5 iterations; success = a *visible* climb in solve-rate and the held-out transfer
+   curve, not composite noise. (Each 5-iter real run is ~$9, so tune, don't scale.)
 
 ## The thesis
 
