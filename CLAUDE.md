@@ -39,12 +39,14 @@ questions — match the depth and tone of a genuine research-design conversation
 
 ## Run & test
 
-**Next action (pick this up):** Chapter 2 is **designed** — a navigable investigation-map
-judged by **coverage** (`WORLD_DESIGN.md`). The repo still runs Chapter 1; the concrete next
-build is the **thin de-risking slice** (`WORLD_DESIGN.md` → "First slice"): a hand-built tiny
-grammar-map + DP oracle + vanilla-vs-taste Haiku, measuring the two empirical bets (the
-taste-gap is **realizable by Haiku**; inference is a **ramp not a cliff**) *before* building
-the loop. `ROADMAP.md` → "Chapter 2" is the arc. The bash below still runs Chapter 1.
+**Next action (pick this up):** The Chapter-2 **thin slice is built** (`hta/ch2/`, run
+`python run_slice.py`) and measured (`WORLD_DESIGN.md` → "First slice"): **bet 2 (ramp) holds
+(R²=1.0); bet 1 (Haiku-realizable gap) does not yet** — the world is too *transparent*
+(vanilla Haiku is already near-tasteful at norm 0.61; the +0.05 taste edge drowns in noise),
+the inverse of Chapter 1's too-hard failure. The concrete next build is **deception**: hide
+segment boundaries, lure probes onto flashy dead-ends, add stepping-stones (edit `hta/ch2/
+maps.py` + the `agent.py` prompts), then re-measure at `--repeats 3–5` and re-gate before
+building the loop. `ROADMAP.md` → "Chapter 2" is the arc; the bash below still runs Chapter 1.
 
 
 ```bash

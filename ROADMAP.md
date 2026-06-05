@@ -59,13 +59,18 @@ The design is settled and lives in `WORLD_DESIGN.md`. The spine:
   **stay-Haiku** as a fixed control; cross-model port as a periodic generality check. The
   taste-prompt is an instrument (gate + bar), **never a target**.
 
-**Next concrete action — the thin de-risking slice** (`WORLD_DESIGN.md` → "First slice").
+**The thin de-risking slice ran** (`WORLD_DESIGN.md` → "First slice"; built in `hta/ch2/`).
 Two empirical bets gate everything: (1) the taste-gap must be **realizable by Haiku**, not
 just present in the world; (2) inference must be a **ramp, not a cliff** (partial grammar →
-partial coverage). Build a hand-built tiny map + DP oracle + vanilla-vs-taste Haiku, measure
-both bets, and only then build the loop. Chapter 2 is a fresh design on the **same
-three-plane skeleton** — it reuses the agent / loop / airgap and replaces the world
-substrate, the judge, and the probe payload.
+partial coverage). Result: **bet 2 PASSES** (R²=1.0 — independent segments make coverage
+linear in the fraction inferred), but **bet 1 does not yet** — and the failure inverts
+Chapter 1's. Haiku infers the grammar *fine*; the world is just **too transparent** (a bare
+prompt already sits at normalized 0.61 of the floor→oracle band, the ceiling is low, and the
++0.05 taste edge drowns in Haiku noise). Chapter 1 overshot difficulty too *hard*; this
+slice overshot too *easy*. **Next: add deception** (hide segment boundaries, lure probes onto
+flashy dead-ends, stepping-stones) to open Haiku-realizable headroom, **denoise** with
+repeats, then re-gate before building the loop. The substrate (tape + coverage judge + DP
+oracle) and the three-plane skeleton it reuses are sound.
 
 ## The thesis
 
@@ -102,7 +107,7 @@ makes a **new research virtue** necessary to win:
 | Chapter | World kind | Judge (objective principle) | Virtue it forces | Status |
 |---|---|---|---|---|
 | **1** | deterministic hidden rule `f(x,y,z)→bool` | **exact equivalence** — your rule behaves identically to mine on a fixed battery | falsification, hypothesis decomposition, Occam | done — pivoted (binary oracle → flat signal) |
-| **2** | navigable hidden **investigation-map** (grammar-generated graph) | **coverage** — how much of the structure you uncovered under a scarce budget | budget allocation, value-of-information, reading global structure, predict-the-unseen | **current (design)** |
+| **2** | navigable hidden **investigation-map** (grammar-generated graph) | **coverage** — how much of the structure you uncovered under a scarce budget | budget allocation, value-of-information, reading global structure, predict-the-unseen | **current — slice ran: bet 2 (ramp) holds, bet 1 (gap) needs deception** |
 | **3** | no exact rule — an uncertain/noisy process | **calibration** — how much probability you put on what actually happened | weighing evidence, quantifying uncertainty, knowing what you don't know | future |
 | **4+** | worlds you must act on, not just observe | **intervention quality** — the soundness of the experiment you designed | experimental design, controlling confounds, causal reasoning | future |
 
@@ -220,9 +225,13 @@ versus a reset (everything collapses).
 2. **First transition, by hand (now).** Author Chapter 2's judge (**coverage** on the
    investigation-map). Start **fresh** — Chapter 1 never climbed, so there is no taste to
    warm-start from; the headline measurement is whether **held-out coverage climbs from a
-   fresh start above the frozen ruler** (vanilla Haiku). The warm-start *transfer* test —
-   does mastering one chapter give a head start in the next — becomes meaningful at the
-   *next* transition, once a chapter actually produces climbing taste to carry.
+   fresh start above the frozen ruler** (vanilla Haiku). *Slice status:* the judge + DP
+   oracle + substrate are built and the **ramp** holds, but the first hand-built maps are
+   too transparent — vanilla Haiku is already near-tasteful, so there is no realizable gap to
+   climb yet. The open work is **deception** (make the naive move wrong) before the loop. The
+   warm-start *transfer* test — does mastering one chapter give a head start in the next —
+   becomes meaningful at the *next* transition, once a chapter actually produces climbing
+   taste to carry.
 3. **One or two more hand transitions.** Extract the pattern of a healthy transition
    (taste carries, headroom appears) vs. a reset.
 4. **Close the outer loop.** Encode that pattern into the substrate-designer: propose the

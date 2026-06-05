@@ -12,12 +12,15 @@ its own improvement procedure**), specialized so that:
 - the world (hidden rule + scorer) is **airgapped** from the agent's editable surface,
   which is simultaneously the anti-leak wall and the scientific-validity wall.
 
-> Status: **Chapter 1 (classic numeric WILT) — this is what the code runs.** Multi-iteration
+> Status: **Chapter 1 (classic numeric WILT) — this is what the loop runs.** Multi-iteration
 > evolution is verified end-to-end on both backends (offline mock + live `claude -p`);
 > episodes run concurrently and lineage compounds. But Chapter 1's binary judge gave a *flat*
 > taste signal (recover the rule exactly or score ~nothing), so the project has **pivoted to
-> Chapter 2 — a navigable investigation-map judged by coverage** (`WORLD_DESIGN.md`; design,
-> not yet built). This README documents the running Chapter-1 code.
+> Chapter 2 — a navigable investigation-map judged by coverage** (`WORLD_DESIGN.md`). The
+> Chapter-2 **thin de-risking slice is built** (`hta/ch2/`, `python run_slice.py`): it confirms
+> the *ramp* bet but shows the first maps are too transparent for a Haiku taste-gap — the next
+> step is **deception** before the loop (`WORLD_DESIGN.md` → "First slice"). This README
+> documents the running Chapter-1 code.
 
 **Where it's going:** `ROADMAP.md` is the North Star — the two-loop model (worlds
 self-evolve to the student's edge; judges change between chapters as taste saturates), the

@@ -143,24 +143,56 @@ Lesser unknowns: the **omniscient** oracle may be too strong a *denominator* and
 everyone near zero (the right normalizer may be the *realizable* ceiling, costlier to
 compute); and MDL-on-program is conceptually right but **mechanically unproven**.
 
-## First slice — to build (the thin de-risking slice)
+## First slice — built, and what it measured
 
-The smallest end-to-end that answers **bet 1 and bet 2** before a cent is spent on the loop:
+The thin slice is **built and isolated in `hta/ch2/`** (the repo still runs Chapter 1). It
+is the smallest end-to-end that answers **bet 1 and bet 2** before a cent is spent on the
+loop: a hand-built grammar-map substrate (a **segmented tape** — `const`/`arith`/`alt`
+segments, `maps.py`), a **deterministic expander** + family **version-space determination**,
+the model-free **DP oracle** + no-inference floor (`grammar.py`), a **coverage judge** that
+scores the agent's submitted reconstruction as an *outcome* (`world.py`), and a
+**vanilla-vs-taste Haiku** harness over the Chapter-2 probe channel (`agent.py`,
+`probe_server.py`, `run_slice.py`). Run it:
 
-1. A **hand-built tiny grammar-map** (not loop-generated) + the **DP oracle/value** with
-   **intrinsic-information** weighting.
-2. A **vanilla Haiku** agent *and* a **decent taste-prompt** Haiku, single-session, probing
-   under a **small budget** via the (Chapter-2) probe channel.
-3. **Measure:** (a) **realizable gap** — does taste-Haiku beat vanilla-Haiku and approach
-   the oracle? (b) **smoothness** — is coverage ~linear in the fraction of grammar inferred?
-4. **Decision gate:** yes → build the loop (smith spec + expander, taste-gap gate, MDL
-   prior, held-out + transfer). No → **fix the grammar** (more incremental/composable) before
-   building the loop.
+```bash
+python run_slice.py --backend mock              # free: plumbing + the structural bet-2 answer
+python run_slice.py --backend real --repeats 3  # live Haiku; ~a few cents/episode
+```
 
-**Reuse vs. new (code).** *Reused* (the three-plane skeleton): the single-session episode
-harness and concurrency (`hta/llm.py`, `loop.py`), the airgap/sandbox, the agent plane and
-archive, the probe-channel *pattern*. *New for Chapter 2:* the world substrate (grammar +
-fuel-bounded expander, replacing `engine.py`'s rule+battery), the **coverage/DP judge**
-(replacing `score_guess`), a **richer probe channel** payload (a probe reveals local map
-structure, not one boolean), and a **coverage-based fitness** in `taste.py`. Keep the
-scorer/airgap separation byte-for-byte in spirit: deterministic, agent-inaccessible, dumb.
+Intrinsic-information weighting **falls out of the structure** (a probe is worth how many
+cells it lets you determine) rather than a hand-picked "interesting" list — so the judge
+stays a dumb deterministic function and our taste prior never leaks into it.
+
+**Bet 2 (ramp not cliff): PASS — structurally.** Segments are independent, so inferring a
+fraction of the grammar buys a proportional fraction of the coverage: the smoothness curve
+is a straight line (R² = 1.0) on all three maps. This is a property of the world, computed
+model-free — a solid result. The substrate is a ramp.
+
+**Bet 1 (gap realizable by Haiku): NOT YET — and the failure is the *inverse* of Chapter
+1's.** Live aggregate (n=1/cell, noisy, ~$0.42): vanilla Haiku already sits at **normalized
+0.61** of the floor→oracle band; taste beats it by only **+0.05 raw (+0.09 normalized)** —
+inside Haiku's own run-to-run noise (on `tight`, taste swung 0.67 → 1.00 across two draws).
+The problem is **not** that Haiku is too weak to infer the grammar (Chapter 1's failure — it
+infers it fine). The problem is that the world is **too transparent**: once the agent is
+told "known segments, each a simple pattern," the tasteful move (probe a couple cells,
+extrapolate) is nearly *forced*, so a bare prompt already does it and the oracle ceiling is
+low (0.88–1.0). There is little headroom for taste to express, and the gap drowns in noise.
+Same root cause as Chapter 1 — **difficulty miscalibrated** — overshooting the other way.
+
+**Decision: iterate the world before the loop (don't build it yet).** The substrate (tape +
+coverage judge + DP oracle) is right and bet 2 is solid; what's miscalibrated is
+**deception and the realizable ceiling**. The next cycle, smallest first:
+
+1. **Make the locally-attractive move wrong** — the design's "deception is the engine,"
+   which these first maps don't yet have. Hide the segment boundaries so segmentation must
+   be *inferred*; add a flashy short segment that lures probes off the boring high-yield one;
+   add **stepping-stone** segments readable only after probing a "boring door" cell; enlarge
+   the family so 2–3 probes don't trivially pin a segment. The bar: even an agent that *knows
+   the rules of the game* should still need investigative taste, because knowing-the-rules
+   must stop being the same as knowing-the-strategy.
+2. **Denoise** — re-measure at `--repeats 3–5` so the gap estimate beats Haiku variance
+   (cheap, ~$1); report a mean, not a single draw.
+3. **Re-gate** — gap clears noise and taste approaches the oracle → build the loop (smith
+   spec + expander, taste-gap gate, MDL prior, held-out + transfer). Still flat → the gap may
+   not be Haiku-realizable and Chapter 2's **judge**, not just its difficulty, needs a
+   rethink.
