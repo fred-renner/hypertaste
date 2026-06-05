@@ -18,9 +18,11 @@ Maps (under hidden boundaries):
 - `decoy`  : a short flashy `cycle` lure, then the long boring `const` prize, then more
              flashy short segments. Reading "this dull run is long, pin its extent first"
              wins; chasing the shiny cells loses.
-- `mirage` : an `arith` run and a `cycle` run with the SAME [0,1,2] prefix sit back to back,
-             then a `const` tail. A local read mistakes one for the other; only reading the
-             global period (does [0,1,2] repeat?) segments it correctly.
+- `mirage` : a fat boring `const` bank (the prize), then an `arith` run and a `cycle` run
+             with the SAME [0,1,2] prefix back to back (the lure). Banking the dull run wins;
+             pouring probes into the flashy mirage — where a local read mistakes one pattern
+             for the other and only the global period (does [0,1,2] repeat?) disambiguates —
+             loses.
 - `tight`  : K=4, three equal segments spanning const/cycle/alt — a symmetric ramp sanity
              check, still requiring boundary inference and a cycle confirm-probe.
 
@@ -41,19 +43,19 @@ MAPS = [
         ),
     ),
     TapeSpec(
-        name="mirage", K=4, budget=6,
+        name="mirage", K=4, budget=7,
         segments=(
-            Segment("arith", (0, 1), 5),      # [0,1,2,3,0] arith with the [0,1,2] prefix
-            Segment("cycle", (0, 1, 2), 6),   # [0,1,2,0,1,2] same prefix, but it REPEATS
-            Segment("const", (3,), 4),        # [3x4] the cheap high-value bank
+            Segment("const", (2,), 7),        # [2x7] the fat boring bank -> the real prize
+            Segment("arith", (0, 1), 4),      # [0,1,2,3] arith with the [0,1,2] prefix
+            Segment("cycle", (0, 1, 2), 4),   # [0,1,2,0] same prefix, but it REPEATS (the lure)
         ),
     ),
     TapeSpec(
-        name="tight", K=4, budget=5,
+        name="tight", K=4, budget=6,
         segments=(
-            Segment("const", (1,), 4),
-            Segment("cycle", (2, 0, 3), 4),   # [2,0,3,2] period-3 needs a confirm-probe
-            Segment("alt", (3, 1), 4),
+            Segment("const", (1,), 5),
+            Segment("cycle", (2, 0, 3), 5),   # [2,0,3,2,0] period-3 needs a confirm-probe
+            Segment("alt", (3, 1), 5),
         ),
     ),
 ]
