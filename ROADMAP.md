@@ -5,95 +5,52 @@ The North Star and the staged path to it. `WORLD_DESIGN.md` is the technical det
 staging is the way it is. Read this for direction, `WORLD_DESIGN.md` for the current
 mechanics.
 
-## Next action
+## Where we are — Chapter 1 ran, and it told us the world is the wrong shape
 
-**Step 1 — first real-backend run: done (2026-06-05).** 3 iterations validated the loop
-end-to-end on live `claude -p`. Every child improved (fitness `0.586 → 0.610 → 0.620`), the
-held-out transfer world was solved in every iteration (general taste, not curriculum
-overfit), and the world-smith built taste-bearing `structures={'exception','regime'}` off
-the agent's `weak_tags`. Cost landed exactly at the prediction: **~$1/iter** ($3.00 total,
-of which the Opus meta edit is $2.02). The signature result — the meta agent didn't flip a
-flag, it wrote **version-space active learning** (a `_splitting_probe` that picks the probe
-most evenly splitting the hypotheses still consistent with the evidence), and its own
-comment cites the exact failure it was repairing. The machinery works.
+Three real-backend runs (3, 12, then 5 iterations; ~$1/iter, Opus-meta-dominated)
+validated the machinery end-to-end: the loop runs, episodes are concurrent, lineage
+compounds, cost is as predicted. **But fitness does not climb** — across every run it
+random-walks around a floor, and on a calibrated 5-iteration run the **held-out solve-rate
+was a clean zero for all five iterations**. The agent is not actually getting better at the
+task, and the honest held-out exam proves it.
 
-Two caveats to carry into scaling: `target_difficulty` held at 2 (correct — the agent isn't
-yet *mastering* level 2, so the dial shouldn't climb; the ZPD is doing its job), and one
-episode hit `error_max_turns`. With `--n-transfer 1` the transfer signal is still n=1 noisy.
+The essence of *why* (this is the finding to carry forward):
 
-**Step 2 — the ~10–15 iteration run: done (2026-06-05). Honest negative result — the loop
-runs but does not climb.** 12 iterations, `$13.98` (cost exactly as predicted ✓), machinery
-clean (6/12 children improved, 3 episodes hit `error_max_turns`). But the fitness curve is
-**flat with noise, not climb-then-flatten**:
+- **The world is a binary oracle.** "Discover the hidden rule" scores by *exact* equivalence:
+  you recover the rule or you get nothing. For a weak task model (Haiku) that's ~always
+  "nothing" on any taste-bearing world, so the selection signal is flat.
+- **The partial-credit patch is hollow.** To fake a gradient, fitness blends in `agreement`
+  (fraction of a fixed ~750-point battery matched) + bonuses. But the battery is mostly
+  "False", so a lazy guess scores ~0.9 agreement for free; `novelty`/`occam` add more free
+  floor. Result: fitness hovers ~0.4 regardless of whether anything was solved — motion
+  without meaning.
+- **Calibrating difficulty didn't save it.** Tuning worlds to a *reference* prober's edge
+  (a falsifier beats a confirm-prober) overshot, because that reference is far stronger than
+  Haiku. Calibrating to the real student needs measuring the student, not a proxy.
 
-```
-0.313 → 0.497 → 0.507 → 0.496 → 0.505 → 0.494 → 0.498 → 0.630 → 0.486 → 0.495 → 0.452 → 0.444
-```
+Net: patching the *scorer* of a binary rule-guessing world is rearranging deck chairs. The
+session's edge-calibration code was reverted as a dead-end; only this finding is kept.
 
-One transient spike (gen_0008 = 0.630) that selection never re-exploited; otherwise a
-random walk around ~0.50. Root cause is **upstream of the meta agent: the measurement has
-almost no dynamic range, so there is no taste gradient to climb.** Three coupled symptoms:
+## Next action — Chapter 2: design a world where progress *is* the signal (fresh session)
 
-- **The frozen transfer set is a constant.** Of the two held-out worlds, world_0 is solved
-  with `agree=1.00` in *every* iteration (trivial) and world_1 is *never* solved by anyone,
-  parent or child, gen 0→12 (`agree~0.95`, off the edge the other way). One trivial + one
-  impossible = zero between-generation signal. (Step 1's "transfer held!" was this artifact
-  at n=1.)
-- **The difficulty dial pinned to the floor.** `target_difficulty` dropped 2→1 by iteration
-  2 and stayed at 1 for all 12. The agent rarely solves train worlds, so the ZPD has no
-  *mastery* to push against and ratchets to the floor — and sits there. The dial moves, but
-  only downward.
-- **Selection can't compound.** Between-generation fitness differences (~0.49–0.51) are
-  inside eval noise (n_train=2, n_transfer=2, single episode each), so the one good jump
-  (gen_0008) was never reliably reselected.
+The redirect (PI): stop scoring a binary answer and bolting taste-metrics onto it. Build a
+**research world** — complex, odd, surprising — where *better taste gets you further*, and
+fitness is simply **how far / how much you uncovered**. Then info-gain, falsification,
+decomposition, Occam aren't side-bonuses; they're the behaviors that unlock coverage. Taste
+becomes the thing that wins the game instead of a term in a formula. (Tasteful behaviors we
+want but don't yet see can be *planted* into episodes as what the world rewards.)
 
-**Verdict: do not scale to 30 iterations yet — fix the signal first.** The loop is
-optimizing against a near-constant; more iterations just buy more random walk.
+**The needle to thread** (the integrity floor, non-negotiable): progress must be measured by
+a **dumb deterministic function**, never an LLM judge — or the agent games the judge. The
+current world is ugly but ungameable for exactly this reason (equivalence-on-a-battery). The
+Chapter-2 design problem in one line: *a world rich and weird enough that taste is what gets
+you through, whose progress is still objectively, cheaply computable.*
 
-**Step 3 — edge-calibration + diagnostics: done (2026-06-05). The measurement is now
-honest, and it proves the worlds are still too hard for the task model.** 5 iterations,
-`$8.68` (as estimated), `eval_repeats=2`. The three levers shipped: a model-free *edge
-classifier* (a falsifier solves the world in budget, a confirm-biased prober does not)
-calibrating the frozen transfer set and biasing training worlds; the dial floored at the
-edge band; and per-iteration + end-of-run diagnostics that split the signals. The
-calibration did its job at the measurement level — the one-trivial + one-impossible transfer
-pair is gone — and the diagnostics reveal the truth the step-2 flat curve was hiding:
-
-```
-composite fitness : 0.379 → 0.456 → 0.358 → 0.364 → 0.438
-solve-rate (all)  : 0.17 → 0.17 → 0.00 → 0.00 → 0.17
-transfer-solve    : 0.00 → 0.00 → 0.00 → 0.00 → 0.00   (held-out, every iteration)
-info-gain (taste) : 0.35 → 0.38 → 0.35 → 0.34 → 0.37
-target_difficulty : 2 (pinned at the floor)
-```
-
-The held-out transfer-solve is a clean ZERO across all five iterations — the agent genuinely
-does not recover these rules. This **confirms the PI's hypothesis** ("maybe the agent isn't
-actually getting better — proven by the heldout set"): it isn't, and now it's visible. Two
-coupled causes, both "too hard for THIS model":
-
-- **Calibrated to the wrong agent's edge.** `at_edge` uses an *optimal* falsifier as the
-  "good taste" reference, but Haiku-with-good-taste is far weaker than optimal, so every
-  edge world sits above Haiku's reach. The real ZPD is *easier* than the optimal-prober edge.
-- **The exact-recovery bar is too harsh / agreement is saturated.** Haiku lands `agree~0.9`
-  but `solved=0` almost everywhere — consistently *close but not exact*. The 0.50-weight
-  `solved` term is all-or-nothing (a weak model rarely flips it) and `agreement` is pinned
-  near 0.9 by battery class-imbalance, so neither hands the meta agent a smooth gradient.
-
-The infrastructure (edge classifier, honest diagnostics, faithful mock smart agent) is
-correct and stays; the *band* and the *scorer* are what need tuning.
-
-## Next action — Step 4: a gradient the weak model can actually climb
-
-1. **Smooth the fitness gradient (highest leverage).** Replace saturated raw `agreement`
-   with *balanced* accuracy (mean of true-case and false-case agreement) so "getting closer"
-   registers continuously before exact recovery — a gradient Haiku can climb. Keep `solved`
-   (exact empirical equivalence) as the dominant term and the integrity invariant intact.
-2. **Calibrate the band to the TASK MODEL, not an optimal prober.** Either weaken the
-   reference falsifier toward Haiku's strength, or do a one-time cached measurement of the
-   seed model's solve-rate and keep worlds where it sits ~10–40% — real headroom to climb.
-3. Re-run 5 iterations; success = a *visible* climb in solve-rate and the held-out transfer
-   curve, not composite noise. (Each 5-iter real run is ~$9, so tune, don't scale.)
+Open questions for the fresh session: what is the world (a multi-step investigation? a
+structure to map? a space to cover?); what is the objective "how far you got" metric; how do
+episodes plant the tasteful behaviors; how does the held-out exam work so progress is real
+transfer, not curriculum overfit. `WORLD_DESIGN.md` is Chapter 1's mechanics — Chapter 2 is
+a fresh design on top of the same three-plane skeleton (world / agent / taste).
 
 ## The thesis
 

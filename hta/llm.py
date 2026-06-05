@@ -240,18 +240,10 @@ def episode(prompt: str, model: str, mcp_server_argv, server_env, cwd: str,
 # ---------------------------------------------------------------------------
 _CTX = re.compile(r"<<CTX>>(.*?)<<CTX>>", re.DOTALL)
 
-# A diverse, falsification-seeking probe pool for the adaptive "smart" strategy. Each
-# step the smart prober picks the unseen probe that most evenly SPLITS the library
-# hypotheses still consistent with history -- version-space active learning, the same
-# instinct the real meta agent converged on. A fixed battery couldn't isolate the
-# compositional (conjunction/exception) worlds the edge calibration now selects; an
-# adaptive splitter recovers them within budget, so the mock "smart" agent is a
-# faithful falsifier and the curriculum dial sees real mastery.
-_SMART_PROBE_POOL = [
-    [1, 2, 3], [3, 2, 1], [2, 2, 2], [1, 3, 2], [-1, 0, 1], [5, 5, 6], [2, 4, 6],
-    [0, 0, 0], [10, 5, 1], [1, 2, 2], [1, 2, 4], [1, 3, 5], [2, 3, 4], [-2, 0, 2],
-    [-1, 1, 3], [0, 1, 2], [3, 3, 3], [-3, -2, -1], [0, 2, 4], [2, 1, 0], [1, 0, -1],
-    [0, 5, 10], [-5, 0, 5], [-2, -1, 0], [-1, -2, -3],
+# A diverse, falsification-seeking probe battery for the "smart" strategy.
+_SMART_BATTERY = [
+    [1, 2, 3], [3, 2, 1], [2, 2, 2], [1, 3, 2], [-1, 0, 1],
+    [5, 5, 6], [2, 4, 6], [0, 0, 0], [10, 5, 1], [1, 2, 2],
 ]
 
 
@@ -282,37 +274,13 @@ def _mock_probe(ctx: dict) -> dict:
     strategy = ctx.get("strategy", "naive")
     n = len(history)
     if strategy == "smart":
-        probe = _smart_splitting_probe(history)
-        reasoning = "probe chosen to split the still-consistent hypotheses (falsify + isolate)"
+        probe = _SMART_BATTERY[n % len(_SMART_BATTERY)]
+        reasoning = "diverse probe to falsify and split the hypothesis space"
     else:
         # confirmation bias: always increasing with a constant gap of 2.
         probe = [n + 1, n + 3, n + 5]
         reasoning = "another increasing example to confirm the hypothesis"
     return {"probe": probe, "reasoning": reasoning}
-
-
-def _smart_splitting_probe(history) -> list:
-    """Pick the unseen pooled probe that most evenly splits the library hypotheses
-    still consistent with the observed booleans (max min(true, false) -- the most
-    balanced, most informative split). Falls back to a fresh deterministic triple if
-    every pooled probe has been used."""
-    from .world.grammar import candidate_library, consistent_candidates
-    hist = [{"triple": h.get("triple"), "label": h.get("label")}
-            for h in history if h.get("triple")]
-    cands = consistent_candidates(hist, candidate_library())
-    seen = {tuple(h["triple"]) for h in hist}
-    best_p, best = None, -1
-    for p in _SMART_PROBE_POOL:
-        if tuple(p) in seen:
-            continue
-        t = sum(1 for c in cands if c.evaluate(p))
-        score = min(t, len(cands) - t)   # most balanced split is most informative
-        if score > best:
-            best, best_p = score, p
-    if best_p is None:                   # pool exhausted -> fresh increasing triple
-        k = len(hist)
-        return [k + 1, k + 3, k + 5]
-    return list(best_p)
 
 
 def _mock_guess(ctx: dict) -> dict:

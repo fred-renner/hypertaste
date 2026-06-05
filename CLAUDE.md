@@ -38,8 +38,9 @@ questions — match the depth and tone of a genuine research-design conversation
 
 ## Run & test
 
-**Next action (pick this up):** the first real-backend run — see `ROADMAP.md` → "Next
-action". 3 iterations to validate the loop end-to-end and calibrate cost before scaling.
+**Next action (pick this up):** Chapter 2 — redesign the world so progress *is* the taste
+signal. The real runs proved Chapter 1's binary rule-guessing world gives no climbable
+gradient; see `ROADMAP.md` → "Next action — Chapter 2" for the finding and the design brief.
 
 
 ```bash
