@@ -21,23 +21,51 @@ Two caveats to carry into scaling: `target_difficulty` held at 2 (correct — th
 yet *mastering* level 2, so the dial shouldn't climb; the ZPD is doing its job), and one
 episode hit `error_max_turns`. With `--n-transfer 1` the transfer signal is still n=1 noisy.
 
-**Step 2 — the ~10–15 iteration run.** Long enough to watch the taste curve
-climb-then-flatten inside Chapter 1; bump transfer to ≥2 to firm up that signal. Budget
-~$10–15 (meta-dominated).
+**Step 2 — the ~10–15 iteration run: done (2026-06-05). Honest negative result — the loop
+runs but does not climb.** 12 iterations, `$13.98` (cost exactly as predicted ✓), machinery
+clean (6/12 children improved, 3 episodes hit `error_max_turns`). But the fitness curve is
+**flat with noise, not climb-then-flatten**:
 
-```bash
-python run_loop.py --iterations 12 --backend real --episode-mode single_session \
-  --max-probes 6 --n-train 2 --n-transfer 2
+```
+0.313 → 0.497 → 0.507 → 0.496 → 0.505 → 0.494 → 0.498 → 0.630 → 0.486 → 0.495 → 0.452 → 0.444
 ```
 
-Watch, tied to the inner-loop success criterion:
-- **world-smith log** — `structures={...}` carrying conjunction/regime/exception (the
-  taste-bearing worlds) and `target_difficulty` escalating *once the agent starts mastering*
-  the current level;
-- **child > parent fitness** — the meta agent's edits actually improving the task agent;
-- **transfer tracking train** — the honest signal of *general* taste, not curriculum overfit;
-- **the flatten** — where fitness saturates is where Chapter 1's judge stops discriminating
-  and the outer loop should swap it.
+One transient spike (gen_0008 = 0.630) that selection never re-exploited; otherwise a
+random walk around ~0.50. Root cause is **upstream of the meta agent: the measurement has
+almost no dynamic range, so there is no taste gradient to climb.** Three coupled symptoms:
+
+- **The frozen transfer set is a constant.** Of the two held-out worlds, world_0 is solved
+  with `agree=1.00` in *every* iteration (trivial) and world_1 is *never* solved by anyone,
+  parent or child, gen 0→12 (`agree~0.95`, off the edge the other way). One trivial + one
+  impossible = zero between-generation signal. (Step 1's "transfer held!" was this artifact
+  at n=1.)
+- **The difficulty dial pinned to the floor.** `target_difficulty` dropped 2→1 by iteration
+  2 and stayed at 1 for all 12. The agent rarely solves train worlds, so the ZPD has no
+  *mastery* to push against and ratchets to the floor — and sits there. The dial moves, but
+  only downward.
+- **Selection can't compound.** Between-generation fitness differences (~0.49–0.51) are
+  inside eval noise (n_train=2, n_transfer=2, single episode each), so the one good jump
+  (gen_0008) was never reliably reselected.
+
+**Verdict: do not scale to 30 iterations yet — fix the signal first.** The loop is
+optimizing against a near-constant; more iterations just buy more random walk.
+
+## Next action — Step 3: give the eval dynamic range
+
+Recommended order (steepest gradient first):
+
+1. **Recalibrate the held-out transfer set to the agent's edge.** Frozen is right; one
+   trivial + one impossible is not. The set must sit in the band where solve-rate is
+   *sensitive* to taste. This is the single highest-leverage fix.
+2. **Unpin the difficulty dial.** Define *mastery* so the dial can climb, and decouple
+   weak-tag targeting from difficulty — stacking many hard modes onto a nominal
+   "difficulty 1" world makes "easy" worlds actually hard, which is likely why the agent
+   never masters the floor.
+3. **Raise eval signal-to-noise.** More worlds per eval and/or staged repeated episodes
+   (cost-gated per CLAUDE.md) so the between-generation gradient clears the noise floor.
+
+Re-run the 12-iteration probe after each lever and watch the curve: the success criterion
+is a *visible climb*, then a flatten. Until the curve climbs, the taste pressure isn't real.
 
 ## The thesis
 
