@@ -43,20 +43,36 @@ def _frontier(archive: Archive):
 
 def _target_difficulty(archive: Archive, cfg: Config) -> int:
     """Zone-of-proximal-development: keep the curriculum just above current ability.
-    Escalate when the best agent solves most worlds, ease off when it's struggling."""
+    Escalate when the best agent solves enough worlds, ease off when it's struggling.
+    The floor is 2, not 1: worlds only become taste-bearing (a falsifier beats a
+    confirm-biased prober) from difficulty 2 up, so easing below the edge band would
+    hand back the trivial worlds the calibration exists to remove. Thresholds are
+    widened from the original 0.75/0.25 -- on edge-calibrated worlds a ~0.3-0.5
+    solve-rate is the productive zone, so escalate at 0.6 and only ease below 0.2."""
     b = archive.best()
     if b is None:
-        return 2  # no evaluated agent yet -> start moderate
+        return 2  # no evaluated agent yet -> start at the edge-band floor
     m = archive._meta(b)
     n = (cfg.n_train_worlds + cfg.n_transfer_worlds) or 1
     solved = (m.get("solved_train", 0) or 0) + (m.get("solved_transfer", 0) or 0)
     frac = solved / n
     base = m.get("target_difficulty", 2) or 2
-    if frac >= 0.75:
+    if frac >= 0.6:
         return min(base + 1, 5)
-    if frac <= 0.25:
-        return max(base - 1, 1)
+    if frac <= 0.2:
+        return max(base - 1, 2)
     return base
+
+
+def _component_means(per_world) -> dict:
+    """Mean of each taste component over a set of worlds, so we can see WHICH axis
+    moved (the composite fitness is solve-dominated and can sit flat while the agent's
+    falsification/info-gain genuinely improve -- the ambiguity the 12-iter run hit)."""
+    n = len(per_world) or 1
+    keys = ("agreement", "avg_info_gain", "false_frac", "novelty")
+    out = {k: round(sum(r["metrics"][k] for r in per_world) / n, 4) for k in keys}
+    out["solve_rate"] = round(sum(1 for r in per_world if r["metrics"]["solved"]) / n, 4)
+    return out
 
 
 def _eval_split(solver_dir, train_worlds, transfer_worlds, cfg, log):
@@ -70,8 +86,14 @@ def _eval_split(solver_dir, train_worlds, transfer_worlds, cfg, log):
     all_worlds = list(train_worlds) + list(transfer_worlds)
     all_pw = tr["per_world"] + te["per_world"]
     return {"train": tr, "transfer": te, "combined_fitness": combined,
+            "components": _component_means(all_pw),
+            "transfer_components": _component_means(te["per_world"]),
             "weak_tags": task_agent.weak_tags(all_worlds, all_pw),
             "weakness": task_agent.weakness_flags(all_pw)}
+
+
+_ZERO_COMPONENTS = {"agreement": 0.0, "avg_info_gain": 0.0, "false_frac": 0.0,
+                    "novelty": 0.0, "solve_rate": 0.0}
 
 
 def run_iteration(cfg: Config, seed: int = 0, log=print) -> dict:
@@ -115,8 +137,18 @@ def run_iteration(cfg: Config, seed: int = 0, log=print) -> dict:
         log(f"child failed to evaluate (invalid program): {e}")
         child_eval = {"train": {"mean_fitness": 0.0, "solved": 0},
                       "transfer": {"mean_fitness": 0.0, "solved": 0},
-                      "combined_fitness": 0.0}
+                      "combined_fitness": 0.0, "components": dict(_ZERO_COMPONENTS),
+                      "transfer_components": dict(_ZERO_COMPONENTS)}
         valid = False
+
+    # Diagnostics: separate "did the agent get better" (taste components, esp. the
+    # held-out transfer solve-rate) from "did the composite move".
+    pc, cc = parent_eval["components"], child_eval["components"]
+    log(f"  diagnostics (parent -> child): "
+        f"solve_rate {pc['solve_rate']:.2f}->{cc['solve_rate']:.2f}  "
+        f"info_gain {pc['avg_info_gain']:.2f}->{cc['avg_info_gain']:.2f}  "
+        f"falsify {pc['false_frac']:.2f}->{cc['false_frac']:.2f}  "
+        f"agree {pc['agreement']:.2f}->{cc['agreement']:.2f}")
 
     summary = {
         "fitness": child_eval["combined_fitness"],
@@ -141,5 +173,9 @@ def run_iteration(cfg: Config, seed: int = 0, log=print) -> dict:
         "parent_solved": (parent_eval["train"]["solved"], parent_eval["transfer"]["solved"]),
         "child_solved": (child_eval["train"]["solved"], child_eval["transfer"]["solved"]),
         "valid_child": valid,
+        "target_difficulty": target_diff,
+        "components": child_eval["components"],
+        "transfer_components": child_eval["transfer_components"],
+        "n_transfer": cfg.n_transfer_worlds,
     }
     return report

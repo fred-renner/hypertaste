@@ -35,8 +35,19 @@ def main():
     arch = Archive(cfg.archive_dir)
     best = arch.best()
     print("\n" + "=" * 70)
-    print("PROGRESSION (child fitness per iteration):")
-    print("  " + " -> ".join(f"{h['child_fitness']:.3f}" for h in history))
+    # Four curves, not one: the composite is solve-dominated and can sit flat while the
+    # agent's taste genuinely improves. Reading solve-rate, the HELD-OUT transfer
+    # solve-rate (the honest "is it really learning" signal), and info-gain separately
+    # tells "agent got better" apart from "score moved".
+    def curve(fn):
+        return " -> ".join(fn(h) for h in history)
+    print("PROGRESSION (per iteration):")
+    print("  composite fitness : " + curve(lambda h: f"{h['child_fitness']:.3f}"))
+    print("  solve-rate (all)  : " + curve(lambda h: f"{h['components']['solve_rate']:.2f}"))
+    print("  transfer-solve    : " + curve(
+        lambda h: f"{(h['child_solved'][1] / (h['n_transfer'] or 1)):.2f}"))
+    print("  info-gain (taste) : " + curve(lambda h: f"{h['components']['avg_info_gain']:.2f}"))
+    print("  target_difficulty : " + curve(lambda h: f"{h['target_difficulty']}"))
     if best is not None:
         print(f"best stepping stone: gen_{best:04d} fitness={arch.fitness(best):.4f}")
     acct = llm.accounting()

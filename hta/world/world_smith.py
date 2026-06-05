@@ -85,22 +85,25 @@ _RECOVER_BUDGET = 40      # generous probe budget for the reference inductor.
 # fixed decoy label matrices (computed once) and per-rule admissibility/behavior.
 _DECOY_PROBE_MAT = None   # decoy labels over the probe-candidate points
 _DECOY_FULL_MAT = None    # decoy labels over the full battery (for equivalence)
+_DECOY_SRCLEN = None      # source length per decoy (Occam order for the confirm prober)
 _ADMISSIBLE_CACHE = {}
 _BEHAVIOR_CACHE = {}
 
 
 def _decoy_matrices():
     """Precompute, once, the label vectors of a fixed decoy pool (library + sampled
-    grammar) over (a) the probe candidates and (b) the full battery. Vectorizing here
-    keeps the reference inductor a pure integer computation per candidate rule."""
-    global _DECOY_PROBE_MAT, _DECOY_FULL_MAT
+    grammar) over (a) the probe candidates and (b) the full battery, plus each decoy's
+    source length (the Occam tiebreak the confirm-biased prober uses). Vectorizing here
+    keeps the reference inductors a pure integer computation per candidate rule."""
+    global _DECOY_PROBE_MAT, _DECOY_FULL_MAT, _DECOY_SRCLEN
     if _DECOY_PROBE_MAT is None:
         specs = (candidate_library()
                  + sample_hypotheses(0xC0FFEE, 48, "exception", include_library=False))
         bat = battery()
         _DECOY_FULL_MAT = [tuple(bool(s.fn(*t)) for t in bat) for s in specs]
         _DECOY_PROBE_MAT = _DECOY_FULL_MAT  # probe candidates = the full battery
-    return _DECOY_PROBE_MAT, _DECOY_FULL_MAT
+        _DECOY_SRCLEN = [len(s.source) for s in specs]
+    return _DECOY_PROBE_MAT, _DECOY_FULL_MAT, _DECOY_SRCLEN
 
 
 # ---------------------------------------------------------------------------
@@ -121,7 +124,7 @@ def _reference_recovers(rule: RuleSpec, budget: int = _RECOVER_BUDGET) -> bool:
     world is solvable iff the survivors are all empirically equivalent to the true
     rule -- i.e. an optimal, falsification-driven prober pins its equivalence class
     within the budget. (Vectorized over precomputed label matrices.)"""
-    probe_mat, full_mat = _decoy_matrices()
+    probe_mat, full_mat, _ = _decoy_matrices()
     truth_full = _behavior(rule)             # labels over the full battery
     truth_probe = truth_full                 # probe candidates == full battery
     live = list(range(len(probe_mat)))       # indices of decoys still consistent
@@ -167,6 +170,102 @@ def _behavior(rule: RuleSpec):
 
 
 # ---------------------------------------------------------------------------
+# Edge calibration -- the ZPD band, measured model-free
+# ---------------------------------------------------------------------------
+# A world sits at the agent's EDGE iff a *falsifying* prober recovers it within the
+# agent's probe budget but a *confirm-biased* prober does NOT. That is precisely the
+# band where moving the task agent from bad taste (confirm) to good taste (falsify)
+# flips the world from unsolved to solved -- so the held-out solve-rate becomes a real
+# gradient instead of the flat constant the 12-iter run measured (one transfer world
+# always solved, one never, by every generation). Both reference probers are
+# deterministic and run over the same decoy matrices as the solvability gate, so
+# calibration costs zero model calls.
+_EDGE_CACHE = {}
+_TRANSFER_FALSIFY_CAP = 4   # keep the frozen yardstick in the quick-to-falsify band
+
+
+def _falsify(rule: RuleSpec, budget: int):
+    """Optimal falsifying inductor: greedily probe the point that eliminates the most
+    still-consistent decoys. Returns (probes_used, solved); solved == survivors are all
+    empirically equivalent to the true rule."""
+    probe_mat, full_mat, _ = _decoy_matrices()
+    truth = _behavior(rule)
+    live, asked, used = list(range(len(probe_mat))), set(), 0
+    for _ in range(budget):
+        if not live or all(full_mat[i] == truth for i in live):
+            break
+        best_p, best_surv = None, None
+        for p in range(len(truth)):
+            if p in asked:
+                continue
+            lbl = truth[p]
+            surv = sum(1 for i in live if probe_mat[i][p] == lbl)
+            if surv < len(live) and (best_surv is None or surv < best_surv):
+                best_surv, best_p = surv, p
+        if best_p is None:
+            break
+        asked.add(best_p); used += 1
+        lbl = truth[best_p]
+        live = [i for i in live if probe_mat[i][best_p] == lbl]
+    return used, (bool(live) and all(full_mat[i] == truth for i in live))
+
+
+def _confirm(rule: RuleSpec, budget: int) -> bool:
+    """Confirm-biased inductor (the naive failure mode): hold the simplest consistent
+    decoy as the current hypothesis and probe where IT predicts True -- seeking
+    confirmation, never falsification. Returns whether its final Occam guess is correct.
+    On a confirm-trap world (exception/regime) it never probes the carved-out region,
+    so it stays wrong."""
+    probe_mat, full_mat, srclen = _decoy_matrices()
+    truth = _behavior(rule)
+    live, asked = list(range(len(probe_mat))), set()
+    for _ in range(budget):
+        if not live:
+            break
+        cur = min(live, key=lambda i: (srclen[i], i))     # Occam current hypothesis
+        cand = [p for p in range(len(truth)) if p not in asked and probe_mat[cur][p]]
+        if not cand:
+            cand = [p for p in range(len(truth)) if p not in asked]
+        if not cand:
+            break
+        p = cand[0]; asked.add(p)
+        lbl = truth[p]
+        live = [i for i in live if probe_mat[i][p] == lbl]
+    if not live:
+        return False
+    cur = min(live, key=lambda i: (srclen[i], i))
+    return full_mat[cur] == truth
+
+
+def at_edge(rule: RuleSpec, max_probes: int) -> bool:
+    """True iff the world is non-degenerate, recoverable by a falsifier within the
+    agent's budget, and NOT recoverable by a confirm-biased prober -- the
+    taste-sensitive band. Memoized by (source, budget)."""
+    key = (rule.source, max_probes)
+    if key not in _EDGE_CACHE:
+        ok = False
+        try:
+            if _non_degenerate(rule.fn):
+                _, f_ok = _falsify(rule, max_probes)
+                ok = f_ok and not _confirm(rule, max_probes)
+        except Exception:
+            ok = False
+        _EDGE_CACHE[key] = ok
+    return _EDGE_CACHE[key]
+
+
+def _falsify_probes(rule: RuleSpec, max_probes: int) -> int:
+    """Probes an optimal falsifier needs to pin the rule (or max_probes+1 if it can't),
+    used to keep the frozen transfer yardstick quick-to-falsify so the weak task model
+    has a real shot at the worlds that taste unlocks."""
+    try:
+        used, ok = _falsify(rule, max_probes)
+        return used if ok else max_probes + 1
+    except Exception:
+        return max_probes + 1
+
+
+# ---------------------------------------------------------------------------
 # Behavior-vector novelty
 # ---------------------------------------------------------------------------
 def _hamming(a, b) -> int:
@@ -177,13 +276,17 @@ def _is_novel(vec, seen_vecs, min_dist: int = _NOVELTY_HAMMING) -> bool:
     return all(_hamming(vec, s) >= min_dist for s in seen_vecs)
 
 
-def select_worlds(candidates: List[RuleSpec], n: int, seen_vecs=None) -> List[RuleSpec]:
+def select_worlds(candidates: List[RuleSpec], n: int, seen_vecs=None,
+                  prefer=None) -> List[RuleSpec]:
     """Pick up to `n` rules that are admissible (solvable + non-degenerate) and
     behaviorally novel (battery label-vector far from already-chosen / `seen_vecs`).
-    Falls back to relaxing novelty, then admissibility, so it never returns fewer than
-    min(n, len(candidates)) worlds -- a short curriculum would stall the loop."""
+    With `prefer` (a rule->bool predicate, e.g. `at_edge`), worlds failing it are
+    deferred and only used to backfill, so the curriculum is edge-calibrated when it
+    can be. Falls back to relaxing preference, then novelty, then admissibility, so it
+    never returns fewer than min(n, len(candidates)) worlds -- a short curriculum would
+    stall the loop."""
     chosen, vecs = [], list(seen_vecs or [])
-    deferred_dup, deferred_inadmissible = [], []
+    deferred_unpreferred, deferred_dup, deferred_inadmissible = [], [], []
     for r in candidates:
         if len(chosen) >= n:
             break
@@ -197,10 +300,14 @@ def select_worlds(candidates: List[RuleSpec], n: int, seen_vecs=None) -> List[Ru
         if not _is_novel(vec, vecs):
             deferred_dup.append((r, vec))
             continue
+        if prefer is not None and not prefer(r):
+            deferred_unpreferred.append((r, vec))
+            continue
         chosen.append(r)
         vecs.append(vec)
-    # backfill: prefer admissible-but-duplicate, then anything, to reach n.
-    for bucket in (deferred_dup, deferred_inadmissible):
+    # backfill toward n: admissible+novel-but-unpreferred first, then duplicates, then
+    # anything -- each step relaxes one constraint so the loop never stalls.
+    for bucket in (deferred_unpreferred, deferred_dup, deferred_inadmissible):
         for r, vec in bucket:
             if len(chosen) >= n:
                 break
@@ -252,7 +359,12 @@ def build_worlds(cfg: Config, target_difficulty: int = 2, weak_tags=None,
             transfer_vecs.append(_behavior(w.rule))
         except Exception:
             pass
-    chosen = select_worlds(candidates, n, seen_vecs=transfer_vecs)
+    # Edge-calibrate: prefer worlds that need taste (a falsifier cracks them in budget,
+    # a confirm-biased prober does not), so even the floor of the curriculum is
+    # solvable-with-effort rather than the impossible-for-the-task-model worlds that
+    # pinned the dial. Backfills with non-edge worlds if too few qualify.
+    chosen = select_worlds(candidates, n, seen_vecs=transfer_vecs,
+                           prefer=lambda r: at_edge(r, cfg.max_probes))
     structs = {}
     for r in chosen:
         structs[r.structure] = structs.get(r.structure, 0) + 1
@@ -263,11 +375,17 @@ def build_worlds(cfg: Config, target_difficulty: int = 2, weak_tags=None,
 
 
 def transfer_suite(cfg: Config) -> List[WiltWorld]:
-    """Frozen, independently-seeded held-out worlds. Drawn from the grammar's library
-    prior with a FIXED seed that never sees the agent's weak_tags, so transfer is a
-    genuine held-out distribution rather than a fixed, memorizable hand-list. Only
-    admissible (solvable + non-degenerate) worlds are kept."""
+    """Frozen, independently-seeded held-out worlds, calibrated to the agent's EDGE.
+    Drawn from the grammar's library prior with a FIXED seed that never sees the
+    agent's weak_tags (so transfer stays a genuine held-out distribution, not a
+    memorizable hand-list), but preferring worlds in the taste-sensitive band -- a
+    falsifier cracks them quickly while a confirm-biased prober fails -- so the
+    held-out solve-rate is a real yardstick for taste rather than the one-trivial +
+    one-impossible constant the 12-iter run exposed. Only admissible worlds are kept."""
+    mp = cfg.max_probes
     pool = [r for r in candidate_library() if is_admissible(r)]
     random.Random(_TRANSFER_SEED).shuffle(pool)
-    chosen = select_worlds(pool, cfg.n_transfer_worlds)
-    return [WiltWorld(r, max_probes=cfg.max_probes) for r in chosen]
+    chosen = select_worlds(
+        pool, cfg.n_transfer_worlds,
+        prefer=lambda r: at_edge(r, mp) and _falsify_probes(r, mp) <= _TRANSFER_FALSIFY_CAP)
+    return [WiltWorld(r, max_probes=mp) for r in chosen]
