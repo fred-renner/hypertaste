@@ -8,10 +8,12 @@ Guidance for Claude Code working in this repository.
 task agent and its curriculum on a "discover the hidden rule by probing" world.
 
 - Architecture and run instructions: `README.md`.
-- World-growth design and rationale: `WORLD_DESIGN.md`.
+- Long-term direction (the two-loop model, staircase of judges, closing the loop): `ROADMAP.md`.
+- World-growth design and rationale for *today's* world (Chapter 1): `WORLD_DESIGN.md`.
 
 This file plus `README.md` are the orientation — open only the files you're about to
-change rather than re-reading the whole tree.
+change rather than re-reading the whole tree. `ROADMAP.md` is the direction; `WORLD_DESIGN.md`
+is the current chapter's mechanics.
 
 ## Run & test
 

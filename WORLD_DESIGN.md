@@ -1,4 +1,9 @@
-# World design — how the world grows
+# World design — how the world grows (Chapter 1)
+
+> **Scope.** This is the technical detail of *today's* world — Chapter 1 of the staircase
+> in `ROADMAP.md`: a deterministic hidden rule judged by exact equivalence. For the
+> multi-chapter arc (how judges change, how the outer loop closes, why we start here), read
+> `ROADMAP.md`. This file is the *within-chapter* mechanics.
 
 How the world evolves beyond classic numeric WILT so that *research taste* keeps being
 the thing that wins, without breaking objective scoring or the airgap. Grounded in the
@@ -136,20 +141,30 @@ definition of the hypothesis space.
   judge there is gameable. Interestingness shapes *what worlds exist*, never *what score
   an agent gets*.
 
-## Explicitly deferred (and why, so the next session doesn't relitigate)
+## Deferred within Chapter 1 / handed to later chapters
 
-- **Stochastic / probabilistic rules.** Highest "real research" payoff but breaks
-  invariant (1): no exact lambda exists, so `score_guess` needs a likelihood/Bayes
-  scorer, and the novelty metric's core assumption ("no value in repeating a probe",
-  `hta/taste.py`) inverts — repeating a probe *is* informative under noise. A whole
-  scorer + metric redesign; do it as its own focused axis after A+B land.
-- **Latent state / multi-step / history-dependent rules.** Breaks invariant (1) the same
-  way (the "input" becomes a sequence; the fixed-battery equivalence test no longer
-  defines correctness) and needs a new probe protocol on the channel.
-- **N>3 variables / sequences.** Orthogonal and layer-able later; needs a grammar arity
-  bump, a battery rebuild, and channel-arity changes, but doesn't conflict with A+B.
-- **"Solve the world" program/dataset/simulation worlds.** The long-term target; out of
-  scope for the first 1–2 axes.
+These stay out of *this* chapter. The ones that break invariant (1) are not "someday
+maybe" — they are exactly where the staircase goes next: changing the kind of question
+forces a new objective judge, which is a **deliberate chapter change** (`ROADMAP.md`), not
+an axis bolted onto the equivalence scorer. Kept here with the technical "why" so the next
+session doesn't relitigate.
+
+- **Stochastic / probabilistic rules → Chapter 2 (calibration judge).** Highest "real
+  research" payoff but breaks invariant (1): no exact lambda exists, so `score_guess` is
+  replaced — not patched — by a likelihood/calibration judge, and the novelty metric's core
+  assumption ("no value in repeating a probe", `hta/taste.py`) inverts: repeating a probe
+  *is* informative under noise. This is the first authored judge transition, not a
+  within-Chapter-1 axis.
+- **Latent state / multi-step / history-dependent rules → a later chapter.** Breaks
+  invariant (1) the same way (the "input" becomes a sequence; the fixed-battery equivalence
+  test no longer defines correctness) and needs a new probe protocol on the channel — its
+  own chapter with its own judge.
+- **N>3 variables / sequences — a within-substrate expansion, not a new chapter.**
+  Orthogonal and layer-able: it keeps the equivalence judge, so it stays inside Chapter 1.
+  Needs a grammar arity bump, a battery rebuild, and channel-arity changes; doesn't conflict
+  with A+B.
+- **"Solve the world" program/dataset/simulation worlds → the long-term target.** The top
+  of the staircase; out of scope until the outer loop is closing on its own.
 
 ## Suggested first slice (smallest shippable)
 

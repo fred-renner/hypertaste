@@ -16,6 +16,11 @@ its own improvement procedure**), specialized so that:
 > backends — the offline mock and live `claude -p`. Episodes run concurrently; lineage
 > compounds and children improve over their parents.
 
+**Where it's going:** `ROADMAP.md` is the North Star — the two-loop model (worlds
+self-evolve to the student's edge; judges change between chapters as taste saturates), the
+staircase of objective judges, and the staged path to a closed, hands-off loop. This
+README + `WORLD_DESIGN.md` are *Chapter 1*; `ROADMAP.md` is the arc.
+
 ## The three planes
 
 ```
