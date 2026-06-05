@@ -39,14 +39,20 @@ questions — match the depth and tone of a genuine research-design conversation
 
 ## Run & test
 
-**Next action (pick this up):** The Chapter-2 **thin slice is built** (`hta/ch2/`, run
-`python run_slice.py`) and measured (`WORLD_DESIGN.md` → "First slice"): **bet 2 (ramp) holds
-(R²=1.0); bet 1 (Haiku-realizable gap) does not yet** — the world is too *transparent*
-(vanilla Haiku is already near-tasteful at norm 0.61; the +0.05 taste edge drowns in noise),
-the inverse of Chapter 1's too-hard failure. The concrete next build is **deception**: hide
-segment boundaries, lure probes onto flashy dead-ends, add stepping-stones (edit `hta/ch2/
-maps.py` + the `agent.py` prompts), then re-measure at `--repeats 3–5` and re-gate before
-building the loop. `ROADMAP.md` → "Chapter 2" is the arc; the bash below still runs Chapter 1.
+**Next action (pick this up):** Chapter-2 **deception is built and measured** (`hta/ch2/`, run
+`python run_slice.py`; `WORLD_DESIGN.md` → "Second slice"). The cycle family member + hidden
+boundaries + decoy maps **fixed the transparency problem** (vanilla Haiku now sits ~0.40–0.60
+of the band, no longer pinned at the oracle) and **bet 2 still holds** (R²=1.0). But **bet 1
+still fails on aggregate** (taste −0.066 raw, repeats=3) for a new, understood reason: the taste
+gap's sign tracks **value-spread** — the hand prompt beats vanilla where value is distributed
+across confirm-requiring segments (`decoy`: +0.26 normalized, the existence proof) but *loses*
+where a single fat `const` dominates and vanilla banks it cheaply (`mirage`/`tight`). The
+concrete next build (deliberate, **not** a map grid-search toward a PASS): (1) design
+**distributed-value** worlds — no single trivially-bankable segment; (2) make the taste prompt
+**budget-aware** (bank long runs cheaply, reserve confirm-probes for ambiguous arith/cycle
+only); (3) re-measure once, then build the loop iff a careful hand prompt beats vanilla robustly
+— else the **judge/difficulty** needs the rethink. `ROADMAP.md` → "Chapter 2" is the arc; the
+bash below still runs Chapter 1.
 
 
 ```bash

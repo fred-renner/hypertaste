@@ -196,3 +196,59 @@ coverage judge + DP oracle) is right and bet 2 is solid; what's miscalibrated is
    spec + expander, taste-gap gate, MDL prior, held-out + transfer). Still flat → the gap may
    not be Haiku-realizable and Chapter 2's **judge**, not just its difficulty, needs a
    rethink.
+
+## Second slice — deception built, re-measured, re-gated
+
+Acting on that decision, all three levers landed in `hta/ch2/`: a period-3 **`cycle`** family
+member whose 3-cell prefix masquerades as an `arith` run (so 2–3 adjacent probes no longer pin
+a segment — only a far confirm-probe disambiguates); **hidden segment boundaries** (both agents
+get the family + tape length only, never the count or the splits — segmentation must be
+inferred); and **decoy layouts** (a long boring `const` to bank vs. short flashy lures). Bet 2
+is structurally untouched (the smoothness curve depends only on segment lengths), and stays
+PASS at R²=1.0. Re-measured live at `--repeats 3`.
+
+**The world-transparency problem is fixed.** Vanilla Haiku no longer maxes the oracle — across
+the calibrated maps it sits at **~0.40–0.60 normalized**, not pinned at the ceiling. Deception
+turned a forced move into a real decision; the world now *discriminates*.
+
+**But the taste gap's sign tracks value-spread — and the hand prompt is net-negative when one
+segment dominates.** Live, repeats=3:
+
+| map | vanilla raw (norm) | taste raw (norm) | gap |
+|---|---|---|---|
+| `decoy` (const-8 + 3 short lures) | 0.667 (0.50) | 0.759 (0.76) | **+0.093 (+0.26 norm)** |
+| `mirage` (const-7 dominant + arith/cycle lure) | 0.756 (0.60) | 0.556 (0.42) | −0.200 |
+| `tight` (3×len-5, symmetric) | 0.689 (0.40) | 0.600 (0.22) | −0.089 |
+| **aggregate** | 0.704 (0.50) | 0.638 (0.47) | **−0.066 → bet 1 FAIL** |
+
+The mechanism is coherent. Where value is **spread** across several segments that each need
+real inference (`decoy`), the taste prompt's "infer the segmentation, confirm before you
+extrapolate" discipline pays, and taste beats vanilla by a margin (+0.26 normalized) that
+clears the old +0.09 noise floor. But where a **single fat `const` dominates** the value
+(`mirage`/`tight` after recalibration), naive vanilla banks it with cheap local probing while
+the taste prompt's blanket spread-and-confirm is dead-weight overhead — so taste *loses*. The
+bottleneck has moved off the world (now non-trivial) and onto **the instrument and the value
+distribution**.
+
+**Re-gate: do NOT build the loop yet — and the next move is principled, not a map grid-search.**
+Tuning maps until the gap turns positive would be optimizing toward the instrument — the design's
+own "measure with the instrument; never optimize toward it." The honest next build, decided
+deliberately:
+
+1. **Design for distributed value.** Kill the single-dominant-`const` failure mode: spread value
+   across several segments that each require a confirm-probe, so taste's discipline pays
+   everywhere — not worlds a naive prober banks for free in one move. `decoy` is the template;
+   `mirage`/`tight` were the anti-pattern.
+2. **Make the taste prompt budget-aware.** Bank obvious long runs with cheap local probes;
+   reserve the (expensive) confirm-probe for genuinely ambiguous arith/cycle regions, rather
+   than a blanket spread-and-confirm that overspends a scarce budget.
+3. **Re-measure once, then decide.** If a well-matched hand prompt beats vanilla *robustly*
+   across distributed-value maps → the gap is Haiku-realizable and we have the bar → build the
+   loop. If even a careful hand prompt can't → bet 1's realizability is in real doubt and the
+   **judge/difficulty**, not just the world, needs the rethink the design flagged as a
+   lesser-unknown — the loop searches scaffold-space, and an empty space is fatal.
+
+The narrow green light: `decoy` is an **existence proof** that a hand-written taste prompt *can*
+beat vanilla Haiku on a deceptive, distributed-value world — taste is realizable *in principle*.
+The open risk is **robustness across worlds**, which is exactly what the loop is meant to
+manufacture, but which we should see at least once by hand before paying for the loop.
