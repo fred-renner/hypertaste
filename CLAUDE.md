@@ -39,44 +39,47 @@ questions — match the depth and tone of a genuine research-design conversation
 
 ## Run & test
 
-**Next action (START A NEW SESSION):** The Chapter-2 thin slice is **closed** — it falsified the
-easy bet cheaply: **a prompt is not the unit of taste.** Across three slices we learned to steer
-the taste-gap's *sign* by world design, but once the instrument was made honest no prompt
-(tactical or general) lifted a fixed weak model off the no-inference floor (`WORLD_DESIGN.md` →
-"The rethink"). Two things are now in place so the next session starts clean:
+**Next action (START A NEW SESSION):** The **threshold question is answered — yes**, and a
+calibrated starting world exists (`WORLD_DESIGN.md` → "The threshold answered"). A model-free
+screen (`hta/ch2/threshold.py`, run via `python run_threshold.py`) shows the dividing line is
+**adaptive submodularity**: the tape was below the line because coverage is a knapsack over
+*independent* segments (greedy = optimal = a five-line policy, R²=1.0). A **coupled register
+world** — affine linked blocks over *hidden* registers, so a probe reveals an equation not a
+value — is **above** it: the exact belief-MDP oracle beats the best articulable heuristic
+*including a 2-step lookahead planner*, so the optimal policy needs deeper-than-bounded planning
+(not closed-form), yet is computed in pure compute at zero token cost. The recommended start is
+**`trap-tri`** (one anchor + a buried triangle; 81 hypotheses, 8 cells, budget 3; gap +1 raw =
+0.33 of the floor→oracle band, anti-cliff ramp, best heuristic at 0.67 of the band). What's
+settled, and what's next:
 
-1. **Frame = the threshold question, not another tuning cycle.** The ROADMAP's own "earning its
-   keep" line is now the operational gate: *is there a world, affordable at toy cost, where Opus
-   cannot write the optimal allocation policy in closed form even with full information?* Below
-   that line the loop cannot earn its keep and every measurement is noise — which is exactly what
-   the slice reported. **Answer this before building any loop.** If yes, that world is Chapter 2's
-   real substrate; if no, "start cheap" and "earn its keep" are in tension and we choose
-   deliberately (pay for a richer substrate, or demote the early chapters to plumbing-validation
-   and move the taste claim to a later chapter). The map grid-search is over.
-2. **Unit of taste = a program/scaffold, not a prompt — and the seed is now neutral.** The
-   de-tailoring is done (this session): the seed agent ships **no pre-loaded taste**, and the meta
-   agent is **no longer handed a failure-mode checklist** — it diagnoses from the trajectory
-   evidence (general, task-agnostic, so it carries into Chapter 2). The mock's answer-knowledge is
-   now a clearly-labeled plumbing fixture (`_MOCK_VARIANT`), not a taste model. Next session:
-   revive the **meta-agent-on-program** loop (not the slice's prompt-A/B) as the taste carrier —
-   the loop searches scaffold-space, so the seed must be a blank slate.
-3. **Model roles are settled — don't reopen.** **Opus** runs self-improvement (the meta agent)
-   and world-building/oracle reasoning; **Haiku** does *all* exploration — fast, cheap, and
-   enough to carry the whole hypothesis (the gap we're after is scaffold vs. native disposition,
-   not horsepower). The threshold question *is* the Opus check; the starting difficulty *is* the
-   Haiku calibration. This is the repo's premise, not an open decision.
+1. **The gate is now a build screen, reusable.** Before any world ships: belief-MDP oracle ≫
+   best-of-basket (greedy-info, greedy-determined, 2-step lookahead). gap≈0 ⇒ below the line ⇒
+   a hand spec is competitive ⇒ don't build. This is "earning its keep" as code, not a footnote.
+   The **direct-to-linked mass ratio** is the dial (trades gap against ramp curvature); the band
+   is *narrow* — asymmetric stepping-stone topology, never symmetric coupling.
+2. **Unit of taste = a program/scaffold, not a prompt — seed stays neutral.** The de-tailoring
+   holds: the seed ships **no pre-loaded taste** and the meta agent diagnoses from trajectory
+   evidence, not a handed checklist. The loop searches **scaffold-space**, so the seed is a blank
+   slate. (The three tape slices' prompt-A/B was the wrong carrier — see "The rethink".)
+3. **Model roles are settled — don't reopen.** **Opus** runs self-improvement and the
+   world/oracle reasoning; **Haiku** does *all* exploration. The threshold screen *was* the Opus
+   check; the starting difficulty *is* the Haiku calibration.
 
-**Then proceed in two sessions, not one.** **(Next session)** answer the threshold question and
-from it set the *starting* world difficulty — the world Haiku must uncover by probing but Opus
-can't write in closed form, calibrated to be solvable by Haiku within budget with headroom.
-**(The session after)** start the meta-agent-on-program loop on that calibrated world. Building
-the loop on an un-calibrated world is how every prior slice produced noise — keep calibration as
-its own session.
+**Then proceed in two sessions, not one.** **(Next session)** the model-free shape is set, so do
+the one measurement that needs the model: confirm **live Haiku lands inside `trap-tri`'s
+floor→oracle band with headroom** (above the no-inference floor, below the oracle) under budget 3
+— difficulty calibrates to the *live student*, never a proxy (Chapter 1's paid lesson). If Haiku
+floors, dial down (fewer hidden registers / more anchor mass via `tri-2anchor`); if it maxes,
+dial up. **(The session after)** start the meta-agent-on-program loop on the calibrated world.
+Building the loop on an un-calibrated world is how every prior slice produced noise — keep
+calibration as its own session.
 
-`ROADMAP.md` → "Chapter 2" / "earning its keep" is the arc; the bash below still runs Chapter 1.
+`ROADMAP.md` → "Chapter 2" / "earning its keep" is the arc; `run_threshold.py` is the new gate;
+the bash below still runs Chapter 1.
 
 
 ```bash
+python run_threshold.py                                   # Ch2 threshold gate: free, model-free
 python run_loop.py --iterations 5 --backend mock          # free, deterministic, fast
 python run_loop.py --iterations 5 --backend real --episode-mode single_session \
   --max-probes 6 --n-train 2 --n-transfer 1                # real; episodes run concurrently

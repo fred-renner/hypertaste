@@ -391,3 +391,64 @@ What this chapter's measurement actually established, and what the next session 
   simulation**, not a clever closed form. The smith never *authors* reward numbers — it proposes
   structure and the expander *computes* value — so confabulated rewards stay structurally
   impossible; only a scorer bug is, and it is auditable.
+
+## The threshold answered — a coupled substrate clears the gate (this session)
+
+The rethink's first question is now answered, **model-free and at zero token cost**, by a
+screen (`hta/ch2/threshold.py`, driven by `run_threshold.py`). The verdict: **yes — a world
+that clears the threshold exists and is affordable at toy cost. The dividing line is one
+property: adaptive submodularity.**
+
+- **Why the tape was below the line, precisely.** Its `oracle_determined` is a knapsack over
+  *independent* per-segment value curves — coverage is **adaptive-submodular**, so the greedy
+  adaptive policy is optimal, which is a five-line formula. Independence is the whole reason
+  the ramp was R²=1.0; **R²=1.0 is the signature of a below-threshold world.** Demanding a
+  perfect ramp *and* a threshold gap is contradictory — complementarity (the thing that clears
+  the threshold) is supermodular, hence convex, by definition. So the honest bet-2 check for a
+  coupled world is **anti-cliff** (no all-or-nothing step), not linearity.
+- **The screen, made operational (the reusable gate).** A world is above threshold iff the
+  exact **belief-MDP oracle** (the optimal *adaptive* policy, by value iteration over belief
+  states) materially beats the **best of a basket of articulable heuristics** — greedy
+  info-gain, greedy determined-gain, **and a 2-step lookahead planner**. The lookahead member
+  is what makes the verdict robust to "your basket was just weak": if the full-depth oracle
+  still beats a 2-step planner, the optimal policy needs deeper-than-bounded planning — it is
+  genuinely *not closed-form*. This is the taste-gap gate lifted one notch: from *oracle ≫
+  random* to *oracle ≫ best-articulable*.
+- **Computable ≠ expressible — the crux that keeps it both affordable and above the line.** On
+  a small world the oracle is exact in **pure compute** (a finite belief tree over K^R
+  hypotheses; no LLM tokens — the integrity floor and our references stay intact), yet when the
+  world is coupled **no formula expresses the optimal policy**, so Opus cannot write it. Toy in
+  tokens and world-size, *not* toy in policy-structure. And `clairvoyant == oracle` on the
+  trap: the gap is not the price of uncertainty (that would be trivially articulable as "probe
+  what you don't know") — it is the price of the policy having no closed form.
+- **The substrate that does it — a register world (a strict generalization of the tape).** `R`
+  hidden registers; **direct blocks** key on one register (one probe pins it — the submodular,
+  linear-ramp mass) and **affine linked blocks** key on a pair via *position-varying*
+  coefficients, so a probe reveals an **equation, not a value**. A linked block is pinned only
+  by *combining* observations (two local probes, or both registers known from elsewhere) — that
+  non-self-determination is the complementarity. The first attempt failed *informatively*: a
+  **sum** coupling `(r_i+r_j)` self-determines a block in one probe and stays submodular (gap 0
+  everywhere) — the coupling has to be non-self-determining to bite. Naming a subset of
+  registers `direct` makes the rest **hidden** — readable only through a neighbor: the design's
+  "high-value region behind a boring door," finally structural rather than a deception the tape
+  only gestured at.
+- **Calibrated starting world (model-free).** `trap-tri`: one anchor + a buried triangle of
+  three hidden registers (R=4, K=3 → **81 hypotheses, 8 cells, budget 3**). The screen reads
+  **floor 3 · best articulable heuristic 5 (incl. 2-step lookahead) · belief-MDP oracle 6 ·
+  clairvoyant 6** → gap **+1 raw (0.33 of the floor→oracle band)**, ramp anti-cliff (max step
+  0.44, monotone), and the best heuristic sits at **0.67 of the band** (headroom both ways —
+  Haiku has somewhere to climb and somewhere to fall short). A flatter-ramp upgrade if Haiku
+  needs a smoother gradient is `tri-2anchor` (two anchors dilute the convexity: R²0.80→0.87,
+  max step 0.44→0.32, heur_norm 0.75) at the cost of a larger belief space (243).
+- **The calibration dial, named.** The **direct-to-linked mass ratio** trades the threshold gap
+  against ramp curvature: more linked (buried) mass lifts the gap but bends the ramp toward a
+  cliff; more direct (anchor) mass flattens the ramp but dilutes the gap. The band is where
+  both hold — and the sweep in `run_threshold.py` shows it is a *narrow* band (most topologies
+  read gap 0 or fail anti-cliff), exactly as the rethink predicted: the prize is the asymmetric,
+  stepping-stone topology, not symmetric coupling (which stays greedy-solvable).
+- **What still needs the model (next session).** This is the *model-free* calibration — the
+  shape (gap) and the ramp are set. The one measurement that needs Haiku is **difficulty**:
+  confirm live Haiku lands *inside* the floor→oracle band with headroom (above the no-inference
+  floor, below the oracle) under this budget — the lesson Chapter 1 paid for is that difficulty
+  calibrates to the *live student*, never a proxy. Then build the meta-agent-on-program loop on
+  the calibrated world.
