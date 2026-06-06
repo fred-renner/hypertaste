@@ -5,10 +5,12 @@ real single-session runner (reusing hta.llm.episode + the Chapter-2 probe server
 Fairness note: BOTH prompts describe the world identically (size, alphabet, the family, and
 that the tape splits into contiguous segments). NEITHER is told how many segments there are
 or where the boundaries fall — segmentation must be inferred. The only difference is research
-*taste* — the taste prompt adds the investigative strategy (infer the boundaries, distrust a
-local read and confirm an extrapolation with a far probe, bank the long boring runs first).
-It names no boundary, count, or value, so the gap it produces is a taste gap, not an
-information advantage.
+*taste* — the taste prompt adds the investigative strategy (infer the boundaries; read each
+region with the fewest probes that resolve it; spend the costly confirm-probe ONLY on the
+genuinely ambiguous arith/cycle mirage; allocate to the long runs first). It names no
+boundary, count, or value, so the gap it produces is a taste gap, not an information
+advantage. The strategy is budget-aware by design: a blanket spread-and-confirm overspends a
+scarce budget, so the discipline is to pay for certainty only where it is actually in doubt.
 """
 
 import json
@@ -51,19 +53,25 @@ Probe cells and then submit your best reconstruction of all {M} cells.
 """
 
 TASTE = _COMMON + """\
-Strategy (research taste):
-1. Your budget is far too small to probe every cell — so you must infer the generative
-   pattern, then PREDICT the unprobed cells. Find where the boundaries are: probe a SPREAD
-   of cells across the tape first to locate where the pattern changes, rather than clustering
-   all your probes in one place.
-2. Distrust a local read. A few adjacent cells can look like a clean pattern but be a
-   coincidence: [0,1,2] is the start of an arith run AND of a cycle (which repeats at the
-   next cell). Before you trust an extrapolation, spend one probe on a FAR cell it predicts;
-   if the prediction holds, the rest of that segment is free.
-3. Value-of-information: a long uniform run is worth many cells per probe — find its extent
-   and bank it. Do not pour scarce probes into short, flashy, high-variation stretches; the
-   most eye-catching cells are usually the least informative.
-4. Fill in every cell by continuing the pattern you inferred; for any region you could not
+Strategy (research taste) — your budget is far too small to probe every cell, so spend each
+probe where it buys the most, and do NOT pay for certainty you already have:
+1. Map before you mine. Probe a SPREAD of cells across the whole tape first to find where the
+   pattern changes; don't cluster probes in one place. A boundary is where a neighbouring cell
+   stops fitting the pattern you were reading.
+2. Resolve each region with the FEWEST probes that settle it. Many runs declare themselves in
+   two or three adjacent cells (a flat run is const; a clean v,w,v,w is alt) — once a run is
+   obviously uniform or obviously alternating, bank its whole extent and move ON; do not spend
+   another probe confirming what is already clear.
+3. Spend the costly confirm-probe ONLY on the real ambiguity. Three rising cells [a, a+s, a+2s]
+   are the opening of an arith run AND of a period-3 cycle that snaps back at the next cell — a
+   local read cannot tell them apart, and guessing wrong forfeits the whole run. THERE, and
+   only there, spend ONE probe further along (the very next cell, or a far cell the pattern
+   predicts): if it keeps stepping it is arith, if it falls back to the start it is cycle. One
+   probe buys the rest of the segment.
+4. Allocate like a knapsack: a long run pinned is worth many cells per probe, a short one few —
+   so find and bank the LONG runs first, and do not pour scarce probes into short, flashy,
+   high-variation stretches.
+5. Fill in every cell by continuing the pattern you inferred; for any region you could not
    pin down, put your single best guess. Submit a complete {M}-cell reconstruction — never
    leave a cell out.
 """
