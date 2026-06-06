@@ -5,12 +5,14 @@ real single-session runner (reusing hta.llm.episode + the Chapter-2 probe server
 Fairness note: BOTH prompts describe the world identically (size, alphabet, the family, and
 that the tape splits into contiguous segments). NEITHER is told how many segments there are
 or where the boundaries fall — segmentation must be inferred. The only difference is research
-*taste* — the taste prompt adds the investigative strategy (infer the boundaries; read each
-region with the fewest probes that resolve it; spend the costly confirm-probe ONLY on the
-genuinely ambiguous arith/cycle mirage; allocate to the long runs first). It names no
-boundary, count, or value, so the gap it produces is a taste gap, not an information
-advantage. The strategy is budget-aware by design: a blanket spread-and-confirm overspends a
-scarce budget, so the discipline is to pay for certainty only where it is actually in doubt.
+*taste*, and it is deliberately GENERAL: a transferable investigative disposition (infer the
+structure and predict the unseen; seek disconfirming evidence; spend observations where
+uncertainty is highest; revise when something doesn't fit). It names no task-specific tactic —
+no boundary, count, value, family member, or "confirm-trick". An earlier version spelled out
+the exact arith/cycle confirm move; that was wrong on two counts — it is not a fight worth
+winning by telling the model the answer, and a tactic tied to this puzzle cannot transfer,
+which is the whole point of the artifact. Taste here must be a disposition the loop could grow
+and carry to other worlds, never a cheat-sheet for one.
 """
 
 import json
@@ -53,27 +55,19 @@ Probe cells and then submit your best reconstruction of all {M} cells.
 """
 
 TASTE = _COMMON + """\
-Strategy (research taste) — your budget is far too small to probe every cell, so spend each
-probe where it buys the most, and do NOT pay for certainty you already have:
-1. Map before you mine. Probe a SPREAD of cells across the whole tape first to find where the
-   pattern changes; don't cluster probes in one place. A boundary is where a neighbouring cell
-   stops fitting the pattern you were reading.
-2. Resolve each region with the FEWEST probes that settle it. Many runs declare themselves in
-   two or three adjacent cells (a flat run is const; a clean v,w,v,w is alt) — once a run is
-   obviously uniform or obviously alternating, bank its whole extent and move ON; do not spend
-   another probe confirming what is already clear.
-3. Spend the costly confirm-probe ONLY on the real ambiguity. Three rising cells [a, a+s, a+2s]
-   are the opening of an arith run AND of a period-3 cycle that snaps back at the next cell — a
-   local read cannot tell them apart, and guessing wrong forfeits the whole run. THERE, and
-   only there, spend ONE probe further along (the very next cell, or a far cell the pattern
-   predicts): if it keeps stepping it is arith, if it falls back to the start it is cycle. One
-   probe buys the rest of the segment.
-4. Allocate like a knapsack: a long run pinned is worth many cells per probe, a short one few —
-   so find and bank the LONG runs first, and do not pour scarce probes into short, flashy,
-   high-variation stretches.
-5. Fill in every cell by continuing the pattern you inferred; for any region you could not
-   pin down, put your single best guess. Submit a complete {M}-cell reconstruction — never
-   leave a cell out.
+Approach this the way a careful researcher works under a tight budget — a general disposition,
+not a recipe for this particular puzzle:
+- You cannot observe everything, so your real job is to INFER the underlying structure from a
+  few observations and then predict the rest, not merely report what you saw.
+- Form a hypothesis about what generates the data, then actively try to DISPROVE it. An
+  observation that could contradict your current guess is worth more than one that merely
+  agrees with it; don't trust a first impression you haven't tested.
+- Spend each observation where your uncertainty is greatest and where one reading tells you the
+  most about the cells you can't afford to check.
+- When something doesn't fit, revise rather than force it; consolidate what you've learned
+  before you commit.
+Then submit your best inference for EVERY cell — a complete {M}-cell reconstruction, never
+leaving one out.
 """
 
 
