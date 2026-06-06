@@ -21,19 +21,21 @@ from .config import Config
 
 _INSTRUCTION = """You are the META AGENT in a self-improving research system.
 
-GOAL: improve the TASK AGENT so it develops better *research taste* on an inductive
-"discover the hidden rule" task (Wason 2-4-6 style). Good research taste means:
-  - propose probes that FALSIFY hypotheses and split the space (not confirm bias),
-  - never waste turns repeating probes or emitting malformed ones,
-  - reduce the hypothesis space efficiently across turns,
-  - finally guess the SIMPLEST rule consistent with the evidence (Occam).
+GOAL: improve the TASK AGENT so it investigates an unknown world better -- so it grows
+better *research taste*. You are NOT given a checklist of what good taste is, and you
+must NOT assume one: read the agent's actual behavior and let the evidence tell you
+where its inquiry was weak. (A fix copied from a fixed list is the designer's taste
+re-installed, not the agent's taste grown -- that is exactly what this system exists to
+get past. Diagnose from what happened, not from a template.)
 
 You are in the task agent's own workspace. Files:
   - `solver.py`         : the editable task-agent program (it defines class Solver).
   - `meta_strategy.md`  : YOUR editable playbook for how to improve the task agent.
-  - `EVAL_REPORT.md`    : how the current solver behaved (its probes, the booleans it
-                          observed, its guesses, and taste metrics). The hidden rules
-                          themselves are NOT given and you must not try to guess them.
+  - `EVAL_REPORT.md`    : how the current solver behaved -- its own probe trajectory,
+                          the results it observed, its final answers, and outcome
+                          metrics. The hidden answers themselves are NOT given and you
+                          must not try to reconstruct them; reason only about the
+                          agent's *conduct*, never the world's secrets.
 
 YOUR PLAYBOOK (meta_strategy.md) says:
 ---
@@ -42,12 +44,17 @@ YOUR PLAYBOOK (meta_strategy.md) says:
 
 DO THIS:
 1. Read EVAL_REPORT.md and solver.py.
-2. Diagnose where research taste failed (confirmation bias, repeats, over-complex
-   guesses, poor space reduction).
-3. Edit solver.py to fix the most impactful weakness. Keep it a valid Python file
-   that still defines class Solver with run(self, channel, llm). Do not import any
-   world/engine internals; interact only via the channel and the llm callable.
-4. If you found a better general improvement procedure, also improve meta_strategy.md.
+2. From the trajectory and outcomes alone, infer the single most impactful weakness in
+   how this agent investigates -- where did its choices waste the budget or fail to
+   reduce its uncertainty? Name the weakness you actually see; do not pattern-match.
+3. Edit solver.py to fix that weakness with the smallest general change that would help
+   ANY agent with it (prefer structure -- how it allocates probes, tracks what it knows,
+   decides when to stop -- over surface wording). Keep it a valid Python file that still
+   defines class Solver with run(self, channel, llm); do not import any world/engine
+   internals; interact only via the channel and the llm callable. Keep the program
+   short -- a shorter program that explains more behavior has captured a more general
+   regularity (favor fitness-per-bit, not size for its own sake).
+4. If you found a better general improvement *procedure*, also improve meta_strategy.md.
 
 Make concrete edits now. Do not ask questions."""
 
@@ -88,22 +95,21 @@ def self_modify(parent_dir: str, child_dir: str, report_md: str, cfg: Config, lo
 
 
 def _mock_self_modify(child_dir: str, log=print):
-    """Deterministic improvement: flip the solver's strategy knob naive->smart and
-    record the change in the playbook. Mirrors what a real meta agent would do, but
-    reproducibly and for free."""
+    """Deterministic mock edit: flip the seed program's mock-fixture variant
+    seed->edited so the offline plumbing shows a behavior change. This is a PLUMBING
+    STUB, not a model of taste discovery -- it carries no diagnosis and encodes no
+    answer; the real meta agent (Opus) does the actual diagnose-from-evidence work."""
     solver_path = os.path.join(child_dir, "solver.py")
     src = _read(solver_path)
-    new = re.sub(r'STRATEGY\s*=\s*"naive"', 'STRATEGY = "smart"', src, count=1)
+    new = re.sub(r'_MOCK_VARIANT\s*=\s*"seed"', '_MOCK_VARIANT = "edited"', src, count=1)
     if new != src:
         with open(solver_path, "w") as f:
             f.write(new)
-        log("  meta agent (mock): switched STRATEGY naive -> smart")
+        log("  meta agent (mock): flipped _MOCK_VARIANT seed -> edited (plumbing stub)")
     else:
-        log("  meta agent (mock): no naive strategy found; left solver unchanged")
+        log("  meta agent (mock): no seed variant found; left solver unchanged")
     ms_path = os.path.join(child_dir, "meta_strategy.md")
     ms = _read(ms_path)
-    ms += ("\n\n## Improvement log\n- Switched probing strategy to 'smart' "
-           "(falsification + Occam induction) after observing confirmation-bias "
-           "failures in EVAL_REPORT.md.\n")
+    ms += "\n\n## Improvement log\n- (mock) flipped the seed program's fixture variant.\n"
     with open(ms_path, "w") as f:
         f.write(ms)

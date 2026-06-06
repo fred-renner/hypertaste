@@ -59,18 +59,27 @@ The design is settled and lives in `WORLD_DESIGN.md`. The spine:
   **stay-Haiku** as a fixed control; cross-model port as a periodic generality check. The
   taste-prompt is an instrument (gate + bar), **never a target**.
 
-**The thin de-risking slice ran** (`WORLD_DESIGN.md` → "First slice"; built in `hta/ch2/`).
-Two empirical bets gate everything: (1) the taste-gap must be **realizable by Haiku**, not
-just present in the world; (2) inference must be a **ramp, not a cliff** (partial grammar →
-partial coverage). Result: **bet 2 PASSES** (R²=1.0 — independent segments make coverage
-linear in the fraction inferred), but **bet 1 does not yet** — and the failure inverts
-Chapter 1's. Haiku infers the grammar *fine*; the world is just **too transparent** (a bare
-prompt already sits at normalized 0.61 of the floor→oracle band, the ceiling is low, and the
-+0.05 taste edge drowns in Haiku noise). Chapter 1 overshot difficulty too *hard*; this
-slice overshot too *easy*. **Next: add deception** (hide segment boundaries, lure probes onto
-flashy dead-ends, stepping-stones) to open Haiku-realizable headroom, **denoise** with
-repeats, then re-gate before building the loop. The substrate (tape + coverage judge + DP
-oracle) and the three-plane skeleton it reuses are sound.
+**The thin de-risking slice ran — and is now closed** (`WORLD_DESIGN.md` → "First/Second/Third
+slice", "The rethink"; built in `hta/ch2/`). Two empirical bets gated it: (1) the taste-gap must
+be **realizable by Haiku**, not just present in the world; (2) inference must be a **ramp, not a
+cliff**. **Bet 2 PASSES** structurally (R²=1.0 — independent segments make coverage linear in the
+fraction inferred). **Bet 1's *easy* version FAILS, and that is the finding:** across three slices
+we learned to steer the gap's *sign* by world design (transparent-flat → concentrated-negative →
+distributed-positive), but once the instrument was made honest (realizable-ceiling normalizer,
+generous turn budget, norm-of-mean) **no prompt — tactical or general — lifted a fixed weak model
+off the no-inference floor.** The slice did its job cheaply: it falsified *a prompt is the unit of
+taste* before a cent on the loop.
+
+Two consequences carry forward. **(a) The unit is a program/scaffold, not a prompt** — the loop
+must search scaffold-space (how the agent allocates probes, externalizes notes, decides when to
+stop), which is what Chapter 1's `meta-agent-on-program` already was and the slice's prompt-A/B
+regressed away from. **(b) The binding constraint is the *threshold*, not difficulty or the
+instrument** — both are now honest, yet the signal is still noise, because the tape-world sits
+**below the line** where taste has tacit room to matter (Opus can write its optimal policy in five
+lines; the mock solver nearly is it). The next session answers the **threshold question** directly
+(see "earning its keep" below), not another tuning cycle. The substrate (tape + coverage judge +
+DP oracle) and the three-plane skeleton are sound; what was wrong was measuring a tacit-taste gap
+in a world that has none.
 
 ## The thesis
 
@@ -107,7 +116,7 @@ makes a **new research virtue** necessary to win:
 | Chapter | World kind | Judge (objective principle) | Virtue it forces | Status |
 |---|---|---|---|---|
 | **1** | deterministic hidden rule `f(x,y,z)→bool` | **exact equivalence** — your rule behaves identically to mine on a fixed battery | falsification, hypothesis decomposition, Occam | done — pivoted (binary oracle → flat signal) |
-| **2** | navigable hidden **investigation-map** (grammar-generated graph) | **coverage** — how much of the structure you uncovered under a scarce budget | budget allocation, value-of-information, reading global structure, predict-the-unseen | **current — slice ran: bet 2 (ramp) holds, bet 1 (gap) needs deception** |
+| **2** | navigable hidden **investigation-map** (grammar-generated graph) | **coverage** — how much of the structure you uncovered under a scarce budget | budget allocation, value-of-information, reading global structure, predict-the-unseen | **current — slice closed: bet 2 (ramp) holds; a *prompt* is not the unit; next = threshold gate + program-as-unit** |
 | **3** | no exact rule — an uncertain/noisy process | **calibration** — how much probability you put on what actually happened | weighing evidence, quantifying uncertainty, knowing what you don't know | future |
 | **4+** | worlds you must act on, not just observe | **intervention quality** — the soundness of the experiment you designed | experimental design, controlling confounds, causal reasoning | future |
 
@@ -238,15 +247,27 @@ the line that beats it, and how we'll know which side of the line we're on.
   closing the loop:* a smith that designs **around** the agent's weakness is collusion —
   Goodhart at the curriculum level. The only legal coupling is the **ZPD via an objective
   gap** (fail-now-but-learnable on the non-movable scorer), never the agent's internals.
-- **Today we are honestly below the line — and that's a measurement, not a failure.** At
-  Chapter-1/2 complexity Opus-the-coach can see the whole board, so a hand prompt is
-  competitive and the loop is not yet earning its keep. **Bet 1 failing is the instrument
-  reporting exactly that** — no world yet where taste has tacit room to matter. The job is to
-  push the world *past* the threshold, and the falsification condition is sharp: if even a
-  careful, budget-matched hand prompt cannot beat vanilla on a deceptive, distributed-value
-  world, the suspect is no longer the world but the **instrument** (the judge/difficulty
-  axis), and possibly the probe-world itself. A hand-designed researcher could never tell you
-  that; this one is built to.
+- **We are honestly below the line — the slice measured it, not a failure.** At Chapter-1/2
+  complexity Opus-the-coach sees the whole board, so a hand prompt is competitive and the loop
+  is not yet earning its keep. The Chapter-2 slice **confirmed this the expensive-but-decisive
+  way**: a careful, budget-matched hand prompt could *not* beat vanilla on a deceptive,
+  distributed-value world once the instrument was honest. Per the falsification condition above,
+  the suspect is therefore no longer the world's difficulty or the instrument — both were made
+  honest — but the **threshold itself**: there is no world *yet* where taste has tacit room to
+  matter. A hand-designed researcher could never tell you that; this one is built to.
+- **The threshold is now an operational gate, not a footnote.** Make it the first question of
+  every world/chapter: *can Opus (or the PI) write the optimal allocation policy in closed form,
+  given full information — the rule, the oracle, no budget?* If yes, the world is **below the
+  line**: a hand spec is competitive, the loop cannot climb past an articulable ceiling, and any
+  taste-gap you measure is noise (exactly the slice's reading). Only a world where the answer is
+  **no** — the policy is found by playing, not deducible by inspection — can the loop earn its
+  keep. This gate is "earning its keep" lifted into a build decision: it screens *worlds and
+  chapters* the way the taste-gap gate screens individual worlds. The standing tension it forces
+  is real and must be chosen deliberately, not dodged: **"start cheap"** wants a world simple
+  enough to grade objectively, while **this gate** wants one complex enough that Opus can't solve
+  it on paper — and the cheapest such world may not be cheap. Resolve it by picking the side
+  on purpose (pay for richer substrate, or scope early chapters to plumbing-validation and move
+  the taste claim later), never by tuning a sub-threshold toy until the noise looks positive.
 
 ## The staged plan
 
@@ -262,13 +283,15 @@ versus a reset (everything collapses).
 2. **First transition, by hand (now).** Author Chapter 2's judge (**coverage** on the
    investigation-map). Start **fresh** — Chapter 1 never climbed, so there is no taste to
    warm-start from; the headline measurement is whether **held-out coverage climbs from a
-   fresh start above the frozen ruler** (vanilla Haiku). *Slice status:* the judge + DP
-   oracle + substrate are built and the **ramp** holds, but the first hand-built maps are
-   too transparent — vanilla Haiku is already near-tasteful, so there is no realizable gap to
-   climb yet. The open work is **deception** (make the naive move wrong) before the loop. The
-   warm-start *transfer* test — does mastering one chapter give a head start in the next —
-   becomes meaningful at the *next* transition, once a chapter actually produces climbing
-   taste to carry.
+   fresh start above the frozen ruler** (vanilla Haiku). *Slice status: CLOSED.* The judge +
+   DP oracle + substrate are built and the **ramp** holds, but three slices showed a *prompt*
+   never lifts a fixed weak model off the floor — the tape-world is **below the threshold gate**
+   above. So the next build is **not** another map: it is (i) answer the threshold question —
+   find/design a world Opus cannot solve on paper at toy cost — and (ii) make the taste carrier
+   a **program/scaffold** the meta agent evolves (the now-neutral seed + de-tailored meta loop),
+   not a hand prompt. The warm-start *transfer* test — does mastering one chapter give a head
+   start in the next — becomes meaningful at the *next* transition, once a chapter actually
+   produces climbing taste to carry.
 3. **One or two more hand transitions.** Extract the pattern of a healthy transition
    (taste carries, headroom appears) vs. a reset.
 4. **Close the outer loop.** Encode that pattern into the substrate-designer: propose the

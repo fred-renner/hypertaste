@@ -5,9 +5,12 @@
 > equivalence. For the multi-chapter arc (how judges change, why we pivoted here, how the
 > outer loop closes) read `ROADMAP.md`. This file is the *within-chapter* mechanics.
 >
-> **Status: design, not yet code.** The repo still runs Chapter 1 (the rule-guesser). This
-> is the world we are building toward, on the same three-plane skeleton (world / agent /
-> taste). The concrete next build is the thin de-risking slice in "First slice" below.
+> **Status: thin slice built and closed; read "The rethink" (bottom) first.** The slice
+> lives in `hta/ch2/` and the repo still runs Chapter 1. The slice answered its bets cheaply
+> — a *prompt* is not the unit of taste and the tape-world is below the threshold gate — so
+> the next build is **not** another map: it is the threshold question + program-as-unit
+> ("The rethink"). The substrate/judge/oracle below remain sound; the slice-by-slice history
+> ("First/Second/Third slice") is kept as the audit trail of how we got there.
 
 ## The pivot in one line
 
@@ -348,3 +351,34 @@ tuning cycle** (a new session). The threads it should pull, surfaced by this arc
    simulation*, not a clever closed-form. Note the smith never *authors* reward numbers — it
    proposes structure and the deterministic expander *computes* value — so generator-confabulated
    rewards are structurally impossible; the only residual risk is a scorer bug, which is auditable.
+
+## The rethink — the slice is closed; the threshold is the gate
+
+The three slices did their job cheaply and the verdict is settled: **a prompt is not the unit of
+taste, and the tape-world is below the threshold where taste can matter.** Don't tune another map.
+What this chapter's measurement actually established, and what the next session builds:
+
+- **What we proved.** The substrate is sound (deterministic, ungameable coverage judge + DP
+  oracle), the ramp holds (R²=1.0), and the taste-gap's *sign* is steerable by world design. That
+  last point is real but moot: once the instrument was honest, no prompt — tactical *or* general —
+  lifted a fixed weak model off the no-inference floor. The bottleneck is not difficulty (fixed in
+  slice 2) or the instrument (fixed in slice 3); it is the **threshold**.
+- **The threshold gate (the actual next question).** Before building anything: *can Opus write the
+  optimal allocation policy in closed form, given the rule, the oracle, and no budget?* For the
+  tape-world the answer is **yes** — the policy is a five-line knapsack (the mock solver in
+  `agent.py` nearly is it), so a hand spec is competitive and any gap is noise. The next world must
+  be one where the answer is **no**. If no such world is affordable at toy cost, that is itself the
+  finding (`ROADMAP.md` → "earning its keep"): "start cheap" and "earn its keep" are in tension and
+  we choose deliberately, rather than tuning a sub-threshold toy until the noise looks positive.
+- **The unit is a program, not a prompt.** The slice A/B-ed two prompt strings; that was the wrong
+  carrier. The loop must search **scaffold-space** — how the agent externalizes map-notes,
+  decomposes, re-reads, decides when to stop — via the **meta-agent-on-program** machinery
+  (`hta/meta_agent.py` + the seed), which Chapter 1 already had. That machinery is now **de-tailored
+  and general** (this session): the seed ships no pre-loaded taste and the meta agent diagnoses from
+  the trajectory evidence rather than a handed checklist, so it carries into Chapter 2 unchanged.
+- **References by construction at scale.** Raw coverage stays the ungameable ground truth; the
+  *normalizer/oracle* is the fragile link (the knapsack DP is exact only while segments are
+  independent — richer worlds break that). When worlds get richer, compute references by **verified
+  simulation**, not a clever closed form. The smith never *authors* reward numbers — it proposes
+  structure and the expander *computes* value — so confabulated rewards stay structurally
+  impossible; only a scorer bug is, and it is auditable.

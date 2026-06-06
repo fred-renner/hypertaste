@@ -9,13 +9,11 @@ You have up to {max_probes} probes. Available tools:
 - submit_guess(rule): submit your final answer as "lambda x, y, z: ..." and end the episode.
 
 Protocol:
-1. Call probe() on your FIRST turn — do not preface it with analysis. After each
-   result, update which rules are still possible.
-2. {strategy_guidance}
-3. Do NOT call remaining() — track your probe count yourself; every non-probe turn is
+1. Call probe() on your FIRST turn — do not preface it with analysis.
+2. Do NOT call remaining() — track your probe count yourself; every non-probe turn is
    wasted budget.
-4. When you are confident (or low on probes), call submit_guess EXACTLY ONCE with the
-   simplest lambda consistent with everything you observed (Occam's razor). You MUST call
-   submit_guess before the episode ends, or it counts as no answer.
+3. When you are confident (or low on probes), call submit_guess EXACTLY ONCE with a
+   lambda consistent with everything you observed. You MUST call submit_guess before the
+   episode ends, or it counts as no answer.
 
 Act through tools only. Emit no prose between tool calls.

@@ -39,26 +39,29 @@ questions — match the depth and tone of a genuine research-design conversation
 
 ## Run & test
 
-**Next action (pick this up — START A NEW SESSION TO RETHINK):** Chapter-2 **third slice is
-complete and it falsified the easy bet** (`hta/ch2/`, run `python run_slice.py`; `WORLD_DESIGN.md`
-→ "Third slice"). The full arc: distributed-value maps (`twin`/`braid`/`fan`, const-free,
-`maxfrac<0.35`) let us **steer the taste gap's *sign* by world design** (transparent-flat →
-concentrated-negative → distributed-positive) — a real result. But once the **instrument was made
-honest** (turn budget `budget*3+12`; **realizable-ceiling** normalizer via
-`grammar.realizable_determined`; norm-of-mean aggregation), the gap **evaporated**: the tactical
-prompt tied vanilla (+0.000 on `twin`), and a **general** (transferable, no-tactics) taste prompt
-is **noise around zero** (aggregate −0.018, both agents pinned at the no-inference floor). **Bet 2
-holds (R²=1.0) but is moot — nobody climbs the ramp.** Verdict: **a *prompt* is not the unit of
-taste, and bet 1 is not realizable on these one-trick worlds — do NOT build the loop.** The thin
-slice did its job cheaply. The rethink (next session, not another tuning cycle) should pull three
-threads: **(1)** the lever is likely **richer scaffold** (map-notes, decomposition, self-checks),
-not a sentence of strategy — the loop searches scaffold-space; **(2)** the worlds are **one-trick**,
-so "realizable" should credit **productive progress** on **multidimensional worlds**, not just
-final coverage; **(3)** keep **raw coverage** as the ungameable ground truth but **verify
-references by construction** (the knapsack oracle is correct only while segments are independent;
-the smith *computes* value, never authors it, so confabulated rewards are structurally impossible
-— only a scorer bug is, and it's auditable). `ROADMAP.md` → "Chapter 2" is the arc; the bash below
-still runs Chapter 1.
+**Next action (START A NEW SESSION):** The Chapter-2 thin slice is **closed** — it falsified the
+easy bet cheaply: **a prompt is not the unit of taste.** Across three slices we learned to steer
+the taste-gap's *sign* by world design, but once the instrument was made honest no prompt
+(tactical or general) lifted a fixed weak model off the no-inference floor (`WORLD_DESIGN.md` →
+"The rethink"). Two things are now in place so the next session starts clean:
+
+1. **Frame = the threshold question, not another tuning cycle.** The ROADMAP's own "earning its
+   keep" line is now the operational gate: *is there a world, affordable at toy cost, where Opus
+   cannot write the optimal allocation policy in closed form even with full information?* Below
+   that line the loop cannot earn its keep and every measurement is noise — which is exactly what
+   the slice reported. **Answer this before building any loop.** If yes, that world is Chapter 2's
+   real substrate; if no, "start cheap" and "earn its keep" are in tension and we choose
+   deliberately (pay for a richer substrate, or demote the early chapters to plumbing-validation
+   and move the taste claim to a later chapter). The map grid-search is over.
+2. **Unit of taste = a program/scaffold, not a prompt — and the seed is now neutral.** The
+   de-tailoring is done (this session): the seed agent ships **no pre-loaded taste**, and the meta
+   agent is **no longer handed a failure-mode checklist** — it diagnoses from the trajectory
+   evidence (general, task-agnostic, so it carries into Chapter 2). The mock's answer-knowledge is
+   now a clearly-labeled plumbing fixture (`_MOCK_VARIANT`), not a taste model. Next session:
+   revive the **meta-agent-on-program** loop (not the slice's prompt-A/B) as the taste carrier —
+   the loop searches scaffold-space, so the seed must be a blank slate.
+
+`ROADMAP.md` → "Chapter 2" / "earning its keep" is the arc; the bash below still runs Chapter 1.
 
 
 ```bash

@@ -240,8 +240,11 @@ def episode(prompt: str, model: str, mcp_server_argv, server_env, cwd: str,
 # ---------------------------------------------------------------------------
 _CTX = re.compile(r"<<CTX>>(.*?)<<CTX>>", re.DOTALL)
 
-# A diverse, falsification-seeking probe battery for the "smart" strategy.
-_SMART_BATTERY = [
+# A canned "after a meta edit" probe battery -- a MOCK FIXTURE, not a taste model. The
+# mock is not intelligent; it only needs to make the plumbing observable, so this gives
+# the post-edit variant a deterministic behavior that differs from the seed variant
+# (the seed program ships no such recipe -- growing one is the real loop's job).
+_MOCK_EDITED_BATTERY = [
     [1, 2, 3], [3, 2, 1], [2, 2, 2], [1, 3, 2], [-1, 0, 1],
     [5, 5, 6], [2, 4, 6], [0, 0, 0], [10, 5, 1], [1, 2, 2],
 ]
@@ -271,32 +274,34 @@ def _mock_complete(prompt: str, role: str) -> str:
 
 def _mock_probe(ctx: dict) -> dict:
     history = ctx.get("history", [])
-    strategy = ctx.get("strategy", "naive")
+    variant = ctx.get("variant", "seed")  # mock fixture flag set by the seed program
     n = len(history)
-    if strategy == "smart":
-        probe = _SMART_BATTERY[n % len(_SMART_BATTERY)]
-        reasoning = "diverse probe to falsify and split the hypothesis space"
+    if variant == "edited":
+        probe = _MOCK_EDITED_BATTERY[n % len(_MOCK_EDITED_BATTERY)]
+        reasoning = "post-edit fixture: a diverse, space-splitting probe"
     else:
-        # confirmation bias: always increasing with a constant gap of 2.
+        # seed fixture: a monotone confirm-walk (increasing with a constant gap of 2).
         probe = [n + 1, n + 3, n + 5]
-        reasoning = "another increasing example to confirm the hypothesis"
+        reasoning = "seed fixture: another increasing example"
     return {"probe": probe, "reasoning": reasoning}
 
 
 def _mock_guess(ctx: dict) -> dict:
     history = ctx.get("history", [])
-    strategy = ctx.get("strategy", "naive")
-    if strategy == "smart":
-        # Occam induction from observed booleans only (no hidden rule peeking).
+    variant = ctx.get("variant", "seed")  # mock fixture flag set by the seed program
+    if variant == "edited":
+        # post-edit fixture: induce the simplest consistent rule from observed booleans
+        # only (no hidden-rule peeking). The mock "knows" how to do this so the offline
+        # loop shows a fitness change; the real seed program is handed no such routine.
         from .world.grammar import simplest_consistent
         hist = [{"triple": h.get("triple"), "label": h.get("label")}
                 for h in history if h.get("triple")]
         best = simplest_consistent(hist)
         rule = best.source if best else "lambda x, y, z: x < y < z"
-        return {"rule": rule, "reasoning": "simplest rule consistent with all observations"}
-    # naive overfits to its own biased data (constant gap of 4).
+        return {"rule": rule, "reasoning": "post-edit fixture: simplest consistent rule"}
+    # seed fixture: overfit to the biased confirm-walk data (constant gap of 4).
     return {"rule": "lambda x, y, z: x < y < z and z - x == 4",
-            "reasoning": "every example I tried was increasing with a gap of 4"}
+            "reasoning": "seed fixture: overfit to an all-increasing sample"}
 
 
 def _mock_world_smith(ctx: dict) -> dict:

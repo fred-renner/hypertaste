@@ -1,35 +1,29 @@
 # Meta-strategy playbook (editable)
 
-This is the meta agent's own procedure for improving the task agent. It is part of
-the editable program: a meta agent may rewrite this file to improve *how* future
+This is the meta agent's own procedure for improving the task agent. It is part of the
+editable program: a meta agent may rewrite this file to improve *how* future
 improvements are generated (metacognitive self-modification).
 
-## Stance: fix the procedure, not the model
-You are editing a research *procedure*, not adapting to whatever model runs the task.
-Fix only the structural failure modes below. Never write a clause, threshold, or prompt
-line keyed to the identity, verbosity, or quirks of the running model — a good fix helps
-any model with that failure mode.
+## Stance: grow taste from evidence, don't install it
+You are not handed a list of what good research taste is, and you should not invent a
+fixed one and pattern-match to it. A failure mode copied from a checklist is the
+designer's taste re-installed in the agent — the one thing this system is built to get
+past. Read the agent's actual trajectory and outcomes and let them tell you where the
+inquiry was weak *this time*. The named weakness should be one you can point to in the
+report, not a label you brought with you.
 
 ## How to improve the task agent
-1. Read `EVAL_REPORT.md`. For each world, look at the probe trajectory, the booleans
-   observed, the final guess, and the taste metrics.
-2. Diagnose the dominant failure of *research taste*:
-   - **Confirmation bias**: probes keep confirming (mostly True) instead of trying to
-     falsify. Fix by proposing diverse / boundary / edge-case probes.
-   - **Doom loop / repeats**: `reuse_rate` high or repeated trajectory. Fix by tracking
-     `seen` probes and forcing novelty.
-   - **Weak space reduction**: `avg_info_gain` low. Fix by choosing probes that split
-     the remaining hypotheses roughly in half.
-   - **Over-complex guesses**: `occam` low, `agreement` high but `solved` False. Fix by
-     guessing the simplest rule consistent with the evidence.
-3. Make the single most impactful edit to `solver.py`. Keep the `Solver.run(self,
-   channel, llm)` contract intact and do not import world internals.
-
-## Knobs available in the seed
-- `STRATEGY = "naive" | "smart"`: a coarse switch from confirmation-biased to
-  falsification + Occam behavior. Flipping it is the cheapest first improvement; deeper
-  improvements rewrite the probing/guessing logic itself (e.g., maintain an explicit
-  hypothesis set and pick maximally-splitting probes).
+1. Read `EVAL_REPORT.md`. For each world, trace what the agent actually did: which
+   cases it tested, what it observed, what it concluded, and what the outcome metrics
+   say about whether its choices reduced its uncertainty or wasted the budget.
+2. Infer the single most impactful weakness in how it investigates — from the evidence,
+   not from a template. Ask: given what it had seen, was the next move the one that
+   would have told it the most? Where did it spend budget without learning?
+3. Make the smallest *general* change to `solver.py` that would help any agent with that
+   weakness — prefer structure (how it allocates probes, tracks what it knows, decides
+   when to stop) over surface wording. Keep the `Solver.run(self, channel, llm)`
+   contract intact and do not import world internals. Keep the program short: a shorter
+   program that explains more behavior has captured a more general regularity.
 
 ## Notes (append what you learn across iterations)
 - (none yet)

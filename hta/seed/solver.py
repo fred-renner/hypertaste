@@ -1,35 +1,34 @@
-"""Seed task-agent program (the unit that evolves).
+"""Seed task-agent program (the unit that evolves) -- a NEUTRAL investigator.
+
+It probes an unknown world through `channel` and reasons through `llm` (the task
+model, Haiku). It ships with **no pre-loaded research taste**: the prompts below state
+the task and ask for a next probe / a final rule, and say nothing about *how* to
+investigate well -- no "confirm", no "falsify", no edge-case list, no Occam steering.
+Growing taste -- how to allocate a scarce budget, seek disconfirming cases, track
+state, decide when to stop -- is the meta agent's job, **discovered from the trajectory
+evidence**, never shipped in the seed. A pre-loaded recipe is the null hypothesis
+(taste frozen at the designer's articulable ceiling); the seed must be a blank slate so
+that any taste the system shows was grown, not installed.
 
 Contract (the meta agent must preserve this):
     class Solver:
         def run(self, channel, llm) -> str   # returns a python lambda string (the guess)
 
 It interacts with the world ONLY through `channel` (probe results are booleans) and
-thinks ONLY through `llm` (a constrained-generation call bound to the task model,
-Haiku). It must not import any world/engine internals.
+thinks ONLY through `llm`. It must not import any world/engine internals. A real meta
+agent is free to replace this whole file with something better, as long as the contract
+holds.
 
-`STRATEGY` is a coarse behavior knob the meta agent can rewrite ("naive" ->
-confirmation-biased; "smart" -> falsification + Occam). A real meta agent is free to
-replace this whole file with something better, as long as the contract holds.
+`_MOCK_VARIANT` is **not** research content -- it is a hook the deterministic mock
+backend reads to simulate a behavior change after a meta edit, so the offline plumbing
+is observable. The real task model never sees it, the real prompts below do not branch
+on it, and the real meta agent may delete it.
 """
 
 import json
-import os
 import re
 
-STRATEGY = "naive"   # meta agent may change this and/or rewrite the strategy below.
-
-# Strategy guidance injected into the single-session episode prompt. The meta agent
-# may edit these strings (and/or episode_prompt.md) to improve research taste.
-NAIVE_GUIDANCE = (
-    "Propose test cases similar to ones that returned True, to confirm your current "
-    "hypothesis."
-)
-SMART_GUIDANCE = (
-    "Actively try to FALSIFY your current best hypothesis: probe diverse and edge cases "
-    "(equal values, negatives, zero, non-strict orderings, large gaps, reversed orders). "
-    "Never repeat a probe. Prefer probes that split your remaining hypotheses in half."
-)
+_MOCK_VARIANT = "seed"   # mock-only plumbing fixture; the mock meta edit flips it to "edited".
 
 
 def _extract_json(text):
@@ -56,14 +55,14 @@ def _valid_triple(p):
 
 class Solver:
     def episode_prompt(self, max_probes):
-        """Single-session mode: build the whole-episode prompt for one world.
-        Loads episode_prompt.md (next to this file) and fills in the strategy + budget.
-        The agent then drives the episode via the probe MCP tools."""
+        """Single-session mode: build the whole-episode prompt for one world. Loads
+        episode_prompt.md (next to this file) and fills in the budget. It carries no
+        strategy guidance -- the prompt states the task and the protocol only."""
+        import os
         here = os.path.dirname(os.path.abspath(__file__))
         with open(os.path.join(here, "episode_prompt.md")) as f:
             template = f.read()
-        guidance = SMART_GUIDANCE if STRATEGY == "smart" else NAIVE_GUIDANCE
-        return template.format(max_probes=max_probes, strategy_guidance=guidance)
+        return template.format(max_probes=max_probes)
 
     def run(self, channel, llm):
         history = []  # list of {"triple": [...], "label": bool}
@@ -79,20 +78,13 @@ class Solver:
 
     # ---- probing ----
     def _next_probe(self, history, remaining, llm):
-        ctx = json.dumps({"role": "probe", "strategy": STRATEGY,
+        ctx = json.dumps({"role": "probe", "variant": _MOCK_VARIANT,
                           "remaining": remaining, "history": history})
-        if STRATEGY == "smart":
-            guidance = ("Propose a test case that could DISPROVE your current best "
-                        "hypothesis. Seek diverse and edge cases: equal values, "
-                        "negatives, zero, non-strict orderings, large gaps. Never "
-                        "repeat a previous test case.")
-        else:
-            guidance = ("Propose another test case similar to ones that returned True, "
-                        "to confirm your current hypothesis.")
         prompt = (
-            "You are discovering a hidden rule that maps three numbers to True/False "
-            "(Wason 2-4-6 task). Here are your observations so far:\n"
-            f"{self._fmt_history(history)}\n\n{guidance}\n"
+            "You are investigating a hidden rule that maps three numbers (x, y, z) to "
+            "True or False. Your observations so far:\n"
+            f"{self._fmt_history(history)}\n\n"
+            "Propose the next test case to evaluate.\n"
             'Respond ONLY with JSON: {"probe": [x, y, z]}\n'
             f"<<CTX>>{ctx}<<CTX>>"
         )
@@ -108,21 +100,19 @@ class Solver:
 
     # ---- guessing ----
     def _guess(self, history, llm):
-        ctx = json.dumps({"role": "guess", "strategy": STRATEGY, "history": history})
-        emphasis = ("Return the SIMPLEST rule consistent with ALL observations "
-                    "(Occam's razor)." if STRATEGY == "smart"
-                    else "Return your best guess for the rule.")
+        ctx = json.dumps({"role": "guess", "variant": _MOCK_VARIANT, "history": history})
         prompt = (
-            "You have finished probing the hidden rule. Observations:\n"
-            f"{self._fmt_history(history)}\n\n{emphasis}\n"
-            "The rule is a Python lambda over x, y, z returning a bool.\n"
+            "You have finished investigating the hidden rule. Your observations:\n"
+            f"{self._fmt_history(history)}\n\n"
+            "State the rule as a Python lambda over x, y, z returning a bool, consistent "
+            "with everything you observed.\n"
             'Respond ONLY with JSON: {"rule": "lambda x, y, z: ..."}\n'
             f"<<CTX>>{ctx}<<CTX>>"
         )
         rule = (_extract_json(llm(prompt, role="guess")) or {}).get("rule")
         if isinstance(rule, str) and rule.strip().startswith("lambda"):
             return rule.strip()
-        return "lambda x, y, z: x < y < z"
+        return "lambda x, y, z: True"
 
     @staticmethod
     def _fmt_history(history):

@@ -58,6 +58,12 @@ def compute_metrics(history: List[dict], guess: Optional[str], score: dict, hyp:
 
 
 def fitness(metrics: dict, cfg: Config) -> float:
+    # NOTE (judge-side prior): blending taste terms (info/novelty/occam) INTO the score
+    # the agent is optimized against smuggles our taste prior into the judge -- the
+    # Chapter-1 instance of the tailoring the seed/meta agent were just cleaned of. It is
+    # kept here only because Chapter 1 is superseded; the structural fix already exists in
+    # Chapter 2, where information-weight FALLS OUT of coverage (hta/ch2) rather than being
+    # assigned. Do not extend this blend; new chapters score outcomes, never behaviors.
     f = (
         cfg.w_solve * (1.0 if metrics["solved"] else 0.0)
         + cfg.w_approx * metrics["agreement"]

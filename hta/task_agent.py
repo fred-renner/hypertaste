@@ -125,11 +125,12 @@ def _read_trajectory(path: str):
 
 
 def _default_episode_prompt(max_probes: int) -> str:
+    # Neutral fallback (no strategy steering): state the task and the protocol only.
     return (
         "Discover a hidden rule mapping three numbers (x,y,z) to True/False. "
-        f"You have {max_probes} probes. Use probe(x,y,z) to gather evidence, try to "
-        "falsify your hypotheses, then call submit_guess('lambda x, y, z: ...') exactly "
-        "once with the simplest rule consistent with all observations."
+        f"You have {max_probes} probes. Use probe(x,y,z) to gather evidence, then call "
+        "submit_guess('lambda x, y, z: ...') exactly once with a rule consistent with "
+        "all observations."
     )
 
 

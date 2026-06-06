@@ -29,7 +29,9 @@ def test_iteration_improves(tmp_path):
     llm.reset_accounting()
     rep = loop.run_iteration(cfg)
     assert rep["valid_child"] is True
-    # mock flips naive->smart, which must not regress and should improve.
+    # PLUMBING (not a taste claim): the mock edit flips the seed program's fixture
+    # variant seed->edited, so the deterministic offline loop registers a behavior
+    # change and the child does not regress.
     assert rep["child_fitness"] >= rep["parent_fitness"]
     assert rep["improved"] is True
     # archive grew beyond the seed.
@@ -37,19 +39,21 @@ def test_iteration_improves(tmp_path):
     assert len(arch.genids()) >= 2
 
 
-def test_smart_solver_recovers_classic_rule(tmp_path):
-    """The 'smart' mock strategy should exactly recover x<y<z by falsification +
-    Occam induction, using only observed booleans."""
+def test_mock_edited_variant_recovers_classic_rule(tmp_path):
+    """Mock-fixture determinism: the post-edit variant deterministically reconstructs
+    x<y<z from observed booleans only (no hidden-rule peeking). This checks the offline
+    plumbing fixture, not a capability of the (neutral) seed program."""
     cfg = _cfg(str(tmp_path))
     # build the classic world directly
     rule = next(r for r in grammar.candidate_library() if r.name == "strict_increasing")
     from hta.world.engine import WiltWorld
     world = WiltWorld(rule, max_probes=cfg.max_probes)
-    # write a smart solver to a temp dir
+    # write the post-edit fixture variant to a temp dir
     seed_dir = loop.SEED_DIR
-    work = tmp_path / "smart"
+    work = tmp_path / "edited"
     shutil.copytree(seed_dir, work)
-    src = (work / "solver.py").read_text().replace('STRATEGY = "naive"', 'STRATEGY = "smart"')
+    src = (work / "solver.py").read_text().replace('_MOCK_VARIANT = "seed"',
+                                                   '_MOCK_VARIANT = "edited"')
     (work / "solver.py").write_text(src)
     solver = task_agent.load_solver(str(work))
     rec = task_agent.run_on_world(solver, world, cfg)
