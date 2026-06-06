@@ -70,17 +70,21 @@ class TapeWorld:
 
     # ---- references (world plane; model-free, agent-inaccessible) ----
     def references(self) -> dict:
-        """The bracket the student is measured against: a no-inference floor and the DP
-        oracle, both as raw correct/M coverage (determined cells for sure + 1/K luck on
-        the rest)."""
+        """The bracket the student is measured against: a no-inference floor, a *realizable*
+        ceiling (the normalizer — the oracle de-omnisciented by charging it for boundary
+        discovery), and the omniscient DP oracle (kept for reporting/diagnostics). All as raw
+        correct/M coverage (determined cells for sure + 1/K luck on the rest)."""
         K, M = self.spec.K, self.M
         det_oracle = grammar.oracle_determined(self.spec, self.budget)
         det_floor = grammar.floor_determined(self.spec, self.budget)
+        det_real = grammar.realizable_determined(self.spec, self.budget)
         return {
             "oracle_det": det_oracle,
             "floor_det": det_floor,
+            "realizable_det": det_real,
             "oracle_raw": self._raw_from_determined(det_oracle, K, M),
             "floor_raw": self._raw_from_determined(det_floor, K, M),
+            "realizable_raw": self._raw_from_determined(det_real, K, M),
         }
 
     @staticmethod
@@ -91,14 +95,16 @@ class TapeWorld:
     # ---- scoring (world plane) ----
     def score(self, reconstruction: Optional[List[int]]) -> dict:
         """Score a submitted full-tape reconstruction. raw = fraction of cells correct;
-        normalized = where raw sits between the floor and the oracle (clamped [0,1])."""
+        normalized = where raw sits between the floor and the *realizable* ceiling (clamped
+        [0,1]). The omniscient oracle was too tall a denominator and compressed everyone near
+        zero, so we normalize against what a boundary-discovering player can actually reach."""
         M = self.M
         recon = reconstruction or []
         correct = sum(1 for i in range(M)
                       if i < len(recon) and recon[i] == self.tape[i])
         raw = correct / M
         ref = self.references()
-        denom = ref["oracle_raw"] - ref["floor_raw"]
+        denom = ref["realizable_raw"] - ref["floor_raw"]
         norm = 0.0 if denom <= 0 else (raw - ref["floor_raw"]) / denom
         return {
             "raw": round(raw, 4),

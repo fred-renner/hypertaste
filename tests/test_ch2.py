@@ -60,6 +60,11 @@ def test_oracle_brackets_floor_and_is_achievable():
         # the oracle's determined ceiling must be reachable: probing the optimal cells of a
         # FULLY pinnable subset reconstructs at least that many cells (no over-claiming).
         assert ref["oracle_raw"] <= 1.0
+        # the realizable ceiling (the normalizer) sits BETWEEN the floor and the omniscient
+        # oracle: it is the oracle de-omniscienced (charged for boundary discovery) but never
+        # below the floor a plain prober already reaches -> a non-degenerate band to score in.
+        assert ref["floor_det"] <= ref["realizable_det"] <= ref["oracle_det"]
+        assert ref["realizable_raw"] > ref["floor_raw"]   # band has positive width
 
 
 def test_smoothness_is_a_ramp():

@@ -191,6 +191,24 @@ def floor_determined(spec: TapeSpec, budget: int = None) -> int:
     return min(B, spec.M)
 
 
+def realizable_determined(spec: TapeSpec, budget: int = None) -> int:
+    """A *realizable* ceiling — the denominator the student is actually measured against.
+
+    The omniscient `oracle_determined` is handed the segmentation for free; a student must
+    *find* the boundaries before it can spend probes wisely, so the omniscient band is too
+    tall and compresses every realizable player near zero (WORLD_DESIGN -> the lesser-unknown
+    'the right normalizer may be the realizable ceiling'). This charges the oracle `(G-1)`
+    probes to locate the `G-1` interior boundaries it would otherwise get for free, then lets
+    it play value-optimally with what remains. A first, conservative de-omniscience (it still
+    knows the true values when placing the remaining probes); floored at the no-inference
+    floor, since a realizable agent can always fall back to plain probing. Still a dumb,
+    deterministic, agent-inaccessible f(spec, budget) — the integrity floor is intact."""
+    B = spec.budget if budget is None else budget
+    G = len(spec.segments)
+    det = oracle_determined(spec, max(0, B - (G - 1)))
+    return max(det, floor_determined(spec, B))
+
+
 # ---------------------------------------------------------------------------
 # Smoothness (bet 2): coverage as a function of how much of the grammar you inferred.
 # Computed structurally on the fixed tape — no LLM, free.

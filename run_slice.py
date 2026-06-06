@@ -21,15 +21,20 @@ from hta.ch2.maps import MAPS, by_name
 from hta.ch2.world import TapeWorld
 
 
-def _run_agent(spec, taste, cfg, repeats, log):
+def _mean_raw(spec, taste, cfg, repeats, log):
+    """Mean RAW coverage over `repeats` episodes. We average raw first and normalize ONCE
+    (below) — averaging per-episode *normalized* scores double-counts the [0,1] clamp and made
+    the aggregate jump erratically (a single lucky run could fake a positive norm next to two
+    floored zeros)."""
     world = TapeWorld(spec)
-    raws, norms = [], []
-    for _ in range(repeats):
-        recon = agent.solve(spec, taste, cfg, log=log)
-        sc = world.score(recon)
-        raws.append(sc["raw"])
-        norms.append(sc["normalized"])
-    return sum(raws) / len(raws), sum(norms) / len(norms)
+    raws = [world.score(agent.solve(spec, taste, cfg, log=log))["raw"] for _ in range(repeats)]
+    return sum(raws) / len(raws)
+
+
+def _norm(raw, ref):
+    """Where raw sits between the no-inference floor and the realizable ceiling, clamped."""
+    denom = ref["realizable_raw"] - ref["floor_raw"]
+    return 0.0 if denom <= 0 else max(0.0, min(1.0, (raw - ref["floor_raw"]) / denom))
 
 
 def run(cfg: Config, specs, repeats: int, log=print) -> dict:
@@ -41,12 +46,15 @@ def run(cfg: Config, specs, repeats: int, log=print) -> dict:
         r2 = grammar.linearity_r2(curve)
         log(f"\n== {spec.name} ==  M={spec.M} K={spec.K} budget={spec.budget} "
             f"segments={[s.length for s in spec.segments]}")
-        log(f"  references: floor_raw={ref['floor_raw']:.3f}  oracle_raw={ref['oracle_raw']:.3f}  "
-            f"(determined: floor={ref['floor_det']} oracle={ref['oracle_det']}/{spec.M})")
+        log(f"  references: floor_raw={ref['floor_raw']:.3f}  realizable_raw={ref['realizable_raw']:.3f}  "
+            f"oracle_raw={ref['oracle_raw']:.3f}  "
+            f"(determined: floor={ref['floor_det']} realizable={ref['realizable_det']} "
+            f"oracle={ref['oracle_det']}/{spec.M})")
         log(f"  smoothness curve (coverage vs #segments inferred): "
             f"{[round(c, 3) for c in curve]}  R^2={r2:.3f}")
-        van_raw, van_norm = _run_agent(spec, False, cfg, repeats, log)
-        tas_raw, tas_norm = _run_agent(spec, True, cfg, repeats, log)
+        van_raw = _mean_raw(spec, False, cfg, repeats, log)
+        tas_raw = _mean_raw(spec, True, cfg, repeats, log)
+        van_norm, tas_norm = _norm(van_raw, ref), _norm(tas_raw, ref)
         log(f"  vanilla: raw={van_raw:.3f} norm={van_norm:.3f}    "
             f"taste: raw={tas_raw:.3f} norm={tas_norm:.3f}    "
             f"gap(taste-vanilla)={tas_raw - van_raw:+.3f}")
@@ -64,7 +72,7 @@ def _gate(rows, log) -> dict:
     g_r2 = mean("r2")
     gap = g_tas - g_van
     # bet 1: taste clears vanilla by a real margin AND lands meaningfully up the
-    # floor->oracle ramp (normalized >= 0.5, and clearly above vanilla normalized).
+    # floor->realizable ramp (normalized >= 0.5, and clearly above vanilla normalized).
     bet1 = "PASS" if (gap >= 0.10 and g_tas_n >= 0.50 and g_tas_n - g_van_n >= 0.15) else \
            ("INCONCLUSIVE" if gap >= 0.05 else "FAIL")
     bet2 = "PASS" if g_r2 >= 0.95 else ("INCONCLUSIVE" if g_r2 >= 0.85 else "FAIL")

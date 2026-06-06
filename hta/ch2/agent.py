@@ -158,9 +158,14 @@ def real_solve(spec: TapeSpec, taste: bool, cfg: Config, log=print) -> List[int]
     }
     argv = [sys.executable, "-m", "hta.ch2.probe_server"]
     prompt = build_prompt(spec, taste)
+    # max_turns is generous on purpose. At budget*2+6 a chatty Haiku could exhaust its turns
+    # before submitting (one episode hit error_max_turns and scored ~0, corrupting the gap),
+    # so we give 3 turns/probe + headroom. A well-behaved episode submits early and never
+    # touches this; only a runaway costs the extra turns, so the binding constraint stays the
+    # PROBE budget, never the turn cap.
     res = llm.episode(prompt, model=cfg.task_model, mcp_server_argv=argv,
                       server_env=server_env, cwd=_REPO_ROOT, allowed_tools=_ALLOWED_TOOLS,
-                      max_turns=spec.budget * 2 + cfg.episode_turn_buffer,
+                      max_turns=spec.budget * 3 + 12,
                       role="ch2_episode", cfg=cfg)
     if res.get("is_error"):
         log(f"    episode error: {str(res.get('result'))[:120]}")
