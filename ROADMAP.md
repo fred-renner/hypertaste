@@ -211,6 +211,43 @@ coming, so a new chapter is an *addition*, never a redesign. This is why the wor
 airgap, the objective-judge separation, and the narrow probe channel matter now, while the
 world is still a toy.
 
+## Is the harness earning its keep? (the null, the threshold)
+
+The honest challenge to the whole project: you can **hand-design** a plausibly-tasteful
+researcher today — an allocator, an interestingness signal, a playful-exploration drive —
+and just install it. If that's competitive, the co-evolution is theater. So name the null,
+the line that beats it, and how we'll know which side of the line we're on.
+
+- **The null is a smart spec.** A hand-authored agent is *taste frozen at the ceiling of
+  what the designer could articulate the day they wrote it.* It has one fatal tell: it
+  **cannot certify itself** — no integrity floor, so it declares victory by construction.
+  The apparatus's product was never the agent; it is *the non-movable measure plus a
+  curriculum that keeps finding the edge.* The agent is almost incidental.
+- **The threshold: taste must become tacit.** The loop only beats the spec where the right
+  allocation policy is **found by playing, not deducible by inspecting** — where neither the
+  PI nor Opus can derive it in closed form from the world source. Below that line the harness
+  is scaffolding and a smart hand-design is competitive; above it, the loop is the only way
+  up, because it climbs past *any* designer's articulable ceiling, Opus's included. If a
+  tasteful policy could simply be *written down*, taste would be articulable and the thesis
+  (taste is the tacit residue) would be false.
+- **Why "Opus can diagnose the fix" is not a refutation.** Diagnosing taste ≠ possessing it.
+  Opus prescribes the world-fix *from outside* — post-hoc, full-information, seeing the rule
+  and the oracle, under no budget. The task agent must *enact* taste *from inside* — blind to
+  the rule, under budget, in the moment. The coach who reads your footwork can't return the
+  serve; the diagnostic vantage is precisely the one the player never has. *Corollary for
+  closing the loop:* a smith that designs **around** the agent's weakness is collusion —
+  Goodhart at the curriculum level. The only legal coupling is the **ZPD via an objective
+  gap** (fail-now-but-learnable on the non-movable scorer), never the agent's internals.
+- **Today we are honestly below the line — and that's a measurement, not a failure.** At
+  Chapter-1/2 complexity Opus-the-coach can see the whole board, so a hand prompt is
+  competitive and the loop is not yet earning its keep. **Bet 1 failing is the instrument
+  reporting exactly that** — no world yet where taste has tacit room to matter. The job is to
+  push the world *past* the threshold, and the falsification condition is sharp: if even a
+  careful, budget-matched hand prompt cannot beat vanilla on a deceptive, distributed-value
+  world, the suspect is no longer the world but the **instrument** (the judge/difficulty
+  axis), and possibly the probe-world itself. A hand-designed researcher could never tell you
+  that; this one is built to.
+
 ## The staged plan
 
 The manual early chapters are **how we earn the right to automate the outer loop** — you
