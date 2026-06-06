@@ -39,23 +39,26 @@ questions — match the depth and tone of a genuine research-design conversation
 
 ## Run & test
 
-**Next action (pick this up):** Chapter-2 **third slice measured** (`hta/ch2/`, run
-`python run_slice.py`; `WORLD_DESIGN.md` → "Third slice"). Distributed-value maps
-(`twin`/`braid`/`fan`, const-free, `maxfrac<0.35`) + a budget-aware taste prompt **flipped the
-taste gap positive** on all three maps and aggregate (+0.117 raw, repeats=3) — the inverse of the
-second slice's −0.066, confirming the value-spread diagnosis: we can now *steer the gap's sign by
-world design*. **Bet 2 still holds** (R²=1.0). But **bet 1 is still short of the bar
-(INCONCLUSIVE):** both agents collapsed toward the no-inference floor (taste_norm ≤0.30, vanilla
-often *at* floor), the gap is small/not-robust (`fan` ≈ flat at +0.018), and one `error_max_turns`
-inflated `twin`. The bottleneck has moved off the world onto **the instrument**. The concrete next
-build (deliberate, instrument-first — **not** more map tuning, which is now the grid-search trap):
-(1) **fix the turn-budget confound** — `max_turns=budget*2+6` is too tight, so non-submitting
-episodes score ~0 and corrupt the gap (a one-line harness fix); (2) **switch the normalizer from
-the omniscient oracle to a realizable ceiling** — the design's flagged lesser-unknown; the
-omniscient band is too tall, compressing everyone near zero; (3) re-measure once, then build the
-loop iff a careful prompt beats vanilla robustly through an honest instrument — else Chapter 2's
-**judge**, not just its difficulty, needs the rethink. `ROADMAP.md` → "Chapter 2" is the arc; the
-bash below still runs Chapter 1.
+**Next action (pick this up — START A NEW SESSION TO RETHINK):** Chapter-2 **third slice is
+complete and it falsified the easy bet** (`hta/ch2/`, run `python run_slice.py`; `WORLD_DESIGN.md`
+→ "Third slice"). The full arc: distributed-value maps (`twin`/`braid`/`fan`, const-free,
+`maxfrac<0.35`) let us **steer the taste gap's *sign* by world design** (transparent-flat →
+concentrated-negative → distributed-positive) — a real result. But once the **instrument was made
+honest** (turn budget `budget*3+12`; **realizable-ceiling** normalizer via
+`grammar.realizable_determined`; norm-of-mean aggregation), the gap **evaporated**: the tactical
+prompt tied vanilla (+0.000 on `twin`), and a **general** (transferable, no-tactics) taste prompt
+is **noise around zero** (aggregate −0.018, both agents pinned at the no-inference floor). **Bet 2
+holds (R²=1.0) but is moot — nobody climbs the ramp.** Verdict: **a *prompt* is not the unit of
+taste, and bet 1 is not realizable on these one-trick worlds — do NOT build the loop.** The thin
+slice did its job cheaply. The rethink (next session, not another tuning cycle) should pull three
+threads: **(1)** the lever is likely **richer scaffold** (map-notes, decomposition, self-checks),
+not a sentence of strategy — the loop searches scaffold-space; **(2)** the worlds are **one-trick**,
+so "realizable" should credit **productive progress** on **multidimensional worlds**, not just
+final coverage; **(3)** keep **raw coverage** as the ungameable ground truth but **verify
+references by construction** (the knapsack oracle is correct only while segments are independent;
+the smith *computes* value, never authors it, so confabulated rewards are structurally impossible
+— only a scorer bug is, and it's auditable). `ROADMAP.md` → "Chapter 2" is the arc; the bash below
+still runs Chapter 1.
 
 
 ```bash

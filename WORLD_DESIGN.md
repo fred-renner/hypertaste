@@ -253,7 +253,7 @@ beat vanilla Haiku on a deceptive, distributed-value world — taste is realizab
 The open risk is **robustness across worlds**, which is exactly what the loop is meant to
 manufacture, but which we should see at least once by hand before paying for the loop.
 
-## Third slice — distributed value built, re-measured: the gap's *sign* is now ours, its *size* is not
+## Third slice — distributed value + honest instrument: we own the gap's *sign*, but a *prompt* is not the lever
 
 Both levers landed in `hta/ch2/`. The maps (`twin`/`braid`/`fan`, replacing the
 `decoy`/`mirage`/`tight` set) are **const-free** with **no segment over ~35%** of the tape, and
@@ -293,22 +293,58 @@ bottleneck has moved off the world a second time — now onto **the instrument**
   floor→oracle band is too tall for a weak student, so taste_norm can't reach the 0.50 bar even
   when taste is genuinely ahead in raw terms.
 
-**Re-gate: do NOT build the loop — fix the instrument, then re-measure once more before the
-build-vs-rethink call.** We have now shown we can move the gap's sign by world design but cannot
-clear the bar by world design *alone*; three difficulty swings each traded one failure for
-another (transparent → no headroom; concentrated → taste loses; distributed → both flounder near
-the floor). That pattern is the signal: more map tuning is the grid-search trap. The principled
-next cycle, instrument-first:
+**Then we fixed the instrument and the result evaporated — which is the real finding.** Both
+confounds were fixed: turn budget raised to `budget*3+12`, and the normalizer switched to a
+**realizable ceiling** (`grammar.realizable_determined` — the oracle charged `G-1` probes to
+*discover* the boundaries it was handed for free, floored at the no-inference floor; the
+omniscient oracle is kept only for reporting). Aggregation was also corrected to **norm-of-mean**
+(average raw, normalize once) — the per-episode clamp-then-average had let one lucky run fake a
+positive score next to floored zeros (the erratic-norm artifact). With an honest instrument, the
+tactical prompt's apparent edge **vanished**: on `twin`, tactical-taste tied vanilla at **+0.000**
+even with the trick spelled out.
 
-1. **Fix the turn-budget confound** (a) so non-submitting episodes stop scoring ~0 — a one-line
-   harness fix (raise the ch2 turn budget / nudge the prompt to submit before exhausting probes).
-2. **Switch the normalizer to a realizable ceiling** (b) — the design's own flagged fix — so
-   `taste_norm` measures position on the *achievable* ramp, not distance from omniscience, and
-   de-compresses the band.
-3. **Re-measure once.** If a careful prompt then beats vanilla *robustly* and lands taste
-   mid-ramp → build the loop. If even an honest instrument can't surface a realizable gap → bet 1
-   is in genuine doubt and Chapter 2's **judge**, not just its difficulty, needs the rethink.
+**And then we rejected the tactical prompt itself — correctly.** A prompt that names the exact
+`arith`/`cycle` confirm-move is not a fight worth winning (you're telling the model the answer)
+and, fatally, **cannot transfer** — a tactic glued to this puzzle is the opposite of the portable
+artifact the loop is meant to grow. The honest baseline is **general taste**: a transferable
+investigative *disposition* (infer the structure and predict the unseen; seek disconfirming
+evidence; spend observations where uncertainty is highest; revise when something doesn't fit),
+naming no task-specific tactic. Re-measured general-taste vs vanilla through the honest instrument
+(repeats=1, $0.28; twin also at repeats=5):
 
-The standing green light is unchanged and now stronger: a hand prompt beats vanilla on a
-deceptive, distributed-value world — and consistently in sign. What we have *not* yet earned is a
-gap that is large, robust, and visible through an honest instrument. That is the bar for the loop.
+| map | vanilla raw (norm) | general-taste raw (norm) | gap |
+|---|---|---|---|
+| `twin`  | 0.529 (0.00) | 0.471 (0.00) | −0.059 |
+| `braid` | 0.529 (0.00) | 0.588 (0.22) | +0.059 |
+| `fan`   | 0.579 (0.17) | 0.526 (0.00) | −0.053 |
+| **aggregate** | 0.546 (0.06) | 0.528 (0.07) | **−0.018 → bet 1 FAIL (noise)** |
+
+**The honest verdict: a *prompt* is not the lever, and bet 1 is not realizable on these worlds.**
+General taste is noise around zero (−0.06 / +0.06 / −0.05), both agents pinned at the
+no-inference floor (norm ≤ 0.22). Tactical taste was also ~0 once the instrument was honest. So
+across the whole arc we learned we can steer the gap's **sign** by world design — but **no prompt,
+tactical or general, lifts a fixed weak model off the floor** on these one-trick worlds. Bet 2
+(ramp) still holds structurally (R²=1.0), but it is moot while nobody climbs the ramp.
+
+**Re-gate: do NOT build the loop. The thin slice has done its job — it falsified the easy version
+of bet 1 (a prompt suffices) cheaply, before a cent on the loop.** The bottleneck is no longer the
+world's *difficulty* or the *instrument*; it is the **premise that a prompt is the unit of taste**
+and that these worlds are rich enough to measure it. The next move is a **rethink, not another
+tuning cycle** (a new session). The threads it should pull, surfaced by this arc:
+
+1. **The lever is probably richer scaffold, not a prompt.** If telling Haiku the answer doesn't
+   lift it, the artifact the loop must grow is structural — externalized map-notes, decomposition,
+   re-reading, self-checks — the affordances the design already gestures at, not a sentence of
+   strategy. The loop searches *scaffold-space*; this slice suggests prompt-space is too thin.
+2. **The worlds are one-trick; "realizable" wants productive-progress, not just coverage.** Each
+   map isolates a single failure mode, so partial learning has nowhere to register and the score
+   collapses to "got the trick or not." A normalizer that credits *productive investigation given
+   where you were* (the PI's sense of "realizable") needs **multidimensional worlds** (several
+   interacting subproblems, real partial credit) — a Chapter-2-scope redesign, not a patch.
+3. **Keep raw coverage as the ungameable ground truth; verify references by construction.** The
+   score is exact arithmetic and stays fool-proof at scale; the *normalizer/oracle* is the fragile
+   link (the knapsack DP is correct only while segments are **independent** — break that for
+   richer worlds and the oracle silently miscounts). At scale, compute references by *verified
+   simulation*, not a clever closed-form. Note the smith never *authors* reward numbers — it
+   proposes structure and the deterministic expander *computes* value — so generator-confabulated
+   rewards are structurally impossible; the only residual risk is a scorer bug, which is auditable.
