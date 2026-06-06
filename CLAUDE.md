@@ -60,6 +60,18 @@ the taste-gap's *sign* by world design, but once the instrument was made honest 
    now a clearly-labeled plumbing fixture (`_MOCK_VARIANT`), not a taste model. Next session:
    revive the **meta-agent-on-program** loop (not the slice's prompt-A/B) as the taste carrier —
    the loop searches scaffold-space, so the seed must be a blank slate.
+3. **Model roles are settled — don't reopen.** **Opus** runs self-improvement (the meta agent)
+   and world-building/oracle reasoning; **Haiku** does *all* exploration — fast, cheap, and
+   enough to carry the whole hypothesis (the gap we're after is scaffold vs. native disposition,
+   not horsepower). The threshold question *is* the Opus check; the starting difficulty *is* the
+   Haiku calibration. This is the repo's premise, not an open decision.
+
+**Then proceed in two sessions, not one.** **(Next session)** answer the threshold question and
+from it set the *starting* world difficulty — the world Haiku must uncover by probing but Opus
+can't write in closed form, calibrated to be solvable by Haiku within budget with headroom.
+**(The session after)** start the meta-agent-on-program loop on that calibrated world. Building
+the loop on an un-calibrated world is how every prior slice produced noise — keep calibration as
+its own session.
 
 `ROADMAP.md` → "Chapter 2" / "earning its keep" is the arc; the bash below still runs Chapter 1.
 
