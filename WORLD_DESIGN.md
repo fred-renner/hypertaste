@@ -113,12 +113,18 @@ lambdas" to "grammar specs."
   taste-prompt is an **instrument** (gate + bar), **never a target** — behavior emerges from
   the objective; the instant you reward *resembling* the prompt, discovery collapses into
   imitation.
-- **MDL on the harness.** Select on fitness **and** on the **description length of the agent
-  program** the meta agent rewrites (fitness-per-bit, as a regularizer/tiebreaker — not a
-  hard cap). A shorter program explaining more worlds has, by the MDL argument, captured a
-  *general* regularity rather than memorized the curriculum. This is the structural defense
-  against the overfit that killed Chapter 1, measured dumbly (program/AST size) so it stays
-  ungameable: you can't win by deleting capability (held-out fitness guards that).
+- **MDL on the harness — Occam in the right place (now implemented).** Simplicity is **not**
+  a term in the world-score (a taste prior in the judge is Goodhart; that blend was removed —
+  `hta/taste.fitness` is outcome-only). It is a **Solomonoff/MDL prior on the agent program**
+  the meta agent rewrites, applied at **selection** time: `hta/archive` ranks by
+  `fitness − λ·(size/max_size)`, so among comparable fitness the **shorter program wins**
+  (`taste.program_description_length` = AST nodes + string-literal length; comments/whitespace
+  are free, so you can't pad — and logic hidden in a long prompt string is not free either). A
+  shorter program explaining more worlds has, by the MDL argument, captured a *general*
+  regularity rather than memorized the curriculum — the structural defense against the overfit
+  that killed Chapter 1. It is a regularizer/tiebreaker, **not a hard cap**: held-out fitness
+  guards against winning by deleting capability. *This is the only place Occam enters the
+  system, and it enters as a prior on the program, never on the answer.*
 - **Stay Haiku — it's a control.** If the magic is in the *setup* not raw capability, then
   holding the model fixed means any gain can't be horsepower. The loop searches **setup-space
   for the structure that makes a fixed weak model tasteful** — that structure is the portable
@@ -144,7 +150,10 @@ we invest in the full loop:
 
 Lesser unknowns: the **omniscient** oracle may be too strong a *denominator* and compress
 everyone near zero (the right normalizer may be the *realizable* ceiling, costlier to
-compute); and MDL-on-program is conceptually right but **mechanically unproven**.
+compute). MDL-on-program is **now implemented** (Solomonoff prior on program description
+length, applied in archive selection — see "The science"); what remains unproven is whether it
+*bites* once the meta agent rewrites real scaffolds, which the revived program-as-unit loop
+will be the first to show.
 
 ## First slice — built, and what it measured
 

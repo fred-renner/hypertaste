@@ -71,6 +71,42 @@ def test_report_does_not_leak_rule(tmp_path):
         assert w.rule.source not in report
 
 
+def test_program_description_length_counts_structure_and_strings():
+    """The MDL/Solomonoff proxy counts AST structure + string content (so logic hidden in
+    a long prompt string is not free), ignores comments/whitespace, and is None on a
+    syntax error (an invalid program is not selectable)."""
+    from hta import taste
+    base = taste.program_description_length("x = 1\n")
+    with_str = taste.program_description_length("x = 'aaaaaaaaaaaaaaaaaaaa'\n")
+    with_comment = taste.program_description_length("x = 1  # a long comment that is free\n")
+    assert with_str > base                 # string content adds description length
+    assert with_comment == base            # comments/whitespace are free (can't pad short)
+    assert taste.program_description_length("def (") is None  # unparseable -> None
+
+
+def test_mdl_prefers_shorter_program_at_equal_fitness(tmp_path):
+    """Solomonoff/MDL selection: among equal-fitness candidates, the shorter program is the
+    best stepping stone and is favored by parent selection."""
+    import random
+    from collections import Counter
+    arch = Archive(str(tmp_path / "arch"))
+    short = "class Solver:\n    def run(self, c, l):\n        return 'lambda x,y,z: True'\n"
+    longer = ("class Solver:\n    def run(self, c, l):\n"
+              "        note = 'a long verbose strategy string adding real description length'\n"
+              "        return 'lambda x,y,z: True'\n")
+    for g, src in ((0, short), (1, longer)):
+        os.makedirs(arch.node_dir(g), exist_ok=True)
+        (open(os.path.join(arch.node_dir(g), "solver.py"), "w")).write(src)
+        arch._write_meta(g, {"genid": g, "parent": None, "valid": True, "fitness": 0.6})
+    assert arch._program_size(1) > arch._program_size(0)   # longer program measured larger
+    assert arch.best(mdl_lambda=0.5) == 0                  # shorter wins the fitness tie
+    picks = Counter(arch.select_parent(random.Random(0), mdl_lambda=0.5,
+                                       novelty_scale=10.0) for _ in range(400))
+    assert picks[0] > picks[1]                             # selection favors the shorter
+    # mdl_lambda=0 disables it -> the tie is no longer broken by size.
+    assert arch.best(mdl_lambda=0.0) == 1                  # falls back to max(fitness, genid)
+
+
 def test_unsafe_guess_rejected():
     from hta.world.grammar import validate_lambda
     assert validate_lambda("lambda x, y, z: x < y < z") is True

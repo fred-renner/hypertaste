@@ -64,12 +64,21 @@ class Config:
     # the deterministic mock pipeline untouched); real runs raise it (cost scales x N).
     eval_repeats: int = 1
 
-    # ---- fitness weights (sum ~1.0); "solve the world" dominates, taste shapes ----
-    w_solve: float = 0.50     # exact rule recovery (Occam-correct)
-    w_approx: float = 0.20    # agreement fraction with hidden rule
-    w_info: float = 0.15      # avg hypothesis-space reduction per probe
-    w_novelty: float = 0.10   # 1 - probe reuse rate (anti doom-loop)
-    w_occam: float = 0.05     # simplicity of final guess
+    # ---- fitness weights: OUTCOME-only. The agent is optimized against this, so it must
+    # carry no taste prior. "Solve the world" dominates; agreement is partial credit. The
+    # simplicity prior is NOT here -- it is a Solomonoff/MDL regularizer on the agent
+    # PROGRAM at selection time (mdl_lambda + hta/archive.py). info-gain/novelty/occam are
+    # computed only as report EVIDENCE (hta/taste.compute_metrics), never scored.
+    w_solve: float = 0.50     # exact rule recovery
+    w_approx: float = 0.20    # agreement fraction with hidden rule (partial-credit outcome)
+
+    # ---- Solomonoff/MDL prior on the agent program ----
+    # A small fitness-per-bit regularizer applied at SELECTION time (not a term in the
+    # world-score, not a hard cap): among comparable fitness, prefer the shorter program --
+    # the generality prior (a shorter program explaining more worlds captured a real
+    # regularity, not the curriculum). Held-out fitness guards against winning by deleting
+    # capability. 0 disables it. See hta/archive.py and taste.program_description_length.
+    mdl_lambda: float = 0.05
 
     # ---- meta agent (airgap: NO Bash tool, edits code only) ----
     meta_allowed_tools: Tuple[str, ...] = ("Edit", "Read", "Write")

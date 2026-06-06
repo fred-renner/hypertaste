@@ -20,7 +20,7 @@ import random
 import shutil
 from typing import Optional
 
-from . import meta_agent, task_agent
+from . import meta_agent, task_agent, taste
 from .archive import Archive
 from .config import Config
 from .world import world_smith
@@ -84,7 +84,8 @@ def run_iteration(cfg: Config, seed: int = 0, log=print) -> dict:
 
     parent = archive.select_parent(rng, policy=cfg.parent_selection,
                                    novelty_scale=cfg.parent_novelty_scale,
-                                   sharpness=cfg.parent_quality_sharpness)
+                                   sharpness=cfg.parent_quality_sharpness,
+                                   mdl_lambda=cfg.mdl_lambda)
     parent_dir = archive.node_dir(parent)
     log(f"selected parent: gen_{parent:04d} (selection={cfg.parent_selection})")
 
@@ -118,6 +119,14 @@ def run_iteration(cfg: Config, seed: int = 0, log=print) -> dict:
                       "combined_fitness": 0.0}
         valid = False
 
+    # Persist the child's program description length (Solomonoff/MDL prior) so selection is
+    # auditable and need not re-parse solver.py every time.
+    try:
+        with open(os.path.join(child_dir, "solver.py")) as f:
+            program_size = taste.program_description_length(f.read())
+    except OSError:
+        program_size = None
+
     summary = {
         "fitness": child_eval["combined_fitness"],
         "train_fitness": child_eval["train"]["mean_fitness"],
@@ -126,6 +135,7 @@ def run_iteration(cfg: Config, seed: int = 0, log=print) -> dict:
         "solved_transfer": child_eval["transfer"]["solved"],
         "valid": valid,
         "target_difficulty": target_diff,
+        "program_size": program_size,
         "weak_tags": child_eval.get("weak_tags", []),
         "weakness": child_eval.get("weakness", []),
     }

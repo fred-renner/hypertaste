@@ -23,12 +23,35 @@ def _guess_complexity(src: Optional[str]) -> int:
 
 
 def occam_score(src: Optional[str]) -> float:
-    """1.0 for a very simple guess, decaying with AST size. 0 if no valid guess."""
+    """1.0 for a very simple guess, decaying with AST size. 0 if no valid guess. NOTE:
+    this is now REPORT EVIDENCE only (a behavioral signal the meta agent may read), not a
+    term in fitness -- the simplicity prior lives on the agent program via MDL selection,
+    not on the per-world answer (see fitness() and program_description_length())."""
     size = _guess_complexity(src)
     if size >= 999:
         return 0.0
     # a bare "lambda x,y,z: x<y<z" is ~12 nodes; scale gently above that.
     return 1.0 / (1.0 + max(0, size - 12) / 12.0)
+
+
+def program_description_length(source: str) -> Optional[int]:
+    """A dumb, robust description-length proxy for the agent PROGRAM -- the Solomonoff/MDL
+    prior, measured so it stays ungameable. It counts AST nodes + the character length of
+    string/constant literals (so logic hidden in a long prompt string is not free), and
+    ignores comments and whitespace (you can't pad your way shorter, or pay for blank
+    lines). Returns None if the source doesn't parse -- an invalid program is not selected
+    anyway. This is the only place 'Occam' enters the system, and it enters as a prior on
+    the *program*, never as a term in the score the agent is optimized against."""
+    try:
+        tree = ast.parse(source)
+    except SyntaxError:
+        return None
+    size = 0
+    for node in ast.walk(tree):
+        size += 1
+        if isinstance(node, ast.Constant) and isinstance(node.value, str):
+            size += len(node.value)
+    return size
 
 
 def compute_metrics(history: List[dict], guess: Optional[str], score: dict, hyp: dict) -> dict:
@@ -58,17 +81,13 @@ def compute_metrics(history: List[dict], guess: Optional[str], score: dict, hyp:
 
 
 def fitness(metrics: dict, cfg: Config) -> float:
-    # NOTE (judge-side prior): blending taste terms (info/novelty/occam) INTO the score
-    # the agent is optimized against smuggles our taste prior into the judge -- the
-    # Chapter-1 instance of the tailoring the seed/meta agent were just cleaned of. It is
-    # kept here only because Chapter 1 is superseded; the structural fix already exists in
-    # Chapter 2, where information-weight FALLS OUT of coverage (hta/ch2) rather than being
-    # assigned. Do not extend this blend; new chapters score outcomes, never behaviors.
-    f = (
-        cfg.w_solve * (1.0 if metrics["solved"] else 0.0)
-        + cfg.w_approx * metrics["agreement"]
-        + cfg.w_info * metrics["avg_info_gain"]
-        + cfg.w_novelty * metrics["novelty"]
-        + cfg.w_occam * metrics["occam"]
-    )
+    """OUTCOME-only score. The agent is optimized against this number, so it must contain
+    no taste prior: did it recover the rule (w_solve) and how close is the guess's behavior
+    (w_approx). The taste/simplicity terms that used to be blended in here -- info-gain,
+    novelty, occam -- are GONE; blending behaviors into the judge is Goodhart. They survive
+    as EVIDENCE in the report (compute_metrics) for the meta agent to diagnose from, and the
+    simplicity prior now lives where it belongs: a Solomonoff/MDL regularizer on the agent
+    PROGRAM at selection time (program_description_length + Archive selection)."""
+    f = (cfg.w_solve * (1.0 if metrics["solved"] else 0.0)
+         + cfg.w_approx * metrics["agreement"])
     return round(f, 4)
