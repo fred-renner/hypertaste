@@ -252,3 +252,63 @@ The narrow green light: `decoy` is an **existence proof** that a hand-written ta
 beat vanilla Haiku on a deceptive, distributed-value world — taste is realizable *in principle*.
 The open risk is **robustness across worlds**, which is exactly what the loop is meant to
 manufacture, but which we should see at least once by hand before paying for the loop.
+
+## Third slice — distributed value built, re-measured: the gap's *sign* is now ours, its *size* is not
+
+Both levers landed in `hta/ch2/`. The maps (`twin`/`braid`/`fan`, replacing the
+`decoy`/`mirage`/`tight` set) are **const-free** with **no segment over ~35%** of the tape, and
+the dominant value sits **behind the arith/cycle mirage** (needs a far confirm-probe) — directly
+killing the single-dominant-`const` failure mode. The taste prompt is **budget-aware**: resolve
+obvious runs with the fewest probes, spend the costly confirm-probe *only* on the genuine
+`[a,a+s,a+2s]` ambiguity, allocate to long runs first. Model-free invariants hold on all three
+(oracle ≫ floor, R²=1.0, `maxfrac<0.35`); these were designed on a principle, not grid-searched
+toward a PASS. Re-measured live at `--repeats 3` ($0.91, 18 calls):
+
+| map | vanilla raw (norm) | taste raw (norm) | gap | note |
+|---|---|---|---|---|
+| `twin` (arith·6 + cycle·6 + alt·5) | 0.294 (0.00) | 0.529 (0.04) | +0.235 | **confounded**: one vanilla episode hit `error_max_turns` → scored ~0 |
+| `braid` (cycle·6 + arith·6 + alt·5) | 0.510 (0.00) | 0.608 (0.30) | +0.098 | clean |
+| `fan` (4 segs, mirage pair + 2 alt) | 0.561 (0.19) | 0.579 (0.19) | +0.018 | clean, ≈ flat |
+| **aggregate** | 0.455 (0.06) | 0.572 (0.17) | **+0.117 → bet 1 INCONCLUSIVE** |
+
+**Win: the gap's *sign* is now controllable.** Distributing value off a free-banked `const`
+flipped the taste gap **positive on all three maps and on aggregate** (+0.117 raw) — the inverse
+of the second slice's −0.066. The value-spread diagnosis was correct, and we can now *steer* the
+sign by world design. That is real progress: across three slices the gap has gone
+transparent-flat → concentrated-negative → distributed-positive, exactly as the mechanism
+predicts.
+
+**Loss: the gap's *size* and *robustness* are not there, and two instrument confounds now bind.**
+The clean maps give +0.098 (`braid`) and ≈0 (`fan`); `twin`'s +0.235 is inflated by a
+`max_turns` error. More telling, **both agents collapsed toward the no-inference floor**
+(taste_norm ≤ 0.30, vanilla often *at* the floor): Haiku is barely climbing the ramp at all. The
+bottleneck has moved off the world a second time — now onto **the instrument**:
+
+- **(a) Turn-budget bug.** `max_turns = budget*2 + 6` (= 20 for `twin`) is too tight for a chatty
+  Haiku; a non-submitting episode scores ~0 and corrupts the gap. The measurement is not honest
+  until episodes reliably submit. *Cheap harness fix; must precede the next measurement.*
+- **(b) The omniscient denominator compresses everyone near zero.** Normalized scores sit at
+  0.06–0.30 across the board — exactly the "lesser-unknown" the design flagged: *the right
+  normalizer may be the realizable ceiling, not the grammar-omniscient oracle.* The
+  floor→oracle band is too tall for a weak student, so taste_norm can't reach the 0.50 bar even
+  when taste is genuinely ahead in raw terms.
+
+**Re-gate: do NOT build the loop — fix the instrument, then re-measure once more before the
+build-vs-rethink call.** We have now shown we can move the gap's sign by world design but cannot
+clear the bar by world design *alone*; three difficulty swings each traded one failure for
+another (transparent → no headroom; concentrated → taste loses; distributed → both flounder near
+the floor). That pattern is the signal: more map tuning is the grid-search trap. The principled
+next cycle, instrument-first:
+
+1. **Fix the turn-budget confound** (a) so non-submitting episodes stop scoring ~0 — a one-line
+   harness fix (raise the ch2 turn budget / nudge the prompt to submit before exhausting probes).
+2. **Switch the normalizer to a realizable ceiling** (b) — the design's own flagged fix — so
+   `taste_norm` measures position on the *achievable* ramp, not distance from omniscience, and
+   de-compresses the band.
+3. **Re-measure once.** If a careful prompt then beats vanilla *robustly* and lands taste
+   mid-ramp → build the loop. If even an honest instrument can't surface a realizable gap → bet 1
+   is in genuine doubt and Chapter 2's **judge**, not just its difficulty, needs the rethink.
+
+The standing green light is unchanged and now stronger: a hand prompt beats vanilla on a
+deceptive, distributed-value world — and consistently in sign. What we have *not* yet earned is a
+gap that is large, robust, and visible through an honest instrument. That is the bar for the loop.

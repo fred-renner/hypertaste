@@ -39,19 +39,22 @@ questions — match the depth and tone of a genuine research-design conversation
 
 ## Run & test
 
-**Next action (pick this up):** Chapter-2 **deception is built and measured** (`hta/ch2/`, run
-`python run_slice.py`; `WORLD_DESIGN.md` → "Second slice"). The cycle family member + hidden
-boundaries + decoy maps **fixed the transparency problem** (vanilla Haiku now sits ~0.40–0.60
-of the band, no longer pinned at the oracle) and **bet 2 still holds** (R²=1.0). But **bet 1
-still fails on aggregate** (taste −0.066 raw, repeats=3) for a new, understood reason: the taste
-gap's sign tracks **value-spread** — the hand prompt beats vanilla where value is distributed
-across confirm-requiring segments (`decoy`: +0.26 normalized, the existence proof) but *loses*
-where a single fat `const` dominates and vanilla banks it cheaply (`mirage`/`tight`). The
-concrete next build (deliberate, **not** a map grid-search toward a PASS): (1) design
-**distributed-value** worlds — no single trivially-bankable segment; (2) make the taste prompt
-**budget-aware** (bank long runs cheaply, reserve confirm-probes for ambiguous arith/cycle
-only); (3) re-measure once, then build the loop iff a careful hand prompt beats vanilla robustly
-— else the **judge/difficulty** needs the rethink. `ROADMAP.md` → "Chapter 2" is the arc; the
+**Next action (pick this up):** Chapter-2 **third slice measured** (`hta/ch2/`, run
+`python run_slice.py`; `WORLD_DESIGN.md` → "Third slice"). Distributed-value maps
+(`twin`/`braid`/`fan`, const-free, `maxfrac<0.35`) + a budget-aware taste prompt **flipped the
+taste gap positive** on all three maps and aggregate (+0.117 raw, repeats=3) — the inverse of the
+second slice's −0.066, confirming the value-spread diagnosis: we can now *steer the gap's sign by
+world design*. **Bet 2 still holds** (R²=1.0). But **bet 1 is still short of the bar
+(INCONCLUSIVE):** both agents collapsed toward the no-inference floor (taste_norm ≤0.30, vanilla
+often *at* floor), the gap is small/not-robust (`fan` ≈ flat at +0.018), and one `error_max_turns`
+inflated `twin`. The bottleneck has moved off the world onto **the instrument**. The concrete next
+build (deliberate, instrument-first — **not** more map tuning, which is now the grid-search trap):
+(1) **fix the turn-budget confound** — `max_turns=budget*2+6` is too tight, so non-submitting
+episodes score ~0 and corrupt the gap (a one-line harness fix); (2) **switch the normalizer from
+the omniscient oracle to a realizable ceiling** — the design's flagged lesser-unknown; the
+omniscient band is too tall, compressing everyone near zero; (3) re-measure once, then build the
+loop iff a careful prompt beats vanilla robustly through an honest instrument — else Chapter 2's
+**judge**, not just its difficulty, needs the rethink. `ROADMAP.md` → "Chapter 2" is the arc; the
 bash below still runs Chapter 1.
 
 
