@@ -73,8 +73,8 @@ settled, and what's next:
    still max the student (`trap-tri` did). Re-run both before shipping any new world; the live
    binding axis is **joint-solve size / reasoning-depth**, not the model-free "closed-form" axis.
 
-**The next action is the LIVE loop — the loop itself is now BUILT (this session).** The
-meta-agent-on-program loop on `trap-tetra` is wired and mock-green (`hta/ch2/loop.py`,
+**The loop is BUILT and RAN LIVE (this session) — and its first result is the finding below.** The
+meta-agent-on-program loop on `trap-tetra` is wired and live-green (`hta/ch2/loop.py`,
 `run_ch2_loop.py`, `hta/seed_ch2/`): it reuses the Chapter-1 DGM-H machinery (archive,
 open-ended parent selection, the Opus self-modify step, the MDL prior) and swaps only the world
 (a realized `trap-tetra`) and the judge (band-normalized **coverage**). **The unit of taste is a
@@ -89,14 +89,28 @@ through an agent (the airgap); computation is free Python. Airgap constraint: hi
 Python program spawning several probe-only sessions, **not** claude's Task tool (which would tunnel
 general agents to the world source) — `--sandbox docker` opens broader tools safely later.
 
-**The seed is the MINIMAL harness — one deployed agent — which reproduces the single-session
-student the world was calibrated against**, so the 0.59-in-band reading carries into the loop as
-the gen_0000 baseline (somewhere to climb: fewer/cheaper agents, a Python post-solve, smarter
-splits). Keep the eval lean: a single-session agent is ~$0.11/episode (~1–2 min), so a real
-iteration is ~$1.6–2.2 (parent+child Haiku + one Opus edit, which dominates); cap
-`--n-train/--n-transfer/--eval-repeats` and stage the spend. If the seed floors or maxes, the
-dials are the buried-clique size + budget (`run_threshold.py` candidates + a fresh
-`run_calibration.py`); the *architecture* dial is the meta agent's, not ours.
+**THE FINDING (live, this session): the meta agent's first edit grew the canonical oracle-solver,
+and `trap-tetra` is below the *harness* threshold.** The seed (minimal harness, one deployed agent)
+reproduced the calibrated student (mean_norm ≈0.50, bimodal). From that conduct alone — the floor
+runs wasted a probe on the trivially-determined anchor — Opus diagnosed the adaptive-submodularity
+trap, saw the world is **affine over GF(K)**, and moved *both* inference halves into **free Python**
+(exhaustive probe-SET span search + brute force over K**R register assignments), demoting the agent
+to the airgapped probe executor (`artifacts/ch2_grown_harness_gen0001.py`). One variable bug crashed it to 0
+(loop scored it, kept the parent); **bug-fixed it MAXES — confirmed live, mean_norm 1.00, oracle on
+3/3.** Opus wrote the oracle **as a search, not a closed-form formula** — writable whenever the
+world is small enough to enumerate. So the same lesson a third time (trap-tri: Haiku reasons it →
+maxed; trap-tetra single-session: Haiku ZPD; trap-tetra harness: Opus writes the solver → below
+threshold). The gate, lifted: *can Opus write a search that brute-forces the oracle affordably
+inside the task agent?* — taste matters only where inference is hard at a scale that defeats brute
+force (forcing references-by-simulation).
+
+**The next action is the FORK — three valid responses (the PI: all three correct; pick on
+purpose):** (1) **resize the world** so brute-force inference is infeasible and only heuristic taste
+scales; (2) **bound the harness's compute** (cap runtime / forbid enumeration) so taste is forced
+even on a small world; (3) **accept oracle-by-code** as a strong result and move to a harder judge /
+next chapter. Detail + audit trail in `WORLD_DESIGN.md` → "The harness substrate". Keep the eval
+lean: a single-session agent is ~$0.11/episode (~1–2 min), a real iteration ~$1.6–2.2 (Opus edit
+dominates).
 
 `ROADMAP.md` → "Chapter 2" / "earning its keep" is the arc; `run_threshold.py` (build gate) +
 `run_calibration.py` (live calibration) are the two-half world gate; `run_ch2_loop.py` is the

@@ -500,3 +500,61 @@ is what catches it.**
 discipline that an un-calibrated world produces noise (every prior slice's lesson). The cost
 floor is real (~$0.11/episode single-session, ~$0.9 for an 8-episode calibration), so keep the
 loop's eval lean.
+
+## The harness substrate — the meta agent writes the oracle (this session)
+
+The loop is built and ran live end-to-end on `trap-tetra` (`hta/ch2/loop.py`, `run_ch2_loop.py`,
+`hta/seed_ch2/`), and the result settles a design question the calibration could not.
+
+- **The unit of taste is a HARNESS — and its architecture is the search space (the PI's
+  correction).** Do not fix the call shape (single-session vs per-probe); *that is the thing the
+  meta agent should discover.* The task agent is `Solver.run(self, ctx) -> list[int]`, a harness
+  that **deploys** airgapped claude-agent sessions over the world (`ctx.run_agent` — tools
+  probe/remaining/submit_map) and assembles a reconstruction. The meta agent grows the
+  architecture: one agent or several, decomposed by block, what's carried between them, and what
+  **Python** does with the results. Probing crosses the airgap through an agent; computation is
+  free Python. Airgap: hierarchy is the Python program spawning probe-only sessions, **not**
+  claude's Task tool (which would tunnel general agents to the world source).
+- **The seed is the minimal harness** (one deployed agent) and it reproduces the calibrated
+  single-session student — live mean_norm ≈ **0.50, bimodal** (calibration: 0.59), so the ZPD
+  reading carries in as the gen_0000 baseline. The legible gap: the floor runs *wasted a probe on
+  the trivially-determined anchor* (cell 0) instead of spending the scarce budget on the buried
+  clique — visible right there in the sanitized conduct report.
+- **The meta agent's FIRST edit grew the canonical tasteful harness.** From that conduct alone,
+  Opus diagnosed the adaptive-submodularity trap, recognized the world is **affine over GF(K)**,
+  and moved *both* inference halves into **free Python** — an exhaustive probe-**SET** search (a
+  cell is determined iff its coeff vector lies in the *span* of the probed cells', over the field)
+  plus a brute force over the K**R register assignments — using the deployed agent **only as the
+  airgapped probe executor** (`artifacts/ch2_grown_harness_gen0001.py`). A single variable-misuse bug
+  (`value(i, v)` for the observed value where it meant the register vector `regs`) crashed it to
+  0; the loop correctly scored it and kept the parent (most single edits break the program — open-
+  ended selection is what compounds the rare good one).
+- **Bug-fixed, it MAXES (confirmed live: mean_norm 1.00, oracle on 3/3, probing `[2,3,4,6]` every
+  time, $0.16).** Determination depends only on *which* cells are probed (the span), not on the
+  values, so adaptivity buys nothing for coverage: the optimal *non-adaptive* probe set equals the
+  oracle's determined count, and the brute-force reconstruction gets the rest. **Opus wrote the
+  oracle — not as a closed-form *formula* (the threshold gate's bar) but as a *search*, which is
+  writable whenever the world is small enough to enumerate.**
+- **So `trap-tetra` is below the *harness* threshold — the same lesson a third time.** `trap-tri`:
+  small enough that *Haiku reasons* the solve in-head → maxed. `trap-tetra` single-session: a ZPD
+  *for Haiku-reasoning*. `trap-tetra` harness: small enough that *Opus writes the brute-force
+  solver* → below threshold for the harness substrate, which is strictly stronger than
+  Haiku-in-a-session. A world calibrated to Haiku is below-threshold once the meta agent can write
+  code.
+- **The gate, lifted to the harness.** The threshold question is now *can Opus write a
+  search/program that brute-forces the oracle affordably inside the task agent?* — not just "a
+  closed-form formula." Taste becomes necessary only where **inference is genuinely hard at a scale
+  that defeats brute force** (large R/M, or an NP-hard reconstruction), which also forces
+  **references by verified simulation** (we can't enumerate the oracle either at that size).
+
+**Next session — three valid responses (the PI: all three are correct):**
+
+1. **Resize the world.** Grow it until brute-force inference (probe-set search *and* K**R
+   reconstruction) is infeasible, so only heuristic structure-reading scales; compute references by
+   verified simulation. The "earning its keep" gate, lifted to the harness substrate.
+2. **Bound the harness's compute.** Keep the small world but cap the task agent's runtime / forbid
+   exhaustive enumeration, so even Opus's harness must encode heuristic taste, not brute force —
+   makes taste necessary without growing the world (but harder to enforce cleanly).
+3. **Accept oracle-by-code.** Treat "the meta agent reconstructs the oracle from public structure"
+   as a strong, legitimate result for this world and move to a harder judge / the next chapter,
+   rather than chase a harness taste-gap here.
