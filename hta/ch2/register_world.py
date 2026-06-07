@@ -25,6 +25,7 @@ import random
 import sys
 import tempfile
 import uuid
+from functools import lru_cache
 from typing import List, Optional, Tuple
 
 from .. import llm
@@ -197,3 +198,89 @@ def solve(spec: LinkSpec, true_cells: List[int], cfg: Config, log=print) -> Opti
     if cfg.backend == "mock":
         return mock_solve(spec, true_cells)
     return real_solve(spec, true_cells, cfg, log=log)
+
+
+# ---------------------------------------------------------------------------
+# In-process world + channel for the PROGRAM-DRIVEN loop (meta-agent-on-program).
+#
+# The calibration path above runs ONE claude -p session that drives the probe MCP tool
+# directly — there the "program" is just a prompt, which the three slices proved is the wrong
+# carrier of taste. The loop searches SCAFFOLD-space instead: an editable Python Solver
+# orchestrates the investigation (what to probe, how to track what's known, how to reconstruct),
+# querying Haiku as a *stateless* reasoning oracle (hta.llm.complete). So the loop needs an
+# in-process channel — Chapter 1's ProbeChannel, lifted from booleans to cell colors — not the
+# stdio-MCP server.
+#
+# Airgap, unchanged: the hidden register values live in this process but the Solver reaches them
+# ONLY through probe(); the cell formulas are PUBLIC (the world map is known to everyone, exactly
+# as the tape's pattern family was), exposed via world_map(). The Solver imports nothing from
+# here — it gets only the channel and the llm callable.
+# ---------------------------------------------------------------------------
+@lru_cache(maxsize=None)
+def _refs_cached(spec: LinkSpec) -> dict:
+    """references(spec) is spec-constant and runs a belief-MDP value iteration; cache it so a
+    multi-world eval doesn't recompute the same floor/oracle band per instance."""
+    return references(spec)
+
+
+class RegisterChannel:
+    """The only crossing point between the Solver and one realized world. probe(index) spends a
+    probe and returns that cell's hidden color; world_map() returns the public structure. Mirrors
+    the stdio probe server's accounting so the program-driven and single-session paths agree on
+    what a probe costs."""
+
+    def __init__(self, spec: LinkSpec, true_cells: List[int]):
+        self._spec = spec
+        self._cells = list(true_cells)
+        self._budget = spec.budget
+        self._used = 0
+        self._history: List[dict] = []  # [{"index","value","malformed","reused"}]
+
+    def world_map(self) -> dict:
+        """Public: per-cell affine formulas over the hidden registers, plus sizes and budget.
+        NOT the register values (the only hidden information). The Solver renders these however
+        it likes — no world logic crosses the airgap, only this data."""
+        cells = [{"index": i, "coeffs": list(co), "const": k,
+                  "formula": _cell_formula(co, k, self._spec.K)}
+                 for i, (co, k) in enumerate(self._spec.cells())]
+        return {"M": self._spec.M, "K": self._spec.K, "R": self._spec.R,
+                "budget": self._budget, "cells": cells}
+
+    def remaining(self) -> int:
+        return max(0, self._budget - self._used)
+
+    def probe(self, index):
+        # Out-of-budget or a non-integer index: no charge, no value (mirrors probe_server).
+        if not isinstance(index, int) or isinstance(index, bool) or self._used >= self._budget:
+            self._history.append({"index": index, "value": None, "malformed": True})
+            return None
+        self._used += 1
+        if not (0 <= index < len(self._cells)):  # in-budget but out of range still costs a probe
+            self._history.append({"index": index, "value": None, "malformed": True})
+            return None
+        reused = any(h.get("index") == index and not h.get("malformed") for h in self._history)
+        val = int(self._cells[index])
+        self._history.append({"index": index, "value": val, "malformed": False, "reused": reused})
+        return val
+
+    def history(self) -> List[dict]:
+        return list(self._history)
+
+
+class RegisterWorld:
+    """One realized instance of a LinkSpec: a hidden register draw expanded to cell colors, plus
+    the model-free references (the floor->oracle band) coverage is normalized against. Built from
+    (spec, seed) so train/held-out worlds are reproducible instances of the SAME calibrated spec
+    — references are spec-constant, so the only thing the seed varies is which world is hidden."""
+
+    def __init__(self, spec: LinkSpec, seed: int):
+        self.spec = spec
+        self.seed = seed
+        self.regs, self.cells = realize(spec, random.Random(seed))
+        self.ref = _refs_cached(spec)
+
+    def open_channel(self) -> RegisterChannel:
+        return RegisterChannel(self.spec, self.cells)
+
+    def score(self, recon: Optional[List[int]]) -> dict:
+        return score(self.cells, recon, self.ref)

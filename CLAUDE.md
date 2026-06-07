@@ -73,25 +73,37 @@ settled, and what's next:
    still max the student (`trap-tri` did). Re-run both before shipping any new world; the live
    binding axis is **joint-solve size / reasoning-depth**, not the model-free "closed-form" axis.
 
-**The next action is the loop.** Calibration is done (its own session, per the discipline that an
-un-calibrated world produces noise — every prior slice's lesson). **Start the meta-agent-on-program
-loop on `trap-tetra`.** The seed stays a blank slate (no pre-loaded taste); the loop searches
-scaffold-space and diagnoses from trajectory evidence. Keep the eval lean — single-session
-episodes are ~$0.11 each, so cap episode count and don't multiply cost without a staged gate. If
-`trap-tetra` later proves too easy/hard for an *improved* agent, the dial is the buried-clique
-size and budget (`run_threshold.py` candidates + a fresh `run_calibration.py`).
+**The next action is the LIVE loop — the loop itself is now BUILT (this session).** The
+meta-agent-on-program loop on `trap-tetra` is wired and mock-green (`hta/ch2/loop.py`,
+`run_ch2_loop.py`, `hta/seed_ch2/`): it reuses the Chapter-1 DGM-H machinery (archive,
+open-ended parent selection, the Opus self-modify step, the MDL prior) and swaps only the world
+(an in-process `RegisterChannel` over a realized `trap-tetra`) and the judge (band-normalized
+**coverage**). Crucially the carrier is a **program, not a prompt**: the editable `Solver`
+orchestrates the investigation (what to probe, how to track the registers, how to reconstruct)
+and queries Haiku as a *stateless* completion oracle — so the loop searches scaffold-space, not
+prompt-space (the slices' lesson). The seed is a genuine blank slate (no pre-loaded taste).
+
+**The one thing not yet measured is where the live per-probe program-substrate lands.** The
+0.59-in-band calibration was *single-session* (Haiku reasons with full multi-turn memory); the
+loop's seed is *program-driven stateless* calls, a different and initially weaker substrate. So
+the first live step is the cheap, decisive baseline — evaluate the seed (gen_0000) on a few
+instances — before paying for any Opus edits. Keep the eval lean: per-probe pays the ~31k tax
+per call (~5 calls/episode), so a real iteration is ~$1.6–2.2 (parent+child Haiku + one Opus
+edit); cap `--n-train/--n-transfer/--eval-repeats` and stage the spend. If the seed floors or
+maxes, the dials are the same (buried-clique size + budget via `run_threshold.py` candidates and
+a fresh `run_calibration.py`), plus the scaffold's per-call framing.
 
 `ROADMAP.md` → "Chapter 2" / "earning its keep" is the arc; `run_threshold.py` (build gate) +
-`run_calibration.py` (live calibration) are the two-half gate; the `run_loop.py` bash below still
-runs Chapter 1's pipeline (the Ch2 loop is the next session's build).
+`run_calibration.py` (live calibration) are the two-half world gate; `run_ch2_loop.py` is the
+loop. (`run_loop.py` still runs Chapter 1's numeric pipeline, kept for reference.)
 
 
 ```bash
 python run_threshold.py                                   # Ch2 build gate: free, model-free
 python run_calibration.py --backend real --spec trap-tetra --episodes 8   # live Haiku calibration
-python run_loop.py --iterations 5 --backend mock          # free, deterministic, fast
-python run_loop.py --iterations 5 --backend real --episode-mode single_session \
-  --max-probes 6 --n-train 2 --n-transfer 1                # real; episodes run concurrently
+python run_ch2_loop.py --iterations 3 --backend mock      # Ch2 loop: free, deterministic, fast
+python run_ch2_loop.py --iterations 3 --backend real --n-train 2 --n-transfer 1  # live; ~$2/iter
+python run_loop.py --iterations 5 --backend mock          # Chapter 1 pipeline (reference)
 
 pip install pytest && python -m pytest tests/ -q          # pytest is not preinstalled
 ```
@@ -103,9 +115,11 @@ adds `--iterations`.
 
 ## Files you'll edit vs. leave alone
 
-Edit: `hta/config.py` (knobs), `hta/loop.py` (iteration), `hta/task_agent.py` (eval),
-`hta/world/world_smith.py` (curriculum), `hta/seed/*` (the evolving program + prompts the
-meta agent rewrites).
+Edit: `hta/config.py` (knobs), `hta/loop.py` (Ch1 iteration), `hta/task_agent.py` (eval),
+`hta/world/world_smith.py` (curriculum), `hta/seed/*` (the Ch1 evolving program). **Chapter 2:**
+`hta/ch2/loop.py` (the Ch2 iteration + coverage eval), `hta/ch2/register_world.py` (the live
+world + in-process channel), `hta/seed_ch2/*` (the blank-slate Ch2 program the meta agent
+rewrites — `solver.py` returns a reconstruction, not a lambda).
 
 Leave alone unless you are deliberately changing the scorer (`engine.py`), the safe-eval
 whitelist (`grammar.py`), or the probe airgap (`channel.py`) — and if you do, keep the
