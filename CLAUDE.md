@@ -39,17 +39,21 @@ questions — match the depth and tone of a genuine research-design conversation
 
 ## Run & test
 
-**Next action (START A NEW SESSION):** The **threshold question is answered — yes**, and a
-calibrated starting world exists (`WORLD_DESIGN.md` → "The threshold answered"). A model-free
-screen (`hta/ch2/threshold.py`, run via `python run_threshold.py`) shows the dividing line is
-**adaptive submodularity**: the tape was below the line because coverage is a knapsack over
-*independent* segments (greedy = optimal = a five-line policy, R²=1.0). A **coupled register
-world** — affine linked blocks over *hidden* registers, so a probe reveals an equation not a
-value — is **above** it: the exact belief-MDP oracle beats the best articulable heuristic
-*including a 2-step lookahead planner*, so the optimal policy needs deeper-than-bounded planning
-(not closed-form), yet is computed in pure compute at zero token cost. The recommended start is
-**`trap-tri`** (one anchor + a buried triangle; 81 hypotheses, 8 cells, budget 3; gap +1 raw =
-0.33 of the floor→oracle band, anti-cliff ramp, best heuristic at 0.67 of the band). What's
+**Next action (START A NEW SESSION):** The threshold question is answered (yes) **and the world
+is now calibrated to the live student** (`WORLD_DESIGN.md` → "Calibrated to the live student").
+The calibrated starting world is **`trap-tetra`** — an anchor + a buried **K4 clique** of four
+hidden registers (R=5, K=3 → 243 hypotheses, 14 cells, budget 4; gap 0.50 of the floor→oracle
+band, anti-cliff). The model-free screen (`hta/ch2/threshold.py`, `python run_threshold.py`)
+showed the dividing line is **adaptive submodularity**: a coupled register world (affine linked
+blocks over *hidden* registers — a probe reveals an equation, not a value) beats the best
+articulable heuristic *including a 2-step lookahead planner*, so the optimal policy needs
+deeper-than-bounded planning, computed in pure compute at zero token cost. **But that build gate
+is necessary, not sufficient:** the *live* calibration (`run_calibration.py`) found the first
+pick `trap-tri` (buried *triangle*, 8 cells, budget 3) **maxes Haiku** — a reasoning student
+isn't restricted to a closed-form policy, it solves the small instance's linear system in-head,
+so "not closed-form" ≠ "hard for Haiku" (Chapter 1's lesson, re-paid). Dialing up to the
+**4-register joint-solve** of `trap-tetra` lands live Haiku **in band (0.59, bimodal: half the
+runs reach the oracle, half fall back to the greedy/articulable level)** — the ZPD. What's
 settled, and what's next:
 
 1. **The gate is now a build screen, reusable.** Before any world ships: belief-MDP oracle ≫
@@ -63,23 +67,28 @@ settled, and what's next:
    slate. (The three tape slices' prompt-A/B was the wrong carrier — see "The rethink".)
 3. **Model roles are settled — don't reopen.** **Opus** runs self-improvement and the
    world/oracle reasoning; **Haiku** does *all* exploration. The threshold screen *was* the Opus
-   check; the starting difficulty *is* the Haiku calibration.
+   check; the difficulty calibration *was* the Haiku check — both done.
+4. **The gate has two halves now.** Build-screen model-free for the *gap* (`run_threshold.py`),
+   then calibrate the *difficulty* live (`run_calibration.py`) — a world can clear the first and
+   still max the student (`trap-tri` did). Re-run both before shipping any new world; the live
+   binding axis is **joint-solve size / reasoning-depth**, not the model-free "closed-form" axis.
 
-**Then proceed in two sessions, not one.** **(Next session)** the model-free shape is set, so do
-the one measurement that needs the model: confirm **live Haiku lands inside `trap-tri`'s
-floor→oracle band with headroom** (above the no-inference floor, below the oracle) under budget 3
-— difficulty calibrates to the *live student*, never a proxy (Chapter 1's paid lesson). If Haiku
-floors, dial down (fewer hidden registers / more anchor mass via `tri-2anchor`); if it maxes,
-dial up. **(The session after)** start the meta-agent-on-program loop on the calibrated world.
-Building the loop on an un-calibrated world is how every prior slice produced noise — keep
-calibration as its own session.
+**The next action is the loop.** Calibration is done (its own session, per the discipline that an
+un-calibrated world produces noise — every prior slice's lesson). **Start the meta-agent-on-program
+loop on `trap-tetra`.** The seed stays a blank slate (no pre-loaded taste); the loop searches
+scaffold-space and diagnoses from trajectory evidence. Keep the eval lean — single-session
+episodes are ~$0.11 each, so cap episode count and don't multiply cost without a staged gate. If
+`trap-tetra` later proves too easy/hard for an *improved* agent, the dial is the buried-clique
+size and budget (`run_threshold.py` candidates + a fresh `run_calibration.py`).
 
-`ROADMAP.md` → "Chapter 2" / "earning its keep" is the arc; `run_threshold.py` is the new gate;
-the bash below still runs Chapter 1.
+`ROADMAP.md` → "Chapter 2" / "earning its keep" is the arc; `run_threshold.py` (build gate) +
+`run_calibration.py` (live calibration) are the two-half gate; the `run_loop.py` bash below still
+runs Chapter 1's pipeline (the Ch2 loop is the next session's build).
 
 
 ```bash
-python run_threshold.py                                   # Ch2 threshold gate: free, model-free
+python run_threshold.py                                   # Ch2 build gate: free, model-free
+python run_calibration.py --backend real --spec trap-tetra --episodes 8   # live Haiku calibration
 python run_loop.py --iterations 5 --backend mock          # free, deterministic, fast
 python run_loop.py --iterations 5 --backend real --episode-mode single_session \
   --max-probes 6 --n-train 2 --n-transfer 1                # real; episodes run concurrently

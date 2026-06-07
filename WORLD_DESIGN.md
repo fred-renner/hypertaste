@@ -446,9 +446,57 @@ property: adaptive submodularity.**
   both hold — and the sweep in `run_threshold.py` shows it is a *narrow* band (most topologies
   read gap 0 or fail anti-cliff), exactly as the rethink predicted: the prize is the asymmetric,
   stepping-stone topology, not symmetric coupling (which stays greedy-solvable).
-- **What still needs the model (next session).** This is the *model-free* calibration — the
-  shape (gap) and the ramp are set. The one measurement that needs Haiku is **difficulty**:
-  confirm live Haiku lands *inside* the floor→oracle band with headroom (above the no-inference
-  floor, below the oracle) under this budget — the lesson Chapter 1 paid for is that difficulty
-  calibrates to the *live student*, never a proxy. Then build the meta-agent-on-program loop on
-  the calibrated world.
+- **What still needed the model — now done (see next section).** The model-free shape (gap) and
+  ramp were set; the one measurement that needed Haiku was **difficulty**: does live Haiku land
+  inside the floor→oracle band with headroom? It was run (`run_calibration.py`), and the answer
+  re-taught Chapter 1's lesson in a new currency — see below.
+
+## Calibrated to the live student — the gate is necessary, not sufficient (this session)
+
+The model-free shape was set, so this session ran the one measurement only the model can make:
+the live-episode path for the register world (`hta/ch2/register_world.py`, driven by
+`run_calibration.py`) realizes a `LinkSpec` into a tape of cell colors, runs one single-session
+`claude -p` episode over the **same** narrow probe channel the tape world uses, and scores
+coverage into the model-free floor→oracle band. The headline: **a coupled world's model-free
+threshold gap does not by itself guarantee a live-student taste gap — and the live calibration
+is what catches it.**
+
+- **`trap-tri` MAXES live Haiku.** 8 episodes, mean **0.81 raw = 0.92 of the floor→oracle band**
+  (over the 0.85 in-band ceiling). The distribution is the tell: four episodes at exactly 6/8
+  (= the belief-MDP oracle), three at 8/8 (oracle + a lucky 1/K anchor guess), one flub at 4/8.
+  The 6/8 cluster means Haiku **reliably finds the non-greedy play** — probe the three linked
+  "sum" cells `(r1+r2),(r1+r3),(r2+r3)` and solve the affine triangle for the buried registers —
+  which is exactly the "needs deeper-than-2-step planning, not closed-form" policy the gate
+  flagged. Haiku does not *execute a policy*; it **solves the specific instance's linear system
+  in-head**.
+- **Why the gate didn't bind: closed-form ≠ hard-for-a-reasoner.** The threshold gate asks "can
+  Opus write the optimal policy as a closed-form heuristic?" — a fair *build* gate (a world a
+  hand-spec wins is noise). But a live reasoning student is **not restricted to a closed-form
+  policy**: on an 8-cell / 3-probe instance it mentally simulates the whole belief tree and reads
+  off the joint-solve. "Not closed-form" is cheap when the instance is small enough to brute-force
+  by *thinking*. This is **Chapter 1's lesson re-paid in a new currency** — difficulty calibrates
+  to the live student, never a model-free proxy — and is exactly why calibration is its own
+  session.
+- **The dial-up that lands it: `trap-tetra`.** An anchor + a buried **K4 clique** of four hidden
+  registers (R=5, K=3 → **243 hypotheses, 14 cells, budget 4**). It clears the gate with a
+  *wider, better-centred* gap — **floor 4 · best articulable heuristic 8 (mid-band) · oracle 12**
+  → gap **0.50 of the band**, anti-cliff — and the hard part is now a **4-register joint-solve
+  over a 12-cell coupled block**, too large to read off by inspection. Budget 4 is the knife-edge:
+  budget 5 collapses the gap to 0 (enough probes that greedy catches the oracle).
+- **`trap-tetra` is IN BAND — calibrated.** 8 episodes, mean **0.75 raw = 0.59 of the band**,
+  headroom both ways, and **bimodal** — the ideal ZPD signature. Two episodes at 14/14 and two at
+  12/14 (Haiku reasons out the full 4-register solve = the oracle); **four at exactly 8/14, the
+  articulable-heuristic level — it falls back to greedy when the joint-solve is too big to hold
+  in-head.** Half the runs reach the ceiling, half sit at the floor of inference: *somewhere to
+  climb and somewhere to fall short*, which is precisely the gap the loop exists to close.
+- **What this tells us about the substrate.** The K3→K4 buried-clique step **crossed Haiku's
+  in-head reasoning threshold**: the 3-register triangle is solved reliably (maxes), the
+  4-register clique sits at the edge (bimodal, mid-band). So the substrate *does* bind a reasoning
+  student — but the binding axis is **reasoning-depth / joint-solve size**, not the model-free
+  "closed-form" axis. The live calibration is now the load-bearing second half of the gate, not a
+  footnote: build the gate model-free for the *gap*, then calibrate live for the *difficulty*.
+
+**Next:** build the meta-agent-on-program loop on **`trap-tetra`** — its own session, per the
+discipline that an un-calibrated world produces noise (every prior slice's lesson). The cost
+floor is real (~$0.11/episode single-session, ~$0.9 for an 8-episode calibration), so keep the
+loop's eval lean.

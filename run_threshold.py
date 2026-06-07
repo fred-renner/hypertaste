@@ -62,6 +62,13 @@ def candidates():
         # --- bigger buried cluster, more headroom for the ramp ---
         LinkSpec("trap-quad",   R=5, K=K, Ld=2, Ll=2,
                  edges=((1, 2), (1, 3), (2, 3), (3, 4)), budget=4, direct=(0,)),
+        # --- DIAL-UP after trap-tri MAXED live Haiku (it reasons out the 3-register joint-solve
+        #     in-head, so the model-free gate doesn't bind on an 8-cell instance). An anchor + a
+        #     buried K4 CLIQUE of four hidden registers: a 4-register joint-solve over a 12-cell
+        #     coupled block, gap 0.50 (best heuristic mid-band), too large to reason out by
+        #     inspection but still gate-clearing. budget 4; budget 5 collapses the gap to 0. ---
+        LinkSpec("trap-tetra",  R=5, K=K, Ld=2, Ll=2,
+                 edges=((1, 2), (1, 3), (1, 4), (2, 3), (2, 4), (3, 4)), budget=4, direct=(0,)),
         # --- anchor-padded: extra direct registers add LINEAR ramp mass to flatten the low
         #     end (anti-cliff) while a buried triangle keeps the gap. The direct/linked mass
         #     ratio is the calibration dial that trades ramp curvature against the gap. ---
@@ -138,8 +145,11 @@ def main():
     print(f"     Haiku room    : best heuristic at {pick['heur_norm']:.0%} of the floor->oracle band")
     print(f"     belief space  : {pick['n_hyps']} hypotheses, {pick['M']} cells, budget "
           f"{pick['budget']} — exact oracle instant, zero tokens")
-    print("\n  Next: confirm live Haiku lands inside this band (above floor, below oracle) with")
-    print("  headroom — the one measurement that needs the model, kept to its own session.")
+    print("\n  NOTE: this is the model-free pick. Live calibration (run_calibration.py) since found")
+    print("  this 8-cell trap MAXES Haiku — a reasoning student solves the small joint-solve")
+    print("  in-head, so 'not closed-form' != 'hard for the student'. The calibrated world is")
+    print("  trap-tetra (buried K4 clique, budget 4): live Haiku lands in-band. The build gate is")
+    print("  necessary, not sufficient — always follow it with run_calibration.py on the live student.")
 
 
 if __name__ == "__main__":
