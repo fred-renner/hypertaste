@@ -77,21 +77,26 @@ settled, and what's next:
 meta-agent-on-program loop on `trap-tetra` is wired and mock-green (`hta/ch2/loop.py`,
 `run_ch2_loop.py`, `hta/seed_ch2/`): it reuses the Chapter-1 DGM-H machinery (archive,
 open-ended parent selection, the Opus self-modify step, the MDL prior) and swaps only the world
-(an in-process `RegisterChannel` over a realized `trap-tetra`) and the judge (band-normalized
-**coverage**). Crucially the carrier is a **program, not a prompt**: the editable `Solver`
-orchestrates the investigation (what to probe, how to track the registers, how to reconstruct)
-and queries Haiku as a *stateless* completion oracle — so the loop searches scaffold-space, not
-prompt-space (the slices' lesson). The seed is a genuine blank slate (no pre-loaded taste).
+(a realized `trap-tetra`) and the judge (band-normalized **coverage**). **The unit of taste is a
+HARNESS, and its architecture is in the search space — not fixed by us (the PI's correction: that
+is the meta agent's job to discover).** The editable `Solver.run(self, ctx) -> list[int]` is a
+harness that *deploys* airgapped claude-agent sessions over the world (`ctx.run_agent` — tools:
+probe/remaining/submit_map) and assembles a reconstruction. The meta agent grows the architecture:
+one agent or several, single-shot or decomposed by block, what's carried between agents, and what
+**Python** does with the results (e.g. solve the affine register system once enough cells are
+probed, then compute the rest — instead of asking a model to eyeball them). Probing always goes
+through an agent (the airgap); computation is free Python. Airgap constraint: hierarchy is the
+Python program spawning several probe-only sessions, **not** claude's Task tool (which would tunnel
+general agents to the world source) — `--sandbox docker` opens broader tools safely later.
 
-**The one thing not yet measured is where the live per-probe program-substrate lands.** The
-0.59-in-band calibration was *single-session* (Haiku reasons with full multi-turn memory); the
-loop's seed is *program-driven stateless* calls, a different and initially weaker substrate. So
-the first live step is the cheap, decisive baseline — evaluate the seed (gen_0000) on a few
-instances — before paying for any Opus edits. Keep the eval lean: per-probe pays the ~31k tax
-per call (~5 calls/episode), so a real iteration is ~$1.6–2.2 (parent+child Haiku + one Opus
-edit); cap `--n-train/--n-transfer/--eval-repeats` and stage the spend. If the seed floors or
-maxes, the dials are the same (buried-clique size + budget via `run_threshold.py` candidates and
-a fresh `run_calibration.py`), plus the scaffold's per-call framing.
+**The seed is the MINIMAL harness — one deployed agent — which reproduces the single-session
+student the world was calibrated against**, so the 0.59-in-band reading carries into the loop as
+the gen_0000 baseline (somewhere to climb: fewer/cheaper agents, a Python post-solve, smarter
+splits). Keep the eval lean: a single-session agent is ~$0.11/episode (~1–2 min), so a real
+iteration is ~$1.6–2.2 (parent+child Haiku + one Opus edit, which dominates); cap
+`--n-train/--n-transfer/--eval-repeats` and stage the spend. If the seed floors or maxes, the
+dials are the buried-clique size + budget (`run_threshold.py` candidates + a fresh
+`run_calibration.py`); the *architecture* dial is the meta agent's, not ours.
 
 `ROADMAP.md` → "Chapter 2" / "earning its keep" is the arc; `run_threshold.py` (build gate) +
 `run_calibration.py` (live calibration) are the two-half world gate; `run_ch2_loop.py` is the
@@ -118,8 +123,9 @@ adds `--iterations`.
 Edit: `hta/config.py` (knobs), `hta/loop.py` (Ch1 iteration), `hta/task_agent.py` (eval),
 `hta/world/world_smith.py` (curriculum), `hta/seed/*` (the Ch1 evolving program). **Chapter 2:**
 `hta/ch2/loop.py` (the Ch2 iteration + coverage eval), `hta/ch2/register_world.py` (the live
-world + in-process channel), `hta/seed_ch2/*` (the blank-slate Ch2 program the meta agent
-rewrites — `solver.py` returns a reconstruction, not a lambda).
+world + `AgentContext`, the harness capability that deploys airgapped agent sessions),
+`hta/seed_ch2/*` (the blank-slate Ch2 harness the meta agent rewrites — `solver.py` is a harness
+`run(self, ctx) -> list[int]`, not a lambda).
 
 Leave alone unless you are deliberately changing the scorer (`engine.py`), the safe-eval
 whitelist (`grammar.py`), or the probe airgap (`channel.py`) — and if you do, keep the

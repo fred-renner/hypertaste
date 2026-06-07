@@ -32,12 +32,61 @@ from typing import List, Optional
 from .. import meta_agent, taste
 from ..archive import Archive
 from ..config import Config
-from ..task_agent import load_solver, _task_llm
+from ..task_agent import load_solver
 from . import register_world as rw
 from .threshold import LinkSpec
 
 SEED_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "seed_ch2")
 SOLVED_BAR = 0.85   # norm at/above which a world counts as "reached the oracle" (the band ceiling)
+
+# The meta-agent instruction for Chapter 2 (the harness contract differs from Chapter 1's). Filled
+# with the editable meta_strategy.md and passed to the shared meta_agent.self_modify.
+META_INSTRUCTION = """You are the META AGENT in a self-improving research system (Chapter 2).
+
+GOAL: improve the TASK AGENT so it uncovers more of an unknown world under a scarce probe budget
+-- so it grows better *research taste*. You are NOT given a checklist of what good taste is, and
+you must NOT assume one: read the agent's actual behavior and let the evidence tell you where its
+investigation was weak. Diagnose from what happened, not from a template.
+
+The task agent is a HARNESS. `solver.py` defines `class Solver` with `run(self, ctx) -> list[int]`
+(a reconstruction, one color per cell). Through `ctx` the harness deploys claude-agent sessions
+over the world and assembles the answer:
+  - ctx.world_map()    -> public structure {M, K, R, budget, cells:[{index,coeffs,const,formula}]}
+  - ctx.remaining()    -> probes left in the GLOBAL budget (shared across all agents)
+  - ctx.observations() -> {cell_index: color} accumulated across every agent so far
+  - ctx.run_agent(prompt, max_probes=..., max_turns=..., extra_tools=())
+        -> {submission, observations, probes_used, result}; deploys ONE airgapped agent (tools:
+           probe / remaining / submit_map) that may probe up to max_probes and optionally submit.
+The ARCHITECTURE is yours to evolve: one agent or several, single-shot or decomposed by block,
+what each agent is told, what is carried between them, and what Python does with the results
+(e.g. once enough cells are probed the registers satisfy a small linear system you can solve in
+Python, then compute every cell -- instead of asking a model to eyeball them). Probing always
+goes through an agent (the airgap); computation is free Python.
+
+You are in the task agent's own workspace. Files:
+  - `solver.py`        : the editable harness program.
+  - `meta_strategy.md` : YOUR editable playbook for how to improve the task agent.
+  - `EVAL_REPORT.md`   : how the current harness behaved -- agents deployed, cells probed, the
+                         reconstruction, and coverage. The hidden register values are NOT given and
+                         you must not try to reconstruct them; reason only about the agent's conduct.
+
+YOUR PLAYBOOK (meta_strategy.md) says:
+---
+{meta_strategy}
+---
+
+DO THIS:
+1. Read EVAL_REPORT.md and solver.py.
+2. From the trajectory and outcomes alone, infer the single most impactful weakness in how this
+   harness investigates -- where did it waste budget or fail to determine cells it could have?
+   Name the weakness you actually see; do not pattern-match.
+3. Edit solver.py to fix it with the smallest general change -- prefer structure (how it allocates
+   probes across agents, tracks what it knows, reconstructs the rest) over wording. Keep a valid
+   Python file defining class Solver with run(self, ctx) -> list[int]; import no world internals;
+   interact only via ctx. Keep the program short (favor fitness-per-bit).
+4. If you found a better general improvement *procedure*, also improve meta_strategy.md.
+
+Make concrete edits now. Do not ask questions."""
 
 
 # ---------------------------------------------------------------------------
@@ -52,18 +101,18 @@ def build_worlds(spec: LinkSpec, n_train: int, n_transfer: int, iteration: int):
 
 
 # ---------------------------------------------------------------------------
-# Run one program-driven episode: the editable Solver orchestrates the probing through the
-# in-process channel and reasons through the (stateless) task llm; we score its reconstruction.
+# Run one episode: the editable harness (Solver.run) deploys agent session(s) over the world via
+# the AgentContext and assembles a reconstruction; we score its coverage.
 # ---------------------------------------------------------------------------
 def _run_on_world(solver, world: rw.RegisterWorld, cfg: Config, log=print) -> dict:
-    channel = world.open_channel()
-    llm_fn = _task_llm(cfg)
+    ctx = rw.AgentContext(world, cfg, log=log)
     recon = None
     try:
-        recon = solver.run(channel, llm_fn)
+        recon = solver.run(ctx)
     except Exception as e:  # a broken child must score, not crash the loop
-        log(f"  ch2 solver crashed on a world: {e}")
-    return {"history": channel.history(), "recon": recon, "score": world.score(recon)}
+        log(f"  ch2 harness crashed on a world: {e}")
+    return {"agent_calls": ctx.agent_calls, "observations": ctx.observations(),
+            "recon": recon, "score": world.score(recon)}
 
 
 def _aggregate_repeats(recs: List[dict]) -> dict:
@@ -133,38 +182,39 @@ def _eval_split(solver_dir, train, transfer, cfg, log):
 
 
 # ---------------------------------------------------------------------------
-# Sanitized report for the meta agent. Shows the agent's OWN conduct (which cells it probed,
-# what it observed, the reconstruction it submitted, the coverage it earned) and the PUBLIC
-# formulas — never the hidden register values or the true colors of unprobed cells. So the meta
-# agent reasons about *how the agent investigated*, never about the answer.
+# Sanitized report for the meta agent. Shows the harness's OWN conduct (how many agents it
+# deployed, which cells they probed, what was observed, the reconstruction, the coverage) and the
+# PUBLIC formulas — never the hidden register values or the true colors of un-probed cells. So the
+# meta agent reasons about *how the agent investigated*, never about the answer.
 # ---------------------------------------------------------------------------
 def _sanitized_report(per_world: List[dict], world0: rw.RegisterWorld, ref: dict) -> str:
-    info = world0.open_channel().world_map()
+    spec = world0.spec
     lines = [
         "# Coverage evaluation report (sanitized)\n",
-        f"The world: {info['M']} cells, each a KNOWN function of {info['R']} hidden registers "
-        f"(values 0..{info['K'] - 1} — the only hidden information). Per-cell formulas (public, "
+        f"The world: {spec.M} cells, each a KNOWN function of {spec.R} hidden registers "
+        f"(values 0..{spec.K - 1} — the only hidden information). Per-cell formulas (public, "
         "the same across every world below):",
     ]
-    lines += [f"  cell {c['index']}: {c['formula']}" for c in info["cells"]]
+    lines += [f"  cell {i}: {rw._cell_formula(co, k, spec.K)}"
+              for i, (co, k) in enumerate(spec.cells())]
     lines += [
-        f"\nProbe budget per world: {info['budget']}. Coverage band (raw): floor "
+        f"\nProbe budget per world: {spec.budget}. Coverage band (raw): floor "
         f"{ref['floor_raw']:.3f} -> oracle {ref['oracle_raw']:.3f}.",
-        "You are NOT given the register values or the true colors of cells the agent did not "
-        "probe; reason only about the agent's CONDUCT — which cells it chose to probe, and "
-        "whether its reconstruction used the public structure to predict the rest.\n",
+        "You are NOT given the register values or the true colors of un-probed cells; reason only "
+        "about the harness's CONDUCT — how many agents it deployed, which cells they probed, and "
+        "whether the reconstruction used the public structure to predict the rest.\n",
     ]
     for i, r in enumerate(per_world):
-        s = r["score"]
-        used = [h for h in r["history"] if not h.get("malformed")]
-        probes = "; ".join(f"cell {h['index']}->{h['value']}"
-                           + ("[REPEAT]" if h.get("reused") else "") for h in used) or "(none)"
-        bad = sum(1 for h in r["history"] if h.get("malformed"))
+        s, calls, obs = r["score"], r["agent_calls"], r["observations"]
         lines.append(f"\n## world_{i}")
         lines.append(f"- coverage: {s['raw']*100:.0f}% of cells correct "
                      f"({s['norm']:.2f} of the floor->oracle band); valid_submission={s['valid']}")
-        lines.append(f"- probes ({len(used)}/{info['budget']} used"
-                     + (f", {bad} malformed" if bad else "") + f"): {probes}")
+        lines.append(f"- agents deployed: {len(calls)}")
+        for j, c in enumerate(calls):
+            lines.append(f"    agent {j}: probed {c['probed']} ({c['probes_used']} of budget), "
+                         f"submitted_map={c['submitted']}")
+        obs_str = ", ".join(f"cell {k2}->{obs[k2]}" for k2 in sorted(obs)) or "(none)"
+        lines.append(f"- cells observed (across all agents): {obs_str}")
         lines.append(f"- reconstruction submitted: {r['recon']}")
     return "\n".join(lines)
 
@@ -198,7 +248,8 @@ def run_iteration(cfg: Config, spec: LinkSpec, iteration: int = 0, log=print) ->
     genid = archive.next_genid()
     child_dir = archive.node_dir(genid)
     meta_agent.self_modify(parent_dir, child_dir,
-                           report_md=parent_eval["train"]["report_md"], cfg=cfg, log=log)
+                           report_md=parent_eval["train"]["report_md"], cfg=cfg, log=log,
+                           instruction_template=META_INSTRUCTION)
 
     log("\n[evaluate CHILD]")
     try:

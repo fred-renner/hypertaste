@@ -67,7 +67,8 @@ def _read(path, default=""):
         return default
 
 
-def self_modify(parent_dir: str, child_dir: str, report_md: str, cfg: Config, log=print) -> str:
+def self_modify(parent_dir: str, child_dir: str, report_md: str, cfg: Config, log=print,
+                instruction_template: str = None) -> str:
     if os.path.exists(child_dir):
         shutil.rmtree(child_dir)
     shutil.copytree(parent_dir, child_dir)
@@ -84,7 +85,10 @@ def self_modify(parent_dir: str, child_dir: str, report_md: str, cfg: Config, lo
         return child_dir
 
     meta_strategy = _read(os.path.join(child_dir, "meta_strategy.md"), "(empty)")
-    instruction = _INSTRUCTION.format(meta_strategy=meta_strategy)
+    # The instruction is world-agnostic by default (Chapter 1's contract); a chapter with a
+    # different task-agent contract (e.g. Chapter 2's harness, run(self, ctx) -> list[int])
+    # passes its own template. Both are filled with the editable meta_strategy.md.
+    instruction = (instruction_template or _INSTRUCTION).format(meta_strategy=meta_strategy)
     # Route the agentic edit through the configured sandbox: DirectSandbox (Bash-denied,
     # in-process) by default, or DockerSandbox (hard, host-isolated container) when
     # cfg.sandbox == "docker". Both return the same result shape.

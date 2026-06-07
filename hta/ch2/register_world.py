@@ -201,70 +201,33 @@ def solve(spec: LinkSpec, true_cells: List[int], cfg: Config, log=print) -> Opti
 
 
 # ---------------------------------------------------------------------------
-# In-process world + channel for the PROGRAM-DRIVEN loop (meta-agent-on-program).
+# The HARNESS substrate for the meta-agent-on-program loop.
 #
-# The calibration path above runs ONE claude -p session that drives the probe MCP tool
-# directly — there the "program" is just a prompt, which the three slices proved is the wrong
-# carrier of taste. The loop searches SCAFFOLD-space instead: an editable Python Solver
-# orchestrates the investigation (what to probe, how to track what's known, how to reconstruct),
-# querying Haiku as a *stateless* reasoning oracle (hta.llm.complete). So the loop needs an
-# in-process channel — Chapter 1's ProbeChannel, lifted from booleans to cell colors — not the
-# stdio-MCP server.
+# The unit of taste is NOT a prompt, and NOT a fixed probe loop the harness hardcodes — it is the
+# task-agent PROGRAM, and that program is itself a *harness*: it deploys one or more airgapped
+# claude-agent sessions (each with limited tool use — the probe channel) over the world,
+# coordinates them in Python, and assembles a reconstruction. The meta agent rewrites that harness,
+# so the loop searches AGENT-ARCHITECTURE space: one agent or many, single-shot or decomposed by
+# block, with or without a Python post-solve. Nothing here fixes the call shape — that is the
+# meta agent's to discover (its whole job).
 #
-# Airgap, unchanged: the hidden register values live in this process but the Solver reaches them
-# ONLY through probe(); the cell formulas are PUBLIC (the world map is known to everyone, exactly
-# as the tape's pattern family was), exposed via world_map(). The Solver imports nothing from
-# here — it gets only the channel and the llm callable.
+# AgentContext is the capability handed to the program. world_map() is public; the probe budget is
+# global across every agent the program spawns; observations accumulate. The world is reachable
+# ONLY by spawning an agent session (run_agent) — computation (e.g. solving the affine system from
+# gathered observations) is free Python, but *probing* always goes through an agent over the narrow
+# probe channel, so the integrity floor is intact.
+#
+# Airgap on the spawned agents: probe/remaining/submit_map only (plus an explicit whitelist of
+# extra tools); Bash/Read/Edit/Write are denied by llm.episode. Hierarchy is the Python program
+# spawning several probe-only sessions — NOT claude's Task tool, which would spawn general agents
+# able to read the world source. (Under --sandbox docker, with no world source in the container,
+# broader tools become safe.)
 # ---------------------------------------------------------------------------
 @lru_cache(maxsize=None)
 def _refs_cached(spec: LinkSpec) -> dict:
     """references(spec) is spec-constant and runs a belief-MDP value iteration; cache it so a
     multi-world eval doesn't recompute the same floor/oracle band per instance."""
     return references(spec)
-
-
-class RegisterChannel:
-    """The only crossing point between the Solver and one realized world. probe(index) spends a
-    probe and returns that cell's hidden color; world_map() returns the public structure. Mirrors
-    the stdio probe server's accounting so the program-driven and single-session paths agree on
-    what a probe costs."""
-
-    def __init__(self, spec: LinkSpec, true_cells: List[int]):
-        self._spec = spec
-        self._cells = list(true_cells)
-        self._budget = spec.budget
-        self._used = 0
-        self._history: List[dict] = []  # [{"index","value","malformed","reused"}]
-
-    def world_map(self) -> dict:
-        """Public: per-cell affine formulas over the hidden registers, plus sizes and budget.
-        NOT the register values (the only hidden information). The Solver renders these however
-        it likes — no world logic crosses the airgap, only this data."""
-        cells = [{"index": i, "coeffs": list(co), "const": k,
-                  "formula": _cell_formula(co, k, self._spec.K)}
-                 for i, (co, k) in enumerate(self._spec.cells())]
-        return {"M": self._spec.M, "K": self._spec.K, "R": self._spec.R,
-                "budget": self._budget, "cells": cells}
-
-    def remaining(self) -> int:
-        return max(0, self._budget - self._used)
-
-    def probe(self, index):
-        # Out-of-budget or a non-integer index: no charge, no value (mirrors probe_server).
-        if not isinstance(index, int) or isinstance(index, bool) or self._used >= self._budget:
-            self._history.append({"index": index, "value": None, "malformed": True})
-            return None
-        self._used += 1
-        if not (0 <= index < len(self._cells)):  # in-budget but out of range still costs a probe
-            self._history.append({"index": index, "value": None, "malformed": True})
-            return None
-        reused = any(h.get("index") == index and not h.get("malformed") for h in self._history)
-        val = int(self._cells[index])
-        self._history.append({"index": index, "value": val, "malformed": False, "reused": reused})
-        return val
-
-    def history(self) -> List[dict]:
-        return list(self._history)
 
 
 class RegisterWorld:
@@ -279,8 +242,111 @@ class RegisterWorld:
         self.regs, self.cells = realize(spec, random.Random(seed))
         self.ref = _refs_cached(spec)
 
-    def open_channel(self) -> RegisterChannel:
-        return RegisterChannel(self.spec, self.cells)
-
     def score(self, recon: Optional[List[int]]) -> dict:
         return score(self.cells, recon, self.ref)
+
+
+def _parse_agent_traj(path: str):
+    """Read one spawned agent's probe records + final submission from the probe server's log."""
+    probes, submission = [], None
+    try:
+        with open(path) as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                rec = json.loads(line)
+                if rec.get("type") == "probe":
+                    probes.append((rec.get("index"), rec.get("value"), bool(rec.get("charged"))))
+                elif rec.get("type") == "submit":
+                    submission = rec.get("values")
+    except OSError:
+        pass
+    return probes, submission
+
+
+class AgentContext:
+    """The harness capability the task-agent program orchestrates. The program calls run_agent to
+    deploy probe-only claude sessions over the world and reads back what they observed; it owns the
+    final reconstruction (returned from Solver.run). The meta agent evolves how many agents are
+    deployed, how the work is split, what each is told, and what Python does with the results."""
+
+    def __init__(self, world: RegisterWorld, cfg: Config, log=print):
+        self.world = world
+        self.cfg = cfg
+        self.log = log
+        self._used = 0
+        self._obs: dict = {}          # idx -> color, accumulated across every agent spawned
+        self.agent_calls: List[dict] = []  # audit trail for the sanitized report
+
+    # ---- public world structure + state the program reads ----
+    def world_map(self) -> dict:
+        cells = [{"index": i, "coeffs": list(co), "const": k,
+                  "formula": _cell_formula(co, k, self.world.spec.K)}
+                 for i, (co, k) in enumerate(self.world.spec.cells())]
+        return {"M": self.world.spec.M, "K": self.world.spec.K, "R": self.world.spec.R,
+                "budget": self.world.spec.budget, "cells": cells}
+
+    def remaining(self) -> int:
+        return max(0, self.world.spec.budget - self._used)
+
+    def observations(self) -> dict:
+        return dict(self._obs)
+
+    # ---- the one primitive: deploy a probe-only agent over the world ----
+    def run_agent(self, prompt: str, *, max_probes: int = None, max_turns: int = None,
+                  extra_tools=()) -> dict:
+        """Spawn ONE airgapped claude session that can probe up to `max_probes` of the *global*
+        remaining budget (default: all of it) and optionally submit a reconstruction. Returns
+        {submission, observations (all accumulated so far), probes_used, result}."""
+        rem = self.remaining()
+        sub = rem if max_probes is None else max(0, min(int(max_probes), rem))
+        if sub <= 0:
+            return {"submission": None, "observations": self.observations(),
+                    "probes_used": 0, "result": "no budget remaining"}
+        if self.cfg.backend == "mock":
+            return self._mock_agent(sub)
+        traj = os.path.join(tempfile.gettempdir(), f"hta_agent_{uuid.uuid4().hex}.jsonl")
+        open(traj, "w").close()
+        server_env = {
+            "HTA_TAPE": json.dumps(list(self.world.cells)),
+            "HTA_BUDGET": str(sub),
+            "HTA_TRAJ_PATH": traj,
+            "PATH": os.environ.get("PATH", ""),
+            "HOME": os.environ.get("HOME", ""),
+            "PYTHONPATH": _REPO_ROOT + os.pathsep + os.environ.get("PYTHONPATH", ""),
+        }
+        argv = [sys.executable, "-m", "hta.ch2.probe_server"]
+        res = llm.episode(prompt, model=self.cfg.task_model, mcp_server_argv=argv,
+                          server_env=server_env, cwd=_REPO_ROOT,
+                          allowed_tools=_ALLOWED_TOOLS + tuple(extra_tools),
+                          max_turns=max_turns or sub * 3 + 12, role="ch2_agent", cfg=self.cfg)
+        if res.get("is_error"):
+            self.log(f"    agent error: {str(res.get('result'))[:120]}")
+        probes, submission = _parse_agent_traj(traj)
+        try:
+            os.remove(traj)
+        except OSError:
+            pass
+        return self._record(probes, submission, res.get("result"))
+
+    def _mock_agent(self, sub: int) -> dict:
+        """Deterministic stand-in (free): probe the next `sub` un-probed cells, do not submit.
+        Lets the offline loop exercise the harness/scorer without a model."""
+        nxt = [i for i in range(self.world.spec.M) if i not in self._obs][:sub]
+        probes = [(i, int(self.world.cells[i]), True) for i in nxt]
+        return self._record(probes, None, "mock")
+
+    def _record(self, probes, submission, result) -> dict:
+        charged, obs = 0, {}
+        for idx, val, chg in probes:
+            if chg:
+                charged += 1
+            if val is not None and isinstance(idx, int) and not isinstance(idx, bool):
+                obs[idx] = val
+        self._used += charged
+        self._obs.update(obs)
+        self.agent_calls.append({"probes_used": charged, "probed": sorted(obs),
+                                 "submitted": submission is not None})
+        return {"submission": submission, "observations": dict(self._obs),
+                "probes_used": charged, "result": result}

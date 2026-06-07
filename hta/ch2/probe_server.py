@@ -74,15 +74,18 @@ class _World:
     def probe(self, args):
         idx = args.get("index")
         if not isinstance(idx, int) or isinstance(idx, bool) or self.used >= self.max:
-            self._append({"type": "probe", "index": idx, "value": None, "malformed": True})
+            self._append({"type": "probe", "index": idx, "value": None, "malformed": True,
+                          "charged": False})
             return {"value": None, "remaining": max(0, self.max - self.used)}
         if not (0 <= idx < len(self.tape)):
             self.used += 1
-            self._append({"type": "probe", "index": idx, "value": None, "malformed": True})
+            self._append({"type": "probe", "index": idx, "value": None, "malformed": True,
+                          "charged": True})
             return {"value": None, "remaining": self.max - self.used}
         self.used += 1
         val = int(self.tape[idx])
-        self._append({"type": "probe", "index": idx, "value": val, "malformed": False})
+        self._append({"type": "probe", "index": idx, "value": val, "malformed": False,
+                      "charged": True})
         return {"value": val, "remaining": self.max - self.used}
 
     def remaining(self, args):
