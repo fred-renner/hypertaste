@@ -6,6 +6,9 @@ the wrong way. It is pure **allocation** under a scarce probe budget (every cell
 it cannot compile into a solver), with an exact belief-MDP **coverage oracle by simulation** and
 a model-free floor->oracle band. `run_anchor.py` build-screens it (oracle >> heuristic).
 
-The reseed (RESET_DESIGN.md -> "Next actions") adds the confined probe-MCP server, the
-model-orchestrated loop, and the only evolvable node, `playbook.md` (non-executable English).
+The reseed (RESET_DESIGN.md -> "Next actions" 3, DONE) added the frozen substrate around it:
+`episode_state.py` (the world-state machine + band judge), `probe_server.py` (the confined
+probe-MCP server with the seven primitives + spawn), `loop.py` (the model-orchestrated DGM-H loop),
+and the only evolvable node, `seed/playbook.md` (non-executable English). Next is live calibration
+(action 4): land Haiku in-band on the anchor family.
 """

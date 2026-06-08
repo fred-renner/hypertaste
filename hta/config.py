@@ -28,26 +28,18 @@ class Config:
     meta_model: str = field(default_factory=lambda: _env("HTA_META_MODEL", "opus"))
     world_model: str = field(default_factory=lambda: _env("HTA_WORLD_MODEL", "opus"))
 
-    # ---- WILT knobs ----
-    max_probes: int = 30  # classic WILT allows up to 30 test cases
-
-    # ---- task-agent episode execution ----
-    # "per_probe": one constrained claude -p call per probe (simple; high overhead).
-    # "single_session": run a whole episode (all probes + guess for ONE world) as a
-    #   single claude -p session with the probe channel exposed as a narrow stdio-MCP
-    #   tool, so the ~31k-token system-prompt overhead is paid once per world instead
-    #   of once per probe. Default per_probe so the deterministic mock tests are
-    #   untouched; real runners pass single_session.
-    episode_mode: str = field(default_factory=lambda: _env("HTA_EPISODE_MODE", "per_probe"))
-    episode_allowed_tools: Tuple[str, ...] = (
-        "mcp__probe__probe", "mcp__probe__remaining", "mcp__probe__submit_guess")
-    # max_turns = max_probes * 2 + buffer. The agent needs ~1 turn per probe + a guess,
-    # but the chatty Haiku model also spends turns reasoning; with the old additive
-    # budget (max_probes + 8) ~13% of episodes hit `error_max_turns` BEFORE exhausting
-    # their probes, which then scored as a spurious failure. Giving 2 turns/probe makes
-    # the *probe* budget the binding constraint: an agent that uses all its probes and
-    # still misses the (guaranteed-solvable) world earns the worst score on merit.
-    episode_turn_buffer: int = 6
+    # ---- Chapter-2 option-B harness (the model-orchestrated player) ----
+    # The confined toolsets (the airgap): the playbook-driven TOP gets the full orchestration
+    # allowlist; a spawned WORKER is confined to probe/remaining and sees only its task + budget.
+    # No Bash/Read/Edit/Write/Web ever (episode() also denies them belt-and-suspenders).
+    top_allowed_tools: Tuple[str, ...] = (
+        "mcp__probe__probe", "mcp__probe__remaining", "mcp__probe__world_map",
+        "mcp__probe__mem_read", "mcp__probe__mem_patch", "mcp__probe__submit_map",
+        "mcp__probe__spawn")
+    worker_allowed_tools: Tuple[str, ...] = ("mcp__probe__probe", "mcp__probe__remaining")
+    # The top reasons, spawns, keeps a scratchpad, then submits — the budget (probes) binds, not
+    # turns, so give generous turn headroom (Gotchas: "probes, not turns, bind").
+    top_max_turns: int = 40
 
     # ---- evaluation ----
     n_train_worlds: int = 4
@@ -144,7 +136,6 @@ class Config:
     def testing(cls) -> "Config":
         """Tiny, cheap profile for verifying the pipeline end-to-end."""
         c = cls()
-        c.max_probes = 6
         c.n_train_worlds = 2
         c.n_transfer_worlds = 2
         return c

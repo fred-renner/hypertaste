@@ -224,9 +224,19 @@ same skeleton (swap which signal is deceptive); the battery *is* the transfer te
    slice, the mech-world; collapse the docs to one orientation + archive the slice history as a
    notebook; keep the loop spine (archive, selection, MDL prior, meta-agent, airgap, judge).
    Verify the import graph before each cut.
-3. **Reseed** — frozen primitive harness, model-orchestrated (B), confined tools, editable
-   scratchpad, empty playbook, one-paragraph meta.
-4. **Wire + calibrate** — loop on the anchor family; calibrate live so Haiku lands in-band; run.
+3. **Reseed** — ✅ **DONE**. The frozen substrate is built and offline-green (45 tests) +
+   smoke-validated against the live CLI. `hta/ch2/episode_state.py` is the world-state machine (the
+   seven primitives + the band judge: coverage capped to cells the agent's probes pin, normalized
+   floor→oracle — ungameable); `hta/ch2/probe_server.py` is the confined stdio-MCP wrapper (top vs.
+   worker toolsets = the airgap; `spawn` runs a carve-out worker as a nested `claude -p`);
+   `hta/ch2/loop.py` is the model-orchestrated DGM-H loop (the playbook is the Haiku top's
+   `--append-system-prompt`; Opus rewrites `seed/playbook.md` only; mock = a deterministic
+   floor-player for offline plumbing); `run_loop.py` is the entrypoint. One live episode on the seed
+   playbook already reached the oracle's *allocation* (`determined=9`) but left coverage on the
+   table at the *submission* (`raw=5`, norm 0.33) — the predicted gradient for the loop.
+4. **Wire + calibrate** — **next**. Run the loop live on the anchor family and calibrate so Haiku
+   lands mid-band: the seed already clears `determined`, so the first dial is the playbook's
+   reconstruction/submission discipline (submit every pinned cell), then iterate Opus on it.
 
 Cost floor unchanged: a single-session Haiku episode is cents; an Opus meta edit (~$1) dominates a
 real iteration. Keep the eval lean.

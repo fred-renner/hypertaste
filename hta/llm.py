@@ -195,7 +195,7 @@ def agentic(instruction: str, workdir: str, model: str,
 # ---------------------------------------------------------------------------
 def episode(prompt: str, model: str, mcp_server_argv, server_env, cwd: str,
             allowed_tools, max_turns: int, role: str = "task_episode",
-            cfg: Optional[Config] = None) -> dict:
+            cfg: Optional[Config] = None, append_system: Optional[str] = None) -> dict:
     cfg = cfg or Config()
     if cfg.backend == "mock":
         raise RuntimeError("episode() not available in mock backend; caller must handle mock")
@@ -212,6 +212,10 @@ def episode(prompt: str, model: str, mcp_server_argv, server_env, cwd: str,
            "--mcp-config", mcp_cfg, "--strict-mcp-config",
            "--permission-mode", "acceptEdits",
            "--max-turns", str(max_turns)]
+    # Chapter-2 option B: the evolved playbook rides as the player's SYSTEM prompt (it IS the agent),
+    # while -p carries only a neutral kickoff. The playbook is read as context, never executed.
+    if append_system:
+        cmd += ["--append-system-prompt", append_system]
     for t in allowed_tools:
         cmd += ["--allowedTools", t]
     # Belt-and-suspenders: deny every filesystem/network tool so the only channel to

@@ -41,24 +41,21 @@ questions — match the depth and tone of a genuine research-design conversation
 
 ## Run & test
 
-**Where we are:** the Chapter-2 **reset** is locked (`RESET_DESIGN.md`) and the **denoise is
-done** — the repo is cut to the loop spine (archive, MDL prior, meta-agent, sandbox airgap, llm,
-config) plus the **anchor trail world** (`hta/ch2/anchor.py`, build-screened by `run_anchor.py`).
-The superseded code (Chapter-1 numeric pipeline, the tape slice, the mech-world, the
-register/trap-tetra option-A harness) was removed; its history lives in `NOTEBOOK.md` and git.
+**Where we are:** the Chapter-2 **reset** is locked (`RESET_DESIGN.md`), the **denoise is done**, and
+the **reseed is built** — the repo is the loop spine (archive, MDL prior, meta-agent, sandbox airgap,
+llm, config), the **anchor trail world** (`hta/ch2/anchor.py`, build-screened by `run_anchor.py`),
+and the **option-B substrate**: `hta/ch2/episode_state.py` (world-state machine + band judge),
+`hta/ch2/probe_server.py` (confined stdio-MCP, the seven primitives + `spawn`), `hta/ch2/loop.py`
+(the model-orchestrated DGM-H loop), `hta/ch2/seed/playbook.md` (the only evolvable node), and
+`run_loop.py`. Offline-green (45 tests) and smoke-validated live.
 
-**Next action — RESEED, then WIRE + CALIBRATE** (`RESET_DESIGN.md` → "Next actions" 3–4):
+**Next action — WIRE + CALIBRATE** (`RESET_DESIGN.md` → "Next actions" 4):
 
-3. **Reseed the harness (option B, model-orchestrated).** Build the *frozen* substrate — one
-   confined probe-MCP server per world (holds hidden state + global budget) + the orchestration
-   primitives — and the evolvable node, which is **`playbook.md` only** (non-executable English).
-   The top-level player is a **Haiku agent whose system prompt IS the playbook**; it natively
-   decides to `spawn` workers, keeps a within-episode `mem_*` scratchpad, and `submit_map`s.
-   Tools/airgap are an allowlist (probe/spawn/submit_map/world_map/remaining/mem_read/mem_patch),
-   not Python orchestrating model probers. Seed = minimal floor (one-line playbook, one-paragraph
-   meta that never names "taste"). See `RESET_DESIGN.md` → "The harness spec".
-4. **Wire + calibrate.** A new Ch2 loop over the anchor family + a live calibration so Haiku
-   lands in-band (the band-normalized coverage judge, references by simulation).
+4. **Calibrate live so Haiku lands in-band.** Run `run_loop.py --backend real` on the anchor family.
+   The seed playbook already reaches the oracle's *allocation* (`determined=9`) but loses coverage at
+   the *submission* (`raw=5`, norm 0.33 on one draw) — so the first dial is the playbook's
+   reconstruction/submission discipline (submit every pinned cell), then iterate Opus on it. Cost: a
+   Haiku episode is cents; an Opus rewrite is ~$1 (the dominant term) — keep the eval lean.
 
 **Settled — don't reopen** (`RESET_DESIGN.md` → "Locked decisions"): the evolved unit is
 **English, never code** (that is the sieve that keeps the tacit residue and makes model-generality
@@ -71,6 +68,8 @@ new world ships.
 ```bash
 python run_anchor.py                              # Ch2 build gate: free, model-free, deterministic
 pip install pytest && python -m pytest tests/ -q  # tests (pytest is not preinstalled)
+python run_loop.py --iterations 1 --backend mock  # the loop, offline (deterministic floor-player)
+python run_loop.py --iterations 1 --backend real  # the loop, live (cents/Haiku episode, ~$1/Opus edit)
 ```
 
 The `claude` CLI is installed and authenticated here, so the `real` backend works without an API
@@ -80,10 +79,11 @@ dependency.
 ## Files you'll edit vs. leave alone
 
 Edit now: `hta/config.py` (knobs), `hta/ch2/anchor.py` (the anchor world + oracle + build-screen),
-`run_anchor.py` (the build gate). **The reseed (next) creates:** the confined probe-MCP server +
-orchestration primitives (frozen substrate), the new Ch2 loop + band-normalized coverage judge,
-and the **only evolvable node, `playbook.md`** (non-executable English — the meta agent rewrites
-*this*, nothing else).
+`run_anchor.py` (the build gate), and the **evolvable node `hta/ch2/seed/playbook.md`** (the loop
+rewrites *this*; for calibration you may hand-edit the seed). The reseed built the **frozen
+substrate** — `hta/ch2/episode_state.py` (world-state machine + band judge), `hta/ch2/probe_server.py`
+(confined probe-MCP + the seven primitives), `hta/ch2/loop.py` (the model-orchestrated loop),
+`run_loop.py` — leave it alone unless deliberately changing the harness (keep the two invariants).
 
 Leave alone unless deliberately changing them (and then keep the two invariants below): the loop
 spine — `hta/archive.py` (archive + selection), `hta/taste.py` (MDL prior), `hta/meta_agent.py`

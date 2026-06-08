@@ -17,9 +17,10 @@ world plus a meta agent that rewrites the task agent — specialized so that:
 > agent wrote a brute-force solver — because the evolved unit was **code**. The reset fixes both:
 > the evolved unit becomes a **non-executable English playbook**, and the world is built so the
 > *content* of the winning policy is learnable only by playing. The forward design is
-> **`RESET_DESIGN.md`** (read it first). This repo is currently **denoised to the spine + the
-> anchor world**; the model-orchestrated loop is the next build (`RESET_DESIGN.md` → "Next
-> actions" 3–4).
+> **`RESET_DESIGN.md`** (read it first). The **reseed is built**: the frozen option-B substrate
+> (confined probe-MCP server, the seven orchestration primitives, the band-normalized coverage
+> judge, the model-orchestrated loop) plus the only evolvable node, `hta/ch2/seed/playbook.md`.
+> Next is **live calibration** so Haiku lands in-band (`RESET_DESIGN.md` → "Next actions" 4).
 
 **The three docs:** `RESET_DESIGN.md` is the current chapter's design (the locked decisions, the
 harness spec, the anchor world). `ROADMAP.md` is the North Star — the two-loop model, the
@@ -83,11 +84,13 @@ the `claude` CLI installed and authenticated with your subscription.
 ```bash
 python run_anchor.py                              # Ch2 build gate: free, model-free, deterministic
 pip install pytest && python -m pytest tests/ -q  # tests (offline; pytest not preinstalled)
+python run_loop.py --iterations 1 --backend mock  # the loop, offline (deterministic floor-player)
+python run_loop.py --iterations 1 --backend real  # the loop, live (cents/Haiku episode, ~$1/Opus edit)
 ```
 
-The model-orchestrated loop and live calibration are the next build (`RESET_DESIGN.md` →
-"Next actions" 3–4); the Chapter-1 numeric pipeline and the trap-tetra harness were removed in
-the reset denoise (their history lives in `NOTEBOOK.md` and git).
+Live **calibration** so Haiku lands in-band is the next step (`RESET_DESIGN.md` → "Next actions" 4);
+the Chapter-1 numeric pipeline and the trap-tetra harness were removed in the reset denoise (their
+history lives in `NOTEBOOK.md` and git).
 
 ## Airgap / anti-leak design
 
@@ -113,11 +116,19 @@ hta/
   sandbox.py           meta-agent airgap: Direct (Bash-denied) | Docker (container)
   ch2/
     anchor.py          the anchor trail world + oracle-by-simulation + the build-screen
+    episode_state.py   the frozen world-state machine (the seven primitives) + the band judge
+    probe_server.py    confined stdio-MCP server: probe/spawn/submit_map/world_map/remaining/mem_*
+    loop.py            the model-orchestrated (option-B) DGM-H loop over the anchor family
+    seed/playbook.md   the ONLY evolvable node (non-executable English; Opus rewrites this)
 docker/Dockerfile.agent       agent-plane image (Node + claude CLI; no project code/world/secrets)
 scripts/build_agent_image.sh  build the agent-plane image (context = docker/ only)
 run_anchor.py          build-screen the anchor family (oracle ≫ heuristic gate + difficulty sweep)
-tests/test_anchor.py   anchor world / oracle / build-screen tests
-tests/test_sandbox.py  meta-agent sandbox routing + Docker isolation flags (offline; no daemon)
+run_loop.py            the Chapter-2 model-orchestrated loop (anchor world; mock or real backend)
+tests/test_anchor.py        anchor world / oracle / build-screen tests
+tests/test_episode_state.py episode-state machine + band judge (airgap, accounting, spawn carve-out)
+tests/test_probe_server.py  probe-MCP framing + role airgap + spawn (offline; injected worker)
+tests/test_loop.py          the loop wiring + judge replay + report sanitization (mock)
+tests/test_sandbox.py       meta-agent sandbox routing + Docker isolation flags (offline; no daemon)
 ```
 
 We did not fork [HyperAgents](https://github.com/facebookresearch/Hyperagents)
