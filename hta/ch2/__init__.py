@@ -1,13 +1,11 @@
-"""Chapter 2 (the investigation-map) — the thin de-risking slice.
+"""Chapter 2 (the investigation-map), post-reset — see RESET_DESIGN.md.
 
-A hand-built tiny grammar-map + DP oracle + a vanilla-vs-taste Haiku measurement,
-built to answer the two load-bearing bets (WORLD_DESIGN.md -> "First slice") BEFORE a
-cent is spent on the loop:
+`anchor.py` realizes the **anchor trail world**: follow a trail of pointers through a
+too-large hypothesis space to a buried landmark while fat "clearing" claims pay you for going
+the wrong way. It is pure **allocation** under a scarce probe budget (every cell is a lookup, so
+it cannot compile into a solver), with an exact belief-MDP **coverage oracle by simulation** and
+a model-free floor->oracle band. `run_anchor.py` build-screens it (oracle >> heuristic).
 
-  bet 1 (realizable gap): does a taste-prompt Haiku beat vanilla Haiku and approach the
-         model-free oracle? (gap must be realizable by the student, not merely present.)
-  bet 2 (ramp not cliff): is coverage ~linear in the fraction of the grammar inferred?
-
-This package is isolated from the running Chapter-1 code (hta/world/*) so the repo keeps
-running Chapter 1 while we measure Chapter 2. Nothing here imports hta.world.
+The reseed (RESET_DESIGN.md -> "Next actions") adds the confined probe-MCP server, the
+model-orchestrated loop, and the only evolvable node, `playbook.md` (non-executable English).
 """

@@ -1,9 +1,9 @@
-"""hypertaste: a self-improving research-taste harness.
+"""hypertaste: a self-improving research-taste harness (DGM-H pipeline).
 
-Three hard-separated planes:
-  * WORLD plane  (hta.world)  -- WILT engine + Opus world-smith. Agent-inaccessible.
-  * AGENT plane  (hta.task_agent / hta.meta_agent / hta.archive) -- DGM-H self-improvement.
-  * TASTE plane  (hta.taste)  -- defines/measures good research behavior -> fitness.
+Three hard-separated planes (Chapter 2, post-reset -- see RESET_DESIGN.md):
+  * WORLD plane  (hta.ch2)               -- the anchor world + coverage oracle. Agent-inaccessible.
+  * AGENT plane  (hta.meta_agent / hta.archive) -- DGM-H self-improvement of the playbook node.
+  * TASTE plane  (hta.taste)             -- the MDL / program-length generality prior.
 
 All foundation-model calls funnel through hta.llm (claude -p only).
 """

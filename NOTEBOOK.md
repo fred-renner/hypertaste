@@ -1,3 +1,15 @@
+# Lab notebook — Chapter 2 history (ARCHIVED)
+
+> **ARCHIVED — superseded by `RESET_DESIGN.md`.** This is the slice-by-slice Chapter-2
+> lab-notebook: the tape slices, the register/trap-tetra harness, and the "harness writes the
+> oracle" finding that triggered the reset. It is kept for the audit trail only; the code it
+> describes (`hta/ch2/world.py`, `register_world.py`, `threshold.py`, …) was removed in the
+> reset denoise. For the **current** Chapter-2 design (the English playbook, the
+> model-orchestrated harness, the anchor trail world) read `RESET_DESIGN.md`; for the arc read
+> `ROADMAP.md`. Everything below is history.
+
+---
+
 # World design — how the world grows (Chapter 2)
 
 > **Scope.** This is the technical design of Chapter 2 of the staircase in `ROADMAP.md`:

@@ -1,9 +1,8 @@
 # Chapter-2 reset — the design we locked (decision record)
 
 This is the forward design from the session that followed the "harness writes the oracle"
-finding (`WORLD_DESIGN.md` → "The harness substrate"). It supersedes the Chapter-2 *mechanics*
-in `WORLD_DESIGN.md`; the slice-by-slice history there is now lab-notebook, to be archived in the
-denoise. Read this first.
+finding (`NOTEBOOK.md` → "The harness substrate"). It supersedes the Chapter-2 *mechanics* in the
+archived `NOTEBOOK.md` (the slice-by-slice lab history). Read this first.
 
 The one-line problem it answers: every Chapter-2 world so far slid **below threshold** — some
 agent in the loop (Haiku reasoning in-head, then Opus writing a brute-force solver) could just

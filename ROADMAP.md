@@ -1,9 +1,9 @@
 # Roadmap — growing portable research taste, hands-off
 
-The North Star and the staged path to it. `WORLD_DESIGN.md` is the technical detail of
-*today's* world (Chapter 1); this file is where the whole thing is going and why the
-staging is the way it is. Read this for direction, `WORLD_DESIGN.md` for the current
-mechanics.
+The North Star and the staged path to it. `RESET_DESIGN.md` is the technical detail of
+*today's* world (Chapter 2, post-reset); this file is where the whole thing is going and why the
+staging is the way it is. Read this for direction, `RESET_DESIGN.md` for the current mechanics,
+`NOTEBOOK.md` for the Chapter-2 lab history.
 
 ## Where we are — Chapter 1 ran, and it told us the world is the wrong shape
 
@@ -33,13 +33,21 @@ session's edge-calibration code was reverted as a dead-end; only this finding is
 
 ## Chapter 2 — the investigation-map (designed; build the thin slice next)
 
+> **Update — superseded by the reset (`RESET_DESIGN.md`).** This section is the *origin* of
+> Chapter 2 and the reasoning still holds, but two later findings moved it on: the tape slice
+> (a *prompt* is not the unit) and the register/trap-tetra harness (a *code* harness lets the
+> meta agent write the oracle → below threshold). The reset's answer: the evolved unit is a
+> **non-executable English playbook**, the **model orchestrates** (not Python), and the world
+> (the **anchor trail world**) is built so the policy's *content* is learnable only by playing.
+> Read `RESET_DESIGN.md`; the full slice-by-slice history is in `NOTEBOOK.md`.
+
 The pivot (PI): stop scoring a binary answer and bolting taste-metrics onto it. Build a
 **navigable investigation-map** — a hidden, deterministic, grammar-generated graph the agent
 probes under a **scarce budget** — and let fitness be simply **how much of the structure it
 uncovered**. Then info-gain, falsification, decomposition aren't side-bonuses; they're the
 behaviors that **unlock coverage**. Taste becomes the thing that wins the game.
 
-The design is settled and lives in `WORLD_DESIGN.md`. The spine:
+The design is settled and lives in `NOTEBOOK.md` (archived). The spine:
 
 - **Judge = information-weighted coverage**, normalized by a **model-free DP oracle** on the
   fixed graph (region value = how much it reveals about the *rest* of the grammar, so
@@ -59,7 +67,7 @@ The design is settled and lives in `WORLD_DESIGN.md`. The spine:
   **stay-Haiku** as a fixed control; cross-model port as a periodic generality check. The
   taste-prompt is an instrument (gate + bar), **never a target**.
 
-**The thin de-risking slice ran — and is now closed** (`WORLD_DESIGN.md` → "First/Second/Third
+**The thin de-risking slice ran — and is now closed** (`NOTEBOOK.md` → "First/Second/Third
 slice", "The rethink"; built in `hta/ch2/`). Two empirical bets gated it: (1) the taste-gap must
 be **realizable by Haiku**, not just present in the world; (2) inference must be a **ramp, not a
 cliff**. **Bet 2 PASSES** structurally (R²=1.0 — independent segments make coverage linear in the
@@ -116,7 +124,7 @@ makes a **new research virtue** necessary to win:
 | Chapter | World kind | Judge (objective principle) | Virtue it forces | Status |
 |---|---|---|---|---|
 | **1** | deterministic hidden rule `f(x,y,z)→bool` | **exact equivalence** — your rule behaves identically to mine on a fixed battery | falsification, hypothesis decomposition, Occam | done — pivoted (binary oracle → flat signal) |
-| **2** | navigable hidden **investigation-map** (grammar-generated graph) | **coverage** — how much of the structure you uncovered under a scarce budget | budget allocation, value-of-information, reading global structure, predict-the-unseen | **current — slice closed: bet 2 (ramp) holds; a *prompt* is not the unit; next = threshold gate + program-as-unit** |
+| **2** | navigable hidden **investigation-map** (the anchor trail world) | **coverage** — how much of the structure you uncovered under a scarce budget | budget allocation, value-of-information, reading global structure, predict-the-unseen | **current — reset: unit is an English playbook, model-orchestrated; anchor world build-screened; reseed next (`RESET_DESIGN.md`)** |
 | **3** | no exact rule — an uncertain/noisy process | **calibration** — how much probability you put on what actually happened | weighing evidence, quantifying uncertainty, knowing what you don't know | future |
 | **4+** | worlds you must act on, not just observe | **intervention quality** — the soundness of the experiment you designed | experimental design, controlling confounds, causal reasoning | future |
 
@@ -163,12 +171,11 @@ Guardrail: a smith told only "make it hard" can cheat with dumb hardness (bigger
 unsolvable traps). The search target must be **hard in the taste sense** — worlds where the
 lazy confirm-it strategy fails and only the go-find-the-counterexample instinct wins.
 
-**Status today.** Chapter 1 has the objective judge (exact equivalence), a held-out
-transfer test, a solvability gate, and a difficulty escalator — but the escalator steps a
-coarse integer from a fixed cold start (`hta/loop.py:_target_difficulty`), and composition
-is capped at the `exception` shape (`hta/world/grammar.py`). The three moves above —
-continuous difficulty, calibrate-to-live-student, uncapped composition — are the next
-within-Chapter-1 work. See `WORLD_DESIGN.md`.
+**Status today.** This smooth-dial work is **deferred to a chapter that produces climbing
+taste**: Chapter 1 (the numeric pipeline that had a difficulty escalator) was retired for a flat
+signal, and Chapter 2's first job is to clear the *threshold* (a world where taste has tacit room)
+before its difficulty is worth auto-calibrating. Calibrate-to-live-student returns at "Wire +
+calibrate" on the anchor world (`RESET_DESIGN.md`).
 
 ## Closing the outer loop
 
@@ -283,13 +290,14 @@ versus a reset (everything collapses).
 2. **First transition, by hand (now).** Author Chapter 2's judge (**coverage** on the
    investigation-map). Start **fresh** — Chapter 1 never climbed, so there is no taste to
    warm-start from; the headline measurement is whether **held-out coverage climbs from a
-   fresh start above the frozen ruler** (vanilla Haiku). *Slice status: CLOSED.* The judge +
-   DP oracle + substrate are built and the **ramp** holds, but three slices showed a *prompt*
-   never lifts a fixed weak model off the floor — the tape-world is **below the threshold gate**
-   above. So the next build is **not** another map: it is (i) answer the threshold question —
-   find/design a world Opus cannot solve on paper at toy cost — and (ii) make the taste carrier
-   a **program/scaffold** the meta agent evolves (the now-neutral seed + de-tailored meta loop),
-   not a hand prompt. The warm-start *transfer* test — does mastering one chapter give a head
+   fresh start above the frozen ruler** (vanilla Haiku). *Status: reset (`RESET_DESIGN.md`).*
+   The judge + oracle + substrate are built and the **ramp** holds; the slice and the
+   trap-tetra harness then taught the two corrections now locked in: (i) the world must clear
+   the **threshold gate** — the anchor trail world does (oracle ≫ heuristic, allocation not
+   inference, so no closed-form solver); and (ii) the taste carrier is a **non-executable English
+   playbook** the meta agent evolves — *not* a program/scaffold (a code harness let the meta agent
+   compile the oracle and slide back below threshold). The warm-start *transfer* test — does
+   mastering one chapter give a head
    start in the next — becomes meaningful at the *next* transition, once a chapter actually
    produces climbing taste to carry.
 3. **One or two more hand transitions.** Extract the pattern of a healthy transition

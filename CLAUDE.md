@@ -5,16 +5,18 @@ Guidance for Claude Code working in this repository.
 ## Orientation
 
 `hypertaste` is a self-improving research-taste harness (DGM-H pipeline): it co-evolves a
-task agent and its curriculum on a "discover the hidden rule by probing" world.
+task agent and its curriculum on a "discover the hidden structure by probing" world.
 
-- Architecture and run instructions for the **running code** (still Chapter 1): `README.md`.
+- Architecture + how to run the **current code** (Chapter 2, post-reset): `README.md`.
 - Long-term direction (the two-loop model, staircase of judges, closing the loop): `ROADMAP.md`.
-- World-growth design and rationale for the **current chapter** (Chapter 2 — the
-  investigation-map we're building toward): `WORLD_DESIGN.md`.
+- Design + rationale for the **current chapter** (Chapter 2 after the reset — the English
+  playbook, the model-orchestrated harness, the anchor trail world): `RESET_DESIGN.md`.
+- Archived Chapter-2 lab history (the tape slices, the trap-tetra "harness writes the oracle"
+  finding that triggered the reset): `NOTEBOOK.md`.
 
 This file plus `README.md` are the orientation — open only the files you're about to
-change rather than re-reading the whole tree. `ROADMAP.md` is the direction; `WORLD_DESIGN.md`
-is the current chapter's mechanics.
+change rather than re-reading the whole tree. `ROADMAP.md` is the direction; `RESET_DESIGN.md`
+is the current chapter's mechanics; `NOTEBOOK.md` is history.
 
 ## Voice & altitude — working with the PI
 
@@ -39,144 +41,87 @@ questions — match the depth and tone of a genuine research-design conversation
 
 ## Run & test
 
-**Next action (START A NEW SESSION):** The threshold question is answered (yes) **and the world
-is now calibrated to the live student** (`WORLD_DESIGN.md` → "Calibrated to the live student").
-The calibrated starting world is **`trap-tetra`** — an anchor + a buried **K4 clique** of four
-hidden registers (R=5, K=3 → 243 hypotheses, 14 cells, budget 4; gap 0.50 of the floor→oracle
-band, anti-cliff). The model-free screen (`hta/ch2/threshold.py`, `python run_threshold.py`)
-showed the dividing line is **adaptive submodularity**: a coupled register world (affine linked
-blocks over *hidden* registers — a probe reveals an equation, not a value) beats the best
-articulable heuristic *including a 2-step lookahead planner*, so the optimal policy needs
-deeper-than-bounded planning, computed in pure compute at zero token cost. **But that build gate
-is necessary, not sufficient:** the *live* calibration (`run_calibration.py`) found the first
-pick `trap-tri` (buried *triangle*, 8 cells, budget 3) **maxes Haiku** — a reasoning student
-isn't restricted to a closed-form policy, it solves the small instance's linear system in-head,
-so "not closed-form" ≠ "hard for Haiku" (Chapter 1's lesson, re-paid). Dialing up to the
-**4-register joint-solve** of `trap-tetra` lands live Haiku **in band (0.59, bimodal: half the
-runs reach the oracle, half fall back to the greedy/articulable level)** — the ZPD. What's
-settled, and what's next:
+**Where we are:** the Chapter-2 **reset** is locked (`RESET_DESIGN.md`) and the **denoise is
+done** — the repo is cut to the loop spine (archive, MDL prior, meta-agent, sandbox airgap, llm,
+config) plus the **anchor trail world** (`hta/ch2/anchor.py`, build-screened by `run_anchor.py`).
+The superseded code (Chapter-1 numeric pipeline, the tape slice, the mech-world, the
+register/trap-tetra option-A harness) was removed; its history lives in `NOTEBOOK.md` and git.
 
-1. **The gate is now a build screen, reusable.** Before any world ships: belief-MDP oracle ≫
-   best-of-basket (greedy-info, greedy-determined, 2-step lookahead). gap≈0 ⇒ below the line ⇒
-   a hand spec is competitive ⇒ don't build. This is "earning its keep" as code, not a footnote.
-   The **direct-to-linked mass ratio** is the dial (trades gap against ramp curvature); the band
-   is *narrow* — asymmetric stepping-stone topology, never symmetric coupling.
-2. **Unit of taste = a program/scaffold, not a prompt — seed stays neutral.** The de-tailoring
-   holds: the seed ships **no pre-loaded taste** and the meta agent diagnoses from trajectory
-   evidence, not a handed checklist. The loop searches **scaffold-space**, so the seed is a blank
-   slate. (The three tape slices' prompt-A/B was the wrong carrier — see "The rethink".)
-3. **Model roles are settled — don't reopen.** **Opus** runs self-improvement and the
-   world/oracle reasoning; **Haiku** does *all* exploration. The threshold screen *was* the Opus
-   check; the difficulty calibration *was* the Haiku check — both done.
-4. **The gate has two halves now.** Build-screen model-free for the *gap* (`run_threshold.py`),
-   then calibrate the *difficulty* live (`run_calibration.py`) — a world can clear the first and
-   still max the student (`trap-tri` did). Re-run both before shipping any new world; the live
-   binding axis is **joint-solve size / reasoning-depth**, not the model-free "closed-form" axis.
+**Next action — RESEED, then WIRE + CALIBRATE** (`RESET_DESIGN.md` → "Next actions" 3–4):
 
-**The loop is BUILT and RAN LIVE (this session) — and its first result is the finding below.** The
-meta-agent-on-program loop on `trap-tetra` is wired and live-green (`hta/ch2/loop.py`,
-`run_ch2_loop.py`, `hta/seed_ch2/`): it reuses the Chapter-1 DGM-H machinery (archive,
-open-ended parent selection, the Opus self-modify step, the MDL prior) and swaps only the world
-(a realized `trap-tetra`) and the judge (band-normalized **coverage**). **The unit of taste is a
-HARNESS, and its architecture is in the search space — not fixed by us (the PI's correction: that
-is the meta agent's job to discover).** The editable `Solver.run(self, ctx) -> list[int]` is a
-harness that *deploys* airgapped claude-agent sessions over the world (`ctx.run_agent` — tools:
-probe/remaining/submit_map) and assembles a reconstruction. The meta agent grows the architecture:
-one agent or several, single-shot or decomposed by block, what's carried between agents, and what
-**Python** does with the results (e.g. solve the affine register system once enough cells are
-probed, then compute the rest — instead of asking a model to eyeball them). Probing always goes
-through an agent (the airgap); computation is free Python. Airgap constraint: hierarchy is the
-Python program spawning several probe-only sessions, **not** claude's Task tool (which would tunnel
-general agents to the world source) — `--sandbox docker` opens broader tools safely later.
+3. **Reseed the harness (option B, model-orchestrated).** Build the *frozen* substrate — one
+   confined probe-MCP server per world (holds hidden state + global budget) + the orchestration
+   primitives — and the evolvable node, which is **`playbook.md` only** (non-executable English).
+   The top-level player is a **Haiku agent whose system prompt IS the playbook**; it natively
+   decides to `spawn` workers, keeps a within-episode `mem_*` scratchpad, and `submit_map`s.
+   Tools/airgap are an allowlist (probe/spawn/submit_map/world_map/remaining/mem_read/mem_patch),
+   not Python orchestrating model probers. Seed = minimal floor (one-line playbook, one-paragraph
+   meta that never names "taste"). See `RESET_DESIGN.md` → "The harness spec".
+4. **Wire + calibrate.** A new Ch2 loop over the anchor family + a live calibration so Haiku
+   lands in-band (the band-normalized coverage judge, references by simulation).
 
-**THE FINDING (live, this session): the meta agent's first edit grew the canonical oracle-solver,
-and `trap-tetra` is below the *harness* threshold.** The seed (minimal harness, one deployed agent)
-reproduced the calibrated student (mean_norm ≈0.50, bimodal). From that conduct alone — the floor
-runs wasted a probe on the trivially-determined anchor — Opus diagnosed the adaptive-submodularity
-trap, saw the world is **affine over GF(K)**, and moved *both* inference halves into **free Python**
-(exhaustive probe-SET span search + brute force over K**R register assignments), demoting the agent
-to the airgapped probe executor (`artifacts/ch2_grown_harness_gen0001.py`). One variable bug crashed it to 0
-(loop scored it, kept the parent); **bug-fixed it MAXES — confirmed live, mean_norm 1.00, oracle on
-3/3.** Opus wrote the oracle **as a search, not a closed-form formula** — writable whenever the
-world is small enough to enumerate. So the same lesson a third time (trap-tri: Haiku reasons it →
-maxed; trap-tetra single-session: Haiku ZPD; trap-tetra harness: Opus writes the solver → below
-threshold). The gate, lifted: *can Opus write a search that brute-forces the oracle affordably
-inside the task agent?* — taste matters only where inference is hard at a scale that defeats brute
-force (forcing references-by-simulation).
-
-**The next action is the FORK — three valid responses (the PI: all three correct; pick on
-purpose):** (1) **resize the world** so brute-force inference is infeasible and only heuristic taste
-scales; (2) **bound the harness's compute** (cap runtime / forbid enumeration) so taste is forced
-even on a small world; (3) **accept oracle-by-code** as a strong result and move to a harder judge /
-next chapter. Detail + audit trail in `WORLD_DESIGN.md` → "The harness substrate". Keep the eval
-lean: a single-session agent is ~$0.11/episode (~1–2 min), a real iteration ~$1.6–2.2 (Opus edit
-dominates).
-
-`ROADMAP.md` → "Chapter 2" / "earning its keep" is the arc; `run_threshold.py` (build gate) +
-`run_calibration.py` (live calibration) are the two-half world gate; `run_ch2_loop.py` is the
-loop. (`run_loop.py` still runs Chapter 1's numeric pipeline, kept for reference.)
-
+**Settled — don't reopen** (`RESET_DESIGN.md` → "Locked decisions"): the evolved unit is
+**English, never code** (that is the sieve that keeps the tacit residue and makes model-generality
+the test); **the model orchestrates** (option B), not Python; **Opus** runs self-improvement +
+world/oracle reasoning, **Haiku** does all exploration; the judge is the objective coverage band.
+The world gate is two halves — **build-screen** model-free for the oracle≫heuristic gap
+(`run_anchor.py`), then **calibrate** live so the student lands in-band — re-run both before any
+new world ships.
 
 ```bash
-python run_threshold.py                                   # Ch2 build gate: free, model-free
-python run_calibration.py --backend real --spec trap-tetra --episodes 8   # live Haiku calibration
-python run_ch2_loop.py --iterations 3 --backend mock      # Ch2 loop: free, deterministic, fast
-python run_ch2_loop.py --iterations 3 --backend real --n-train 2 --n-transfer 1  # live; ~$2/iter
-python run_loop.py --iterations 5 --backend mock          # Chapter 1 pipeline (reference)
-
-pip install pytest && python -m pytest tests/ -q          # pytest is not preinstalled
+python run_anchor.py                              # Ch2 build gate: free, model-free, deterministic
+pip install pytest && python -m pytest tests/ -q  # tests (pytest is not preinstalled)
 ```
 
-The `claude` CLI is installed and authenticated here, so the `real` backend works without
-an API key (subscription auth). The runtime is stdlib-only (Python 3.11); `pytest` is the
-only dev dependency. Shared CLI args live in `run_iteration.add_common_args`; `run_loop.py`
-adds `--iterations`.
+The `claude` CLI is installed and authenticated here, so the `real` backend works without an API
+key (subscription auth). The runtime is stdlib-only (Python 3.11); `pytest` is the only dev
+dependency.
 
 ## Files you'll edit vs. leave alone
 
-Edit: `hta/config.py` (knobs), `hta/loop.py` (Ch1 iteration), `hta/task_agent.py` (eval),
-`hta/world/world_smith.py` (curriculum), `hta/seed/*` (the Ch1 evolving program). **Chapter 2:**
-`hta/ch2/loop.py` (the Ch2 iteration + coverage eval), `hta/ch2/register_world.py` (the live
-world + `AgentContext`, the harness capability that deploys airgapped agent sessions),
-`hta/seed_ch2/*` (the blank-slate Ch2 harness the meta agent rewrites — `solver.py` is a harness
-`run(self, ctx) -> list[int]`, not a lambda).
+Edit now: `hta/config.py` (knobs), `hta/ch2/anchor.py` (the anchor world + oracle + build-screen),
+`run_anchor.py` (the build gate). **The reseed (next) creates:** the confined probe-MCP server +
+orchestration primitives (frozen substrate), the new Ch2 loop + band-normalized coverage judge,
+and the **only evolvable node, `playbook.md`** (non-executable English — the meta agent rewrites
+*this*, nothing else).
 
-Leave alone unless you are deliberately changing the scorer (`engine.py`), the safe-eval
-whitelist (`grammar.py`), or the probe airgap (`channel.py`) — and if you do, keep the
-two invariants below.
+Leave alone unless deliberately changing them (and then keep the two invariants below): the loop
+spine — `hta/archive.py` (archive + selection), `hta/taste.py` (MDL prior), `hta/meta_agent.py`
+(Opus self-modify), `hta/sandbox.py` (the meta-agent airgap), `hta/llm.py` (the `claude -p` seam).
 
 ## The two invariants (the integrity floor — they survive every chapter)
 
 - **Objective, agent-inaccessible scoring** — worlds are scored by a **dumb deterministic
   function**, never an LLM judge (the agent is optimized *against* the score, so a movable
-  score is reward-hacking). *Ch1:* empirical equivalence on a fixed battery — pure
-  `f(x,y,z) → bool` (`hta/world/engine.py`). *Ch2:* information-weighted **coverage** via
-  **DP on a fixed graph** (`WORLD_DESIGN.md`). The world stays **deterministic** so optimal
-  play (the oracle) is computable.
-- **Safe-eval** — model output never executes. *Ch1:* every rule string is AST-validated
-  against a strict whitelist and `eval`'d with no builtins (`hta/world/grammar.py`). *Ch2:*
-  the smith proposes a **validated declarative spec** that our deterministic expander
-  realizes — same principle, lifted from rule-lambdas to grammar-specs.
+  score is reward-hacking). *Ch2:* information-weighted **coverage** = cells logically pinned by
+  the consistent hypothesis set, normalized into a model-free **floor→oracle band**; the oracle
+  is the exact adaptive belief-MDP policy, **by simulation** over the world family
+  (`hta/ch2/anchor.py`). The world stays **deterministic** so the oracle is computable.
+- **Safe-eval, lifted** — model output never executes. *Ch2:* the evolved artifact is **text**
+  (`playbook.md`), read by the harness as context only — never imported or run. (Worlds are
+  realized from a **validated declarative spec** by a deterministic expander — same principle.)
 
 ## Gotchas
 
-- `single_session` episodes are real-backend only; mock uses `per_probe`.
-- Eval runs episodes concurrently on the real backend (`eval_concurrency`).
-- The episode turn budget is `max_probes*2 + buffer`, so probes (not turns) bind.
-- `--sandbox none` is the soft airgap (Bash denied, in-process); `--sandbox docker` is the
-  hard one (slower, same token cost) — it runs the meta agent in a container with no repo
-  or world source, mounting `~/.claude` read-only so it auths on the host subscription.
-- A non-solving agent that spends all its probes is a legitimate worst-score failure —
-  worlds are gated to be solvable within budget, so we don't rescue it.
+- **Probes (cost), not turns, bind** — budget an episode by the probe/cost budget; give turns
+  generous headroom so the scarce resource is the probe.
+- **The airgap is tool confinement.** Probing always goes through a confined agent/tool; free
+  Python may only compute over what was *probed*, never read the world source. Hierarchy is the
+  harness spawning probe-only worker sessions — not claude's general `Task` tool.
+- `--sandbox none` is the soft airgap (Bash denied, in-process); `--sandbox docker` is the hard
+  one (slower, same token cost) — it runs the meta agent in a container with no repo or world
+  source, mounting `~/.claude` read-only so it auths on the host subscription.
+- A non-solving agent that spends all its probes is a legitimate worst-score failure — worlds are
+  gated to be solvable within budget, so we don't rescue it.
 
 ## Token efficiency
 
 Token efficiency matters at every level:
 
 - **The harness:** every `claude -p` call carries a fixed ~31k-token system-prompt tax, so
-  minimize call *count* (prefer single-session episodes over per-probe), keep prompts and
-  the eval report lean, and don't multiply cost (e.g. `eval_repeats`) without a staged-eval
-  gate to cap it.
+  minimize call *count* (one agent session per episode, not one call per probe), keep prompts and
+  the eval report lean, and don't multiply cost (e.g. eval repeats) without a staged-eval gate to
+  cap it.
 - **The code:** prefer the smallest design that meets the need; delete dead paths and stale
   docs rather than letting them accrue.
 - **Working style:** be concise, parallelize independent tool calls, don't re-read files,
