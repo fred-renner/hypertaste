@@ -136,16 +136,91 @@ state than fits in head*. So we must **design that density** (above). A flat hea
 first; add an explicit context/compute budget (MDL on the scratchpad) only if structure still
 doesn't emerge.
 
+## The anchor family — concrete draft (next-action 1, DONE)
+
+The B2-allocation core, drafted as a realized, build-screened family: **the trail world**
+(`hta/ch2/anchor.py`, screened by `run_anchor.py`, tested by `tests/test_anchor.py`). One
+sentence: *follow a chain of pointers through a too-large space to a buried lode, while fat
+"lure" claims pay you immediately for going the wrong way.* It clears the gate — **belief-MDP
+oracle 9.0 vs the best articulable heuristic 6.0, gap 0.50 of the floor→oracle band, the
+heuristic landing mid-band (0.50) so a live student has room** — while two controls read 0.00.
+The whole point of the reset, made concrete: this gap is pure **allocation** (every cell is a
+lookup, never a solve), so it cannot compile into a Python solver and it survives an English
+playbook.
+
+**State (the hidden seed).** `R` registers, each an integer in `0..K-1`, uniform — the canonical
+anchor is `R=10, K=2` (1024 hypotheses, oracle instant). That is the *entire* hidden state; the
+world is a `LinkSpec`-style declarative spec our deterministic expander realizes (safe-eval,
+lifted). What the seed fixes that *matters*: where the trail ends.
+
+**Public structure (the rules of the game).** Two register roles, both public; only the values are
+hidden:
+- **signpost** registers form a public pointer **tree** — `root`'s value picks a `relay`
+  register, the relay's value picks the `lode` register (a `K×K` fan-out, so *which* register is
+  the lode is genuinely seed-dependent, not readable off the structure). A signpost is read
+  through a cheap cell that **pays zero coverage**: it is an instrument (the map's legend), not a
+  map cell.
+- **lure** registers each carry a fat **direct block** of `Ld` cells — a big *immediate* coverage
+  payoff for one probe. They are the bait, off the trail.
+- the **vault** — `Lv` cells mirroring the lode register — is the deep payoff. It is
+  **inference-only**: you *reconstruct* it by walking the trail, you never drill it.
+
+**Probe / cost model.** A probe reads a signpost or a lure cell and returns its value; the budget
+is a **cost** budget (`cost_sig`, `cost_lure`), so value-of-information is cost-weighted. The
+canonical anchor has budget 3 against ~10 probeable blocks — you cannot try everything. The vault
+is not in the probe set; it is scored but never probed.
+
+**The judge / oracle-by-simulation (integrity floor, unchanged).** Coverage = the dumb
+deterministic count of cells **logically pinned** by the consistent hypothesis set (every
+surviving world agrees). The reference is the **cost-weighted belief-MDP oracle**: the optimal
+*adaptive* policy, computed by exact value iteration over belief states — a finite, token-free
+belief tree on a world this small. References by verified simulation over the family, never an
+LLM. Normalized into a model-free floor→oracle band.
+
+**The build-screen check (reusable gate).** `belief-MDP oracle ≫ best of {greedy-info,
+greedy-determined, 2-step lookahead}`, normalized, must clear `MARGIN=0.15`; the ramp must be
+anti-cliff. Measured on the canonical anchor: oracle 9.0, best heuristic 6.0 (greedy and the
+2-step planner both stall there), **gap 0.50**, ramp max-step 0.22. Two controls confirm the gate
+*discriminates*: a world with no vault (`Lv=0`) and one with a slack budget both read **0.00**
+(when allocation is trivial there is no gap). And `clairvoyant == oracle` on the anchor — the gap
+is the price of the optimal **policy's form**, not of not knowing the world (the same robustness
+check the register screen makes). The dials: **`Lv` (the lode-to-lure mass ratio)** trades gap
+against ramp curvature (`Lv` 7→9→12 gives gap 0.25→0.50→0.67), and a **costlier lure** sharpens
+the cost-weighted gap (to 0.71) — the band is narrow, asymmetric, exactly as in `threshold.py`.
+
+**Where the gap comes from (and why it survives the harness).** A bounded planner can climb a
+chain whose every step pays `+1`; it cannot climb one whose steps pay **0** with the reward three
+probes away. Two structural facts make that hold: signpost reads pay zero coverage, and there are
+**at least as many lure blocks as the budget**, so spending a probe on a zero-coverage signpost
+has a strict opportunity cost. The greedy/2-step planner takes the lures; only the full oracle
+commits the three probes to the lode. And because every cell is a **lookup** (the vault is
+`r_lode + position`, read off once the trail is walked), there is no joint-solve to brute-force —
+the B1 trap that let Opus write `trap-tetra`'s oracle is closed. The *method* ("walk the trail,
+ignore the lures") is articulable, and that is fine; the *content* (which register the realized
+trail ends on) is in the seed, learnable only by playing **this** instance.
+
+**The five virtues, located honestly.** The model-free gap carries four: **allocation under
+scarcity** (budget ≪ blocks), **deception** (lures pay now, the trail pays only at the end),
+**emergent opportunity** (the lode's identity surfaces only as you walk), and **variable cost**
+(the cost knob, demonstrated). The fifth, **calibrated commitment**, is the tiny-budget regime
+where the oracle must bet on a partial trail. **Late disconfirmation** turned out *not* to be a
+model-free-oracle gap source — it is a **trajectory/memory** pressure (a thread that looks rich
+until a late probe retracts it), which is exactly where the design wants it: it shapes the live
+student's *revision* and pressures structured memory, so it belongs in the realized world at
+calibration time, not in this screen. Each remaining battery virtue is a sibling family with the
+same skeleton (swap which signal is deceptive); the battery *is* the transfer test.
+
 ## Integrity invariants (survive the reset)
 - Objective, agent-inaccessible coverage judge (DP/simulation oracle, never an LLM).
 - Safe-eval, lifted: the evolved artifact is text, never executed.
 - Airgap via tool confinement; world source never reachable by the player.
 
 ## Next actions (staged)
-1. **Anchor family** — draft the concrete B2-allocation core carrying deception + variable cost +
-   emergent opportunities + late disconfirmation under tiny budget: state, public structure, the
-   probe/cost model, the oracle-by-simulation, the build-screen check. The other four virtues are
-   variations on it.
+1. **Anchor family** — ✅ **DONE** (see "The anchor family — concrete draft"). The trail world
+   (`hta/ch2/anchor.py`, `run_anchor.py`, `tests/test_anchor.py`) is drafted and build-screened:
+   state, public structure, probe/cost model, oracle-by-simulation, and the gate (oracle 9.0 ≫
+   heuristic 6.0, gap 0.50, controls 0.00). The model-free gap carries allocation/deception/
+   emergent/cost; late-disconfirmation is relocated to a live memory pressure (a finding).
 2. **Aggressive-staged denoise** — delete the superseded Ch1 numeric pipeline, the closed tape
    slice, the mech-world; collapse the docs to one orientation + archive the slice history as a
    notebook; keep the loop spine (archive, selection, MDL prior, meta-agent, airgap, judge).
