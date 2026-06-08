@@ -240,16 +240,6 @@ def episode(prompt: str, model: str, mcp_server_argv, server_env, cwd: str,
 # ---------------------------------------------------------------------------
 _CTX = re.compile(r"<<CTX>>(.*?)<<CTX>>", re.DOTALL)
 
-# A canned "after a meta edit" probe battery -- a MOCK FIXTURE, not a taste model. The
-# mock is not intelligent; it only needs to make the plumbing observable, so this gives
-# the post-edit variant a deterministic behavior that differs from the seed variant
-# (the seed program ships no such recipe -- growing one is the real loop's job).
-_MOCK_EDITED_BATTERY = [
-    [1, 2, 3], [3, 2, 1], [2, 2, 2], [1, 3, 2], [-1, 0, 1],
-    [5, 5, 6], [2, 4, 6], [0, 0, 0], [10, 5, 1], [1, 2, 2],
-]
-
-
 def _parse_ctx(prompt: str) -> dict:
     m = _CTX.search(prompt or "")
     if not m:
@@ -261,56 +251,9 @@ def _parse_ctx(prompt: str) -> dict:
 
 
 def _mock_complete(prompt: str, role: str) -> str:
+    # Neutral stub: the mock backend only makes the plumbing observable. Chapter-2's
+    # option-B harness orchestrates via `episode`/`agentic` (the caller handles mock for
+    # those); any world-specific `complete` fixtures are (re)introduced at reseed time.
     ctx = _parse_ctx(prompt)
     role = ctx.get("role", role)
-    if role == "probe":
-        return json.dumps(_mock_probe(ctx))
-    if role == "guess":
-        return json.dumps(_mock_guess(ctx))
-    if role == "world_smith":
-        return json.dumps(_mock_world_smith(ctx))
     return json.dumps({"note": "mock", "role": role})
-
-
-def _mock_probe(ctx: dict) -> dict:
-    history = ctx.get("history", [])
-    variant = ctx.get("variant", "seed")  # mock fixture flag set by the seed program
-    n = len(history)
-    if variant == "edited":
-        probe = _MOCK_EDITED_BATTERY[n % len(_MOCK_EDITED_BATTERY)]
-        reasoning = "post-edit fixture: a diverse, space-splitting probe"
-    else:
-        # seed fixture: a monotone confirm-walk (increasing with a constant gap of 2).
-        probe = [n + 1, n + 3, n + 5]
-        reasoning = "seed fixture: another increasing example"
-    return {"probe": probe, "reasoning": reasoning}
-
-
-def _mock_guess(ctx: dict) -> dict:
-    history = ctx.get("history", [])
-    variant = ctx.get("variant", "seed")  # mock fixture flag set by the seed program
-    if variant == "edited":
-        # post-edit fixture: induce the simplest consistent rule from observed booleans
-        # only (no hidden-rule peeking). The mock "knows" how to do this so the offline
-        # loop shows a fitness change; the real seed program is handed no such routine.
-        from .world.grammar import simplest_consistent
-        hist = [{"triple": h.get("triple"), "label": h.get("label")}
-                for h in history if h.get("triple")]
-        best = simplest_consistent(hist)
-        rule = best.source if best else "lambda x, y, z: x < y < z"
-        return {"rule": rule, "reasoning": "post-edit fixture: simplest consistent rule"}
-    # seed fixture: overfit to the biased confirm-walk data (constant gap of 4).
-    return {"rule": "lambda x, y, z: x < y < z and z - x == 4",
-            "reasoning": "seed fixture: overfit to an all-increasing sample"}
-
-
-def _mock_world_smith(ctx: dict) -> dict:
-    """Canned curriculum: rules near a target difficulty, biased toward weak tags."""
-    from .world.grammar import candidate_library
-    target = int(ctx.get("target_difficulty", 2))
-    n = int(ctx.get("n", 2))
-    weak = set(ctx.get("weak_tags", []) or [])
-    lib = candidate_library()
-    lib.sort(key=lambda r: (-len(set(r.tags) & weak), abs(r.difficulty - target)))
-    picked = lib[:max(1, n)]
-    return {"rules": [r.to_dict() for r in picked]}

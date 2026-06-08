@@ -42,7 +42,7 @@ that looks rich until a late probe retracts it) that shapes the live student's r
 the model-free oracle gap — so it lives in the realized world for calibration, not in this screen.
 
 Everything is a dumb deterministic `f(structure, observations)` over an enumerated hypothesis set
-(K**R register assignments) — the same integrity floor as `grammar.py`/`threshold.py`. The oracle
+(K**R register assignments) — the integrity-floor coverage judge, no LLM. The oracle
 is exact and token-free (a finite belief tree), so the reference stays computable; it is just no
 longer *expressible* as a shallow rule.
 """
@@ -51,10 +51,44 @@ from dataclasses import dataclass
 from functools import lru_cache
 from itertools import product
 from math import comb
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 
-from .grammar import linearity_r2          # reuse the ramp R^2
-from .threshold import _partition, determined  # generic belief-set helpers (table-agnostic)
+
+# ---------------------------------------------------------------------------
+# Generic belief-set helpers (table-agnostic) and the ramp-quality metric. These are the
+# dumb-deterministic primitives the oracle/heuristics/screen are built from — no LLM.
+# ---------------------------------------------------------------------------
+def determined(table, cols: Tuple[int, ...], H: frozenset) -> int:
+    """How many cells are LOGICALLY pinned given the consistent hypothesis set H — i.e. every
+    surviving hypothesis agrees on them. The dumb deterministic coverage measure; no LLM."""
+    if not H:
+        return 0
+    rep = next(iter(H))
+    count = 0
+    for c in cols:
+        v = table[rep][c]
+        if all(table[h][c] == v for h in H):
+            count += 1
+    return count
+
+
+def _partition(table, H: frozenset, c: int) -> Dict[int, frozenset]:
+    """Probing cell c splits H by the observed value (deterministic observation -> a refinement
+    of the belief). The branch the agent lands in depends on the hidden true world."""
+    groups: Dict[int, list] = {}
+    for h in H:
+        groups.setdefault(table[h][c], []).append(h)
+    return {v: frozenset(hs) for v, hs in groups.items()}
+
+
+def linearity_r2(curve: List[float]) -> float:
+    """R^2 of `curve` against the straight line 0..1 over its index range. ~1.0 => clean ramp."""
+    G = len(curve) - 1
+    line = [f / G for f in range(G + 1)]
+    mean = sum(curve) / len(curve)
+    ss_tot = sum((y - mean) ** 2 for y in curve)
+    ss_res = sum((y - l) ** 2 for y, l in zip(curve, line))
+    return 1.0 if ss_tot == 0 else 1.0 - ss_res / ss_tot
 
 
 @dataclass(frozen=True)
