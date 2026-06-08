@@ -45,7 +45,11 @@ the winning policy is learnable only by playing, never derivable from the public
    player-written notebook across episodes. Memory affordance: an **editable scratchpad** with
    **incremental patch** ops (not full-replace, not append-only), so compression/forgetting/
    buffering are reachable. **Provide the capability, withhold the schema** — the structure
-   (buffered, slotted, …) is for the loop to invent, like the allocator.
+   (buffered, slotted, …) is for the loop to invent, like the allocator. *Where the invented
+   structure lives:* the **schema is note-keeping discipline written into the playbook** (it is an
+   instruction — English — so it belongs in the one evolvable node); the scratchpad is its
+   per-episode instantiation. A "smart memory system" is an evolved **protocol**, not a persisted
+   data structure — which is why `playbook.md` as the only evolvable node suffices.
 
 6. **The judge is unchanged (integrity floor).** Coverage, normalized into a model-free
    floor→oracle band, deterministic and agent-inaccessible. References by **verified simulation
