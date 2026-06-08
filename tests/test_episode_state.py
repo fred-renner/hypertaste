@@ -4,6 +4,7 @@ this is where the airgap (values only through probe), the cost-budget accounting
 carve-out, and the ungameable coverage judge are proven without a live claude.
 """
 
+import json
 import os
 import sys
 
@@ -63,6 +64,19 @@ def test_world_map_is_public_only_no_value_leak():
     assert all("value" not in cell for cell in wm["cells"])
     assert any(c["kind"] == "valley" and not c["probeable"] and c["coverage"] for c in wm["cells"])
     assert any(c["kind"] == "sig" and c["probeable"] and not c["coverage"] for c in wm["cells"])
+
+
+def test_world_map_exposes_value_law_but_not_the_seed():
+    """Calibration legibility: the deterministic VALUE LAW is public (so reconstruction is a
+    reachable lookup, not a guess), while the hidden register values never appear. Valley cells
+    flag that they mirror the landmark register."""
+    st = EpisodeState(SPEC, HSTAR)
+    wm = st.world_map()
+    assert "value_rule" in wm and "mod K" in wm["value_rule"]
+    assert all(c.get("mirrors") == "landmark" for c in wm["cells"] if c["kind"] == "valley")
+    # the law is structure, never the seed: no register value is recoverable from the map
+    blob = json.dumps(wm)
+    assert "hstar" not in blob and str(list(HSTAR)) not in blob
 
 
 def test_mem_patch_is_incremental_append_edit_delete():

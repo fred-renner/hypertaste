@@ -116,9 +116,14 @@ class EpisodeState:
         return {"remaining": self.remaining_cost()}
 
     def world_map(self) -> dict:
-        """The PUBLIC rules of the game: the pointer tree (trailhead -> waypoint -> landmark) and the
-        cell layout with costs and roles. The register VALUES are absent — that is the hidden seed.
-        `submit_map` keys and `probe` indices are the `col` fields here."""
+        """The PUBLIC rules of the game: the pointer tree (trailhead -> waypoint -> landmark), the
+        cell layout with costs and roles, and the deterministic VALUE LAW (`value_rule`). The
+        register VALUES are absent — that is the hidden seed. Exposing the law (not the values) is
+        what makes reconstruction a reachable LOOKUP for the player: it is public structure (the same
+        law the model-free heuristics and oracle are computed under), so it lifts the live agent onto
+        the screen's footing without touching the band — what stays hidden, and the whole game, is
+        the ALLOCATION (which scarce probes to spend). `submit_map` keys and `probe` indices are the
+        `col` fields here."""
         cells = []
         for i, c in enumerate(self.cells):
             entry = {"col": i, "kind": c[0], "cost": self.costs[i],
@@ -126,10 +131,17 @@ class EpisodeState:
             if c[0] in ("sig", "direct"):
                 entry["reg"], entry["pos"] = c[1], c[2]
             else:
-                entry["pos"] = c[1]
+                entry["pos"], entry["mirrors"] = c[1], "landmark"  # valley mirrors the landmark register
             cells.append(entry)
+        value_rule = (
+            "Cell values are a deterministic lookup, never a pattern to guess: a cell's value = "
+            "(its register's hidden value + pos) mod K. A signpost or clearing cell uses its own "
+            "`reg`; a valley cell (mirrors='landmark') uses the LANDMARK register — the one the "
+            "public trail (trailhead -> waypoints[branch] -> landmarks[branch][waypoint]) resolves to "
+            "under the hidden values. So once your probes pin a register's value, every cell keyed to "
+            "that register is fully determined — you reconstruct it, you do not guess it.")
         return {"R": self.spec.R, "K": self.spec.K, "budget": self.spec.budget,
-                "remaining": self.remaining_cost(),
+                "remaining": self.remaining_cost(), "value_rule": value_rule,
                 "trail": {"trailhead": self.spec.trailhead, "waypoints": list(self.spec.waypoints),
                           "landmarks": [list(r) for r in self.spec.landmarks]},
                 "cells": cells}
