@@ -47,15 +47,24 @@ llm, config), the **anchor trail world** (`hta/ch2/anchor.py`, build-screened by
 and the **option-B substrate**: `hta/ch2/episode_state.py` (world-state machine + band judge),
 `hta/ch2/probe_server.py` (confined stdio-MCP, the seven primitives + `spawn`), `hta/ch2/loop.py`
 (the model-orchestrated DGM-H loop), `hta/ch2/seed/playbook.md` (the only evolvable node), and
-`run_loop.py`. Offline-green (45 tests) and smoke-validated live.
+`run_loop.py`. Offline-green (46 tests), and **calibrated live**: the seed now lands **mean_norm ≈
+0.50 in-band** (see below).
 
-**Next action — WIRE + CALIBRATE** (`RESET_DESIGN.md` → "Next actions" 4):
+**Next action — RUN THE LOOP** (`RESET_DESIGN.md` → "Next actions" 4 is now ✅ DONE):
 
-4. **Calibrate live so Haiku lands in-band.** Run `run_loop.py --backend real` on the anchor family.
-   The seed playbook already reaches the oracle's *allocation* (`determined=9`) but loses coverage at
-   the *submission* (`raw=5`, norm 0.33 on one draw) — so the first dial is the playbook's
-   reconstruction/submission discipline (submit every pinned cell), then iterate Opus on it. Cost: a
-   Haiku episode is cents; an Opus rewrite is ~$1 (the dominant term) — keep the eval lean.
+The calibrate step is landed. Live-eval surfaced the blocker as *legibility*: `world_map` hid the
+public value law (`value = (reg_value + pos) mod K`), so the B2 "reconstruction is a lookup" was
+unreachable — the agent pinned coverage (`determined=6`) but *guessed* the submission (`raw=3`),
+scoring ~0. Fix (committed): make the law legible in `world_map` (`value_rule` + valley
+`mirrors=landmark`) **without touching the band** (gate still oracle 9.0 ≫ heur 6.0), plus
+reconstruction discipline in the seed (submit every pinned cell, never guess). Now, 9 fresh live
+draws: **`raw == determined` on every draw** (submission airtight) and **mean_norm ≈ 0.50**, bimodal
+— **~6/9 walk the trail to the oracle**, **~3/9 stall** on signposts. **Allocation was withheld from
+the seed on purpose** — that ~⅓ stall is the gradient.
+
+So the next dial is the **loop itself**: `python run_loop.py --backend real` — let Opus rewrite the
+playbook to cut the stall (push allocation toward the trail) and watch held-out coverage climb off
+0.50. Cost: a Haiku episode is cents; an Opus rewrite is ~$1 (the dominant term) — keep the eval lean.
 
 **Settled — don't reopen** (`RESET_DESIGN.md` → "Locked decisions"): the evolved unit is
 **English, never code** (that is the sieve that keeps the tacit residue and makes model-generality

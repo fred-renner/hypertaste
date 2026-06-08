@@ -234,9 +234,27 @@ same skeleton (swap which signal is deceptive); the battery *is* the transfer te
    floor-player for offline plumbing); `run_loop.py` is the entrypoint. One live episode on the seed
    playbook already reached the oracle's *allocation* (`determined=9`) but left coverage on the
    table at the *submission* (`raw=5`, norm 0.33) — the predicted gradient for the loop.
-4. **Wire + calibrate** — **next**. Run the loop live on the anchor family and calibrate so Haiku
-   lands mid-band: the seed already clears `determined`, so the first dial is the playbook's
-   reconstruction/submission discipline (submit every pinned cell), then iterate Opus on it.
+4. **Wire + calibrate** — ✅ **DONE** (live-validated). Live-eval of the seed surfaced the
+   calibration blocker — and it was *legibility*, not just submission wording: `world_map` exposed
+   each cell's `reg`/`pos` and the trail tree but **never the value law** (`value = (reg_value + pos)
+   mod K`), so although the world is B2 by construction ("reconstruction is a pure lookup") the
+   lookup was **unreachable by the agent** — it could only echo the exact cells it probed and
+   *guessed* the rest (an invented "alternating pattern"). So it pinned coverage but threw it away
+   at submission (`determined=6`, `raw=3`); on most draws it scored **0.00**. The screen's
+   heuristics all read the full table — implicitly law-aware, hence 6 — so the live student wasn't
+   even on their footing. Two coupled fixes (`hta/ch2/episode_state.py` `world_map` +
+   `seed/playbook.md`): **(a)** make the public value law legible in `world_map` (add `value_rule`,
+   flag valley cells `mirrors=landmark`) — it is the *same* public structure the oracle/heuristics
+   already compute under, so it lifts the live agent onto the screen's footing **without touching the
+   band** (gate verdict unchanged: oracle 9.0 ≫ heur 6.0, gap 0.50); **(b)** add reconstruction
+   discipline to the seed (submit the forced value for every pinned cell; never guess an un-pinned
+   one). **Allocation guidance was deliberately withheld** — walking the trail is the loop's to
+   discover. Result, 9 fresh live draws: **mean_norm ≈ 0.50, `raw == determined` on every draw**
+   (submission discipline now airtight), bimodal — **6/9 reach the oracle** (Haiku walks
+   trailhead→waypoint→landmark and reconstructs the valley) and **3/9 stall at 0.00** (it spends its
+   three probes on signposts/the wrong path and pins no coverage cell). That ~⅓ allocation stall is
+   the legible, learnable gradient. **Next: run the loop** (Opus rewrites the playbook to cut the
+   stall — push the allocation toward the trail) and watch held-out coverage climb off 0.50.
 
 Cost floor unchanged: a single-session Haiku episode is cents; an Opus meta edit (~$1) dominates a
 real iteration. Keep the eval lean.
