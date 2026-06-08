@@ -124,7 +124,7 @@ makes a **new research virtue** necessary to win:
 | Chapter | World kind | Judge (objective principle) | Virtue it forces | Status |
 |---|---|---|---|---|
 | **1** | deterministic hidden rule `f(x,y,z)→bool` | **exact equivalence** — your rule behaves identically to mine on a fixed battery | falsification, hypothesis decomposition, Occam | done — pivoted (binary oracle → flat signal) |
-| **2** | navigable hidden **investigation-map** (the anchor trail world) | **coverage** — how much of the structure you uncovered under a scarce budget | budget allocation, value-of-information, reading global structure, predict-the-unseen | **current — reset: unit is an English playbook, model-orchestrated; anchor world build-screened; reseed next (`RESET_DESIGN.md`)** |
+| **2** | navigable hidden **investigation-map** (the anchor → forked trail worlds) | **coverage** — how much of the structure you uncovered under a scarce budget | budget allocation, value-of-information, reading global structure, predict-the-unseen | **current — English playbook, model-orchestrated; agent loop ran (held-out 0.50→1.00); the world-smith (second loop) is built — it evolves the world's *structure* and ships only in the ZPD; live closed-loop demo next (`RESET_DESIGN.md`)** |
 | **3** | no exact rule — an uncertain/noisy process | **calibration** — how much probability you put on what actually happened | weighing evidence, quantifying uncertainty, knowing what you don't know | future |
 | **4+** | worlds you must act on, not just observe | **intervention quality** — the soundness of the experiment you designed | experimental design, controlling confounds, causal reasoning | future |
 

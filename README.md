@@ -17,10 +17,12 @@ world plus a meta agent that rewrites the task agent — specialized so that:
 > agent wrote a brute-force solver — because the evolved unit was **code**. The reset fixes both:
 > the evolved unit becomes a **non-executable English playbook**, and the world is built so the
 > *content* of the winning policy is learnable only by playing. The forward design is
-> **`RESET_DESIGN.md`** (read it first). The **reseed is built**: the frozen option-B substrate
-> (confined probe-MCP server, the seven orchestration primitives, the band-normalized coverage
-> judge, the model-orchestrated loop) plus the only evolvable node, `hta/ch2/seed/playbook.md`.
-> Next is **live calibration** so Haiku lands in-band (`RESET_DESIGN.md` → "Next actions" 4).
+> **`RESET_DESIGN.md`** (read it first). The substrate is built and calibrated, the agent loop ran
+> (seed → gen_0001, held-out **0.50 → 1.00**), and the **world-smith — the second loop — is built**:
+> it evolves the world's *structure* (the **forked trail**) to demand a new taste (*scout, then
+> commit*), with the inventor proposing only structure and the oracle + coverage re-derived
+> mechanically. Model-free proven; the **live closed-loop demo** is the next step
+> (`run_worldsmith.py --backend real`; `RESET_DESIGN.md` → "Next actions" 5).
 
 **The three docs:** `RESET_DESIGN.md` is the current chapter's design (the locked decisions, the
 harness spec, the anchor world). `ROADMAP.md` is the North Star — the two-loop model, the
@@ -115,16 +117,24 @@ hta/
   meta_agent.py        Opus agentic self-modification of the evolving node
   sandbox.py           meta-agent airgap: Direct (Bash-denied) | Docker (container)
   ch2/
-    anchor.py          the anchor trail world + oracle-by-simulation + the build-screen
+    anchor.py          the anchor trail world + oracle-by-simulation + the build-screen (generic over
+                       a spec protocol, so the oracle/screen re-derive for any world shape)
+    worlds.py          the world-smith's structural family: ForkedTrailSpec + the forked/decoy worlds
+    world_smith.py     the SECOND loop: ship-gate (hard ∧ solvable ∧ ZPD) + inventor scaffold + demo
     episode_state.py   the frozen world-state machine (the seven primitives) + the band judge
     probe_server.py    confined stdio-MCP server: probe/spawn/submit_map/world_map/remaining/mem_*
     loop.py            the model-orchestrated (option-B) DGM-H loop over the anchor family
     seed/playbook.md   the ONLY evolvable node (non-executable English; Opus rewrites this)
+    champion/playbook.md  the recorded gen_0001 disposition (the closed-loop demo's champion)
 docker/Dockerfile.agent       agent-plane image (Node + claude CLI; no project code/world/secrets)
 scripts/build_agent_image.sh  build the agent-plane image (context = docker/ only)
 run_anchor.py          build-screen the anchor family (oracle ≫ heuristic gate + difficulty sweep)
 run_loop.py            the Chapter-2 model-orchestrated loop (anchor world; mock or real backend)
+run_probe.py           stage-1: the champion vs a scalar-harder world (no gap re-opens)
+run_worldsmith.py      the world-smith: ship-gate (free) + the live closed-loop demonstration
 tests/test_anchor.py        anchor world / oracle / build-screen tests
+tests/test_worlds.py        forked-trail structure: the gate-gated lookup + the spec protocol
+tests/test_world_smith.py   the ship-gate (ZPD coupling) + the inventor scaffold
 tests/test_episode_state.py episode-state machine + band judge (airgap, accounting, spawn carve-out)
 tests/test_probe_server.py  probe-MCP framing + role airgap + spawn (offline; injected worker)
 tests/test_loop.py          the loop wiring + judge replay + report sanitization (mock)

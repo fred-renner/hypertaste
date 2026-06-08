@@ -256,5 +256,42 @@ same skeleton (swap which signal is deceptive); the battery *is* the transfer te
    the legible, learnable gradient. **Next: run the loop** (Opus rewrites the playbook to cut the
    stall — push the allocation toward the trail) and watch held-out coverage climb off 0.50.
 
+5. **The world-smith (the second loop)** — ✅ **built; model-free proven, live demo wired.** The agent
+   loop ran (seed → gen_0001, the coach *discovered* "list every chain, commit to the deepest", held-out
+   **0.50 → 1.00**), and a stage-1 probe (`run_probe.py`) confirmed no *scalar* crank re-opens a gap —
+   that note survives every dial, so the gradient lives in the world's **structure**. The world-smith
+   (`hta/ch2/world_smith.py`) evolves that structure. Its first move is the **forked trail**
+   (`hta/ch2/worlds.py` — `ForkedTrailSpec`/`decoy_spec`): two candidate chains and a **gate** whose
+   hidden value selects the live one, so the valley (mirroring the *live* chain's landmark) is pinned
+   only by reading the gate **and** walking that chain. Committing to a chain without the cheap gate
+   scout pins **zero** valley, whichever chain it is — the structural strategy-trap. The new taste is
+   **scout feasibility, then commit** (the fifth battery virtue, calibrated commitment, made structural,
+   exactly the "punishes blind full-commitment" the last run pointed at).
+
+   The integrity wall is **lifted, intact**: the inventor proposes only the world's *structure* as
+   validated data (`to_dict`/`from_dict`/`validate` — safe-eval lifted, never the score); the referee
+   (coverage) and the belief-MDP oracle are **re-derived mechanically** by the *unchanged* `anchor.py`
+   machinery (refactored only to dispatch through a small spec protocol — the 46 anchor tests are
+   untouched, `episode_state`/`loop` touched minimally so a richer world rides the same airgap). The
+   **ship-gate** ships a world only if **hard** (oracle ≫ the generic-planner basket incl. 2-step
+   lookahead) ∧ **solvable** (a reachable *method*, `scout_then_commit`, reaches the oracle band) ∧ in
+   the **ZPD** (the *champion's* method, `commit_deepest`, *fails* while the new one *succeeds* — the
+   only legal coupling is the objective gap on the non-movable scorer, never the agent's internals).
+
+   **Model-free result** (`run_worldsmith.py`, free, deterministic): the decoy **SHIPS** — oracle 11 ≫
+   floor 4, gap **0.71n**, anti-cliff ramp, heur **0.29n** (live-student room); "commit to the deepest"
+   scores **0.00n** (stalls at the floor), "scout the gate, then commit" scores **1.00n**. A no-fork
+   control (a single depth-3 chain, *above* threshold, gap 0.42n) correctly **holds** — the champion
+   already wins it (1.00n), so it is not in the ZPD. The SAME method, broken precisely by the fork.
+
+   **Pending — the live confirmation** (`run_worldsmith.py --backend real`, ~$1): eval the champion on
+   fresh decoy draws (predict: fails by strategy), one Opus coaching round, eval the new player on
+   held-out draws (predict: passes). The champion node (`hta/ch2/champion/playbook.md`) is the recorded
+   gen_0001 disposition, so the demo is self-contained. Honest caveat (`ROADMAP.md` → "earning its
+   keep"): at Chapter-2 complexity Opus-the-coach *can* articulate scout-then-commit from outside, so
+   this demonstrates the **loop mechanism** (structure evolves → champion fails → coaching closes it),
+   not yet that the loop climbs past an articulable ceiling — that remains the staged, later claim on
+   richer substrate.
+
 Cost floor unchanged: a single-session Haiku episode is cents; an Opus meta edit (~$1) dominates a
 real iteration. Keep the eval lean.

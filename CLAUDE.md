@@ -47,28 +47,33 @@ llm, config), the **anchor trail world** (`hta/ch2/anchor.py`, build-screened by
 and the **option-B substrate**: `hta/ch2/episode_state.py` (world-state machine + band judge),
 `hta/ch2/probe_server.py` (confined stdio-MCP, the seven primitives + `spawn`), `hta/ch2/loop.py`
 (the model-orchestrated DGM-H loop), `hta/ch2/seed/playbook.md` (the only evolvable node), and
-`run_loop.py`. Offline-green (46 tests), **calibrated live**, and the **agent loop is validated**: one
-real iteration took the seed → gen_0001 (the coach *discovered* the withheld allocation note on its
-own) and held-out coverage climbed **0.50 → 1.00** (see below).
+`run_loop.py`. Offline-green (61 tests), **calibrated live**, the **agent loop is validated** (seed →
+gen_0001, the coach *discovered* the withheld allocation note on its own, held-out **0.50 → 1.00**),
+and now the **world-smith (the second loop) is built** (`hta/ch2/worlds.py`, `hta/ch2/world_smith.py`,
+`run_worldsmith.py`).
 
-**Next action — THE WORLD-SMITH (the second loop)** (`ROADMAP.md` → closing the loop):
+**Where the world-smith stands.** A stage-1 probe (`run_probe.py`) showed no *scalar* crank of the
+anchor re-opens a gap — "list every chain, commit to the deepest" survives every dial, so the gradient
+lives in the world's **structure**. So the world-smith authors a structurally harder world — the
+**forked trail** (`worlds.decoy_spec`): two candidate chains and a **gate** whose hidden value says
+which is live, so committing to a chain without the cheap gate scout pins **zero** valley, whichever
+chain it is. The new taste it demands is **scout feasibility, then commit**. The integrity wall is
+lifted intact: the inventor proposes only **structure** (a validated spec as *data* — safe-eval
+lifted, never the score), and the harness re-derives the oracle + coverage **mechanically** (the
+unchanged `anchor.py` machinery) and ships a world only if **hard** (oracle ≫ every generic planner) ∧
+**solvable** (a reachable *method* reaches the oracle) ∧ in the **ZPD** (the champion's method *fails*
+while the new one *succeeds* — the only legal coupling is the objective gap on the non-movable scorer,
+never the agent's internals). **Model-free proven** (`run_worldsmith.py`, free, deterministic): the
+decoy **ships** (gap 0.71n, champion 0.00n, fix 1.00n) while a no-fork control correctly *holds* (the
+champion already wins it) — the SAME method, broken precisely by the fork.
 
-The agent loop is proven: `run_loop.py --backend real` took seed → gen_0001 and the coach (Opus)
-*discovered* the withheld allocation note ("list every chain, count payoff-per-dig, commit to the
-deepest"); held-out coverage went **0.50 → 1.00**. A stage-1 probe (`run_probe.py`) then asked whether
-*scalar*-hardening the **same** world re-opens a gap: it does not. Every gated dial-setting keeps the
-**same** optimal policy (walk the trail) — only the stakes move (best greedy heuristic pinned at 6,
-only the oracle scales) — so a knob can't make the champion's strategy *wrong*; it holds (3/4 perfect,
-1/4 a budget-slack execution strand). The gradient now lives in the **world's structure**, not the dials.
-
-So build the **world-smith**: the curriculum half that *evolves the world's structure* — a deeper /
-branching / adaptive trail, **never a knob** — to demand a kind of taste the player **does not yet
-have**, accounting for what the last run surfaced (e.g. the strand under budget slack → a world that
-punishes blind full-commitment, where the new note must be *scout feasibility, then commit*). First
-deliverable is the closed-loop demonstration: author a structurally harder world, show the champion
-**fails by strategy** (not luck), run one coaching round, show the new player **passes**. **Budget
-co-evolves with the world** — as new behaviors need more steps the step budget may grow — but stays
-**tight** (scarcity is the point; probes, not turns, bind). Keep both invariants below; fresh session, with a plan.
+**Next action — RUN THE LIVE CLOSED LOOP** (`run_worldsmith.py --backend real`, ~$1; fresh session):
+the ship-gate *predicts* the champion fails the fork by strategy and one coaching round closes it —
+confirm it live (champion fails → Opus rewrites the playbook → new player passes on held-out draws).
+The champion is provided as a faithful node (`hta/ch2/champion/playbook.md`, the recorded gen_0001
+disposition), so the demo is self-contained. Then evolve the **next** structural move (deeper /
+adaptive) and fold the smith into a true two-loop run. **Budget co-evolves with the world but stays
+tight** (scarcity is the point; probes, not turns, bind). Keep both invariants below.
 
 **Settled — don't reopen** (`RESET_DESIGN.md` → "Locked decisions"): the evolved unit is
 **English, never code** (that is the sieve that keeps the tacit residue and makes model-generality
@@ -84,6 +89,8 @@ pip install pytest && python -m pytest tests/ -q  # tests (pytest is not preinst
 python run_loop.py --iterations 1 --backend mock  # the loop, offline (deterministic floor-player)
 python run_loop.py --iterations 1 --backend real  # the loop, live (cents/Haiku episode, ~$1/Opus edit)
 python run_probe.py --backend real                # stage-1: champion vs a scalar-harder world (cents)
+python run_worldsmith.py                          # the world-smith ship-gate: free, model-free (no $)
+python run_worldsmith.py --backend real           # + the LIVE closed-loop demo (~$1/Opus coaching round)
 ```
 
 The `claude` CLI is installed and authenticated here, so the `real` backend works without an API
@@ -92,13 +99,18 @@ dependency.
 
 ## Files you'll edit vs. leave alone
 
-Edit now: `hta/config.py` (knobs), `hta/ch2/anchor.py` (the anchor world + oracle + build-screen),
-`run_anchor.py` (the build gate), `run_probe.py` (stage-1 champion-vs-harder-world probe), and the
-**evolvable node `hta/ch2/seed/playbook.md`** (the loop
-rewrites *this*; for calibration you may hand-edit the seed). The reseed built the **frozen
-substrate** — `hta/ch2/episode_state.py` (world-state machine + band judge), `hta/ch2/probe_server.py`
-(confined probe-MCP + the seven primitives), `hta/ch2/loop.py` (the model-orchestrated loop),
-`run_loop.py` — leave it alone unless deliberately changing the harness (keep the two invariants).
+Edit now: `hta/config.py` (knobs), `hta/ch2/anchor.py` (the anchor world + oracle + build-screen — now
+generic over a spec *protocol* so the oracle/screen re-derive mechanically for any world shape),
+`hta/ch2/worlds.py` (the world-smith's structural family — `ForkedTrailSpec`, the forked/decoy worlds),
+`hta/ch2/world_smith.py` (the second loop — ship-gate + inventor scaffold + the closed-loop demo),
+`run_anchor.py` (the build gate), `run_probe.py` (stage-1 scalar-harder probe), `run_worldsmith.py`
+(the world-smith demo), and the **evolvable node `hta/ch2/seed/playbook.md`** (the loop rewrites
+*this*; for calibration you may hand-edit the seed). The reseed built the **frozen substrate** —
+`hta/ch2/episode_state.py` (world-state machine + band judge), `hta/ch2/probe_server.py` (confined
+probe-MCP + the seven primitives), `hta/ch2/loop.py` (the model-orchestrated loop), `run_loop.py` —
+leave it alone unless deliberately changing the harness (the world-smith touched it *minimally*:
+`world_map`/report/serialization now delegate to the spec so a richer world rides the same airgap; the
+coverage judge and the text artifact are untouched — both invariants intact).
 
 Leave alone unless deliberately changing them (and then keep the two invariants below): the loop
 spine — `hta/archive.py` (archive + selection), `hta/taste.py` (MDL prior), `hta/meta_agent.py`

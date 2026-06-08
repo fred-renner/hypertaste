@@ -224,12 +224,9 @@ def _eval_split(node_dir, train, transfer, cfg, log):
 def _sanitized_report(per_world: List[dict], spec: anchor.TrailSpec, floor, oracle) -> str:
     lines = [
         "# Coverage evaluation report (sanitized)\n",
-        f"The world: a trail of public pointers (trailhead {spec.trailhead} -> waypoints "
-        f"{list(spec.waypoints)} -> landmarks {[list(r) for r in spec.landmarks]}) through "
-        f"{spec.R} registers (values 0..{spec.K - 1}, the only hidden information). Reading a "
-        f"signpost pays ZERO coverage; the clearing blocks pay immediately; the deep valley pays "
-        f"only once the trail is walked to its end. Probe budget per world: {spec.budget} (cost-"
-        f"weighted). Coverage band (raw cells): floor {floor:.2f} -> oracle {oracle:.2f}.",
+        f"The world: {spec.report_blurb()} (register values 0..{spec.K - 1} are the only hidden "
+        f"information). Probe budget per world: {spec.budget} (cost-weighted). Coverage band (raw "
+        f"cells): floor {floor:.2f} -> oracle {oracle:.2f}.",
         "You are NOT given the register values or the true values of un-probed cells; reason only "
         "about the agent's CONDUCT.\n",
     ]

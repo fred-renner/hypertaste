@@ -40,21 +40,22 @@ def canonical_spec() -> anchor.TrailSpec:
     return anchor.TrailSpec(**ANCHOR)
 
 
-def spec_to_dict(spec: anchor.TrailSpec) -> dict:
-    """Serialize a TrailSpec to a JSON-able dict (tuples -> lists) so it can ride to the probe
-    server in a server-only env var — the hidden seed never touches the player's channel."""
-    return {"name": spec.name, "R": spec.R, "K": spec.K, "Ld": spec.Ld, "Lv": spec.Lv,
-            "trailhead": spec.trailhead, "waypoints": list(spec.waypoints),
-            "landmarks": [list(row) for row in spec.landmarks], "budget": spec.budget,
-            "Ls": spec.Ls, "cost_signpost": spec.cost_signpost, "cost_clearing": spec.cost_clearing}
+def spec_to_dict(spec) -> dict:
+    """Serialize a world spec to a kind-tagged JSON-able dict (tuples -> lists) so it can ride to the
+    probe server in a server-only env var — the hidden seed never touches the player's channel. Each
+    spec owns its serialization (`to_dict`), so a TrailSpec or a richer ForkedTrailSpec rides the
+    same airgap unchanged."""
+    return spec.to_dict()
 
 
-def spec_from_dict(d: dict) -> anchor.TrailSpec:
-    return anchor.TrailSpec(
-        name=d["name"], R=d["R"], K=d["K"], Ld=d["Ld"], Lv=d["Lv"], trailhead=d["trailhead"],
-        waypoints=tuple(d["waypoints"]), landmarks=tuple(tuple(r) for r in d["landmarks"]),
-        budget=d["budget"], Ls=d.get("Ls", 1), cost_signpost=d.get("cost_signpost", 1),
-        cost_clearing=d.get("cost_clearing", 1))
+def spec_from_dict(d: dict):
+    """Rebuild the spec, dispatching on the `kind` tag (default 'trail' for back-compat). The expander
+    is data-driven (safe-eval, lifted): a validated structural spec, never code."""
+    kind = d.get("kind", "trail")
+    if kind == "forked":
+        from .worlds import ForkedTrailSpec
+        return ForkedTrailSpec.from_dict(d)
+    return anchor.TrailSpec.from_dict(d)
 
 
 def draw_hstar(spec: anchor.TrailSpec, seed: int) -> Tuple[int, ...]:
@@ -116,35 +117,17 @@ class EpisodeState:
         return {"remaining": self.remaining_cost()}
 
     def world_map(self) -> dict:
-        """The PUBLIC rules of the game: the pointer tree (trailhead -> waypoint -> landmark), the
-        cell layout with costs and roles, and the deterministic VALUE LAW (`value_rule`). The
-        register VALUES are absent — that is the hidden seed. Exposing the law (not the values) is
-        what makes reconstruction a reachable LOOKUP for the player: it is public structure (the same
-        law the model-free heuristics and oracle are computed under), so it lifts the live agent onto
-        the screen's footing without touching the band — what stays hidden, and the whole game, is
-        the ALLOCATION (which scarce probes to spend). `submit_map` keys and `probe` indices are the
-        `col` fields here."""
-        cells = []
-        for i, c in enumerate(self.cells):
-            entry = {"col": i, "kind": c[0], "cost": self.costs[i],
-                     "probeable": i in self._probe_set, "coverage": i in self.cov_cols}
-            if c[0] in ("sig", "direct"):
-                entry["reg"], entry["pos"] = c[1], c[2]
-            else:
-                entry["pos"], entry["mirrors"] = c[1], "landmark"  # valley mirrors the landmark register
-            cells.append(entry)
-        value_rule = (
-            "Cell values are a deterministic lookup, never a pattern to guess: a cell's value = "
-            "(its register's hidden value + pos) mod K. A signpost or clearing cell uses its own "
-            "`reg`; a valley cell (mirrors='landmark') uses the LANDMARK register — the one the "
-            "public trail (trailhead -> waypoints[branch] -> landmarks[branch][waypoint]) resolves to "
-            "under the hidden values. So once your probes pin a register's value, every cell keyed to "
-            "that register is fully determined — you reconstruct it, you do not guess it.")
-        return {"R": self.spec.R, "K": self.spec.K, "budget": self.spec.budget,
-                "remaining": self.remaining_cost(), "value_rule": value_rule,
-                "trail": {"trailhead": self.spec.trailhead, "waypoints": list(self.spec.waypoints),
-                          "landmarks": [list(r) for r in self.spec.landmarks]},
-                "cells": cells}
+        """The PUBLIC rules of the game: the pointer tree, the cell layout with costs and roles, and
+        the deterministic VALUE LAW (`value_rule`). The register VALUES are absent — that is the
+        hidden seed. Exposing the law (not the values) is what makes reconstruction a reachable
+        LOOKUP for the player: it is public structure (the same law the model-free heuristics and
+        oracle are computed under), so it lifts the live agent onto the screen's footing without
+        touching the band — what stays hidden, and the whole game, is the ALLOCATION (which scarce
+        probes to spend). `submit_map` keys and `probe` indices are the `col` fields here.
+
+        Delegated to `spec.world_map_public` so a *richer* world (a forked/decoy trail from the
+        world-smith) describes its own structure through this unchanged airgap method."""
+        return self.spec.world_map_public(self.remaining_cost())
 
     def mem_read(self) -> dict:
         return {"text": self.mem}

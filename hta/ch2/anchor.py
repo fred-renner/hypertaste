@@ -168,11 +168,75 @@ class TrailSpec:
     def M(self) -> int:
         return len(self.cells())
 
+    def world_map_public(self, remaining: int) -> dict:
+        """The PUBLIC rules of the game (no hidden values), owned by the spec so a *richer* world
+        describes itself through the **unchanged** episode airgap (`episode_state.world_map`
+        delegates here): the pointer tree, the cell layout with costs/roles, and the deterministic
+        value law. Exposing the law (not the values) is what makes reconstruction a reachable LOOKUP
+        — the same law the oracle/heuristics compute under — without touching the band; what stays
+        hidden is the ALLOCATION."""
+        value_rule = (
+            "Cell values are a deterministic lookup, never a pattern to guess: a cell's value = "
+            "(its register's hidden value + pos) mod K. A signpost or clearing cell uses its own "
+            "`reg`; a valley cell (mirrors='landmark') uses the LANDMARK register — the one the "
+            "public trail (trailhead -> waypoints[branch] -> landmarks[branch][waypoint]) resolves to "
+            "under the hidden values. So once your probes pin a register's value, every cell keyed to "
+            "that register is fully determined — you reconstruct it, you do not guess it.")
+        return {"R": self.R, "K": self.K, "budget": self.budget, "remaining": remaining,
+                "value_rule": value_rule,
+                "trail": {"trailhead": self.trailhead, "waypoints": list(self.waypoints),
+                          "landmarks": [list(r) for r in self.landmarks]},
+                "cells": public_cells(self)}
 
-def cell_value(spec: TrailSpec, cell: Tuple, hyp: Tuple[int, ...]) -> int:
+    def report_blurb(self) -> str:
+        """One-line PUBLIC description for the sanitized meta/inventor report (no hidden values)."""
+        return (f"a single trail of public pointers (trailhead {self.trailhead} -> waypoints "
+                f"{list(self.waypoints)} -> landmarks {[list(r) for r in self.landmarks]}) through "
+                f"{self.R} registers; reading a signpost pays ZERO coverage, the clearing blocks pay "
+                f"immediately, the deep valley pays only once the trail is walked to its end")
+
+    # ---- declarative (de)serialization (kind-tagged so the airgap can ride either spec) ----
+    def to_dict(self) -> dict:
+        return {"kind": "trail", "name": self.name, "R": self.R, "K": self.K, "Ld": self.Ld,
+                "Lv": self.Lv, "trailhead": self.trailhead, "waypoints": list(self.waypoints),
+                "landmarks": [list(r) for r in self.landmarks], "budget": self.budget, "Ls": self.Ls,
+                "cost_signpost": self.cost_signpost, "cost_clearing": self.cost_clearing}
+
+    @classmethod
+    def from_dict(cls, d: dict) -> "TrailSpec":
+        return cls(name=d["name"], R=d["R"], K=d["K"], Ld=d["Ld"], Lv=d["Lv"],
+                   trailhead=d["trailhead"], waypoints=tuple(d["waypoints"]),
+                   landmarks=tuple(tuple(r) for r in d["landmarks"]), budget=d["budget"],
+                   Ls=d.get("Ls", 1), cost_signpost=d.get("cost_signpost", 1),
+                   cost_clearing=d.get("cost_clearing", 1))
+
+
+# ---------------------------------------------------------------------------
+# The deterministic expander — generic over the spec *protocol* (`cells`, `cost_of`, `clearings`,
+# `trail_regs`, `landmark_reg`, K/R/Ld/Lv/budget). TrailSpec implements it; so does ForkedTrailSpec
+# (worlds.py). That genericity is the whole point: the world-smith evolves the world's STRUCTURE
+# while the oracle/screen below are re-derived mechanically, never re-authored.
+# ---------------------------------------------------------------------------
+def public_cells(spec) -> List[dict]:
+    """The cell layout as PUBLIC descriptors (col, kind, cost, role, reg/pos) — no hidden values.
+    Shared by every spec's `world_map_public`."""
+    out = []
+    for i, c in enumerate(spec.cells()):
+        entry = {"col": i, "kind": c[0], "cost": spec.cost_of(c),
+                 "probeable": c[0] in ("sig", "direct"), "coverage": c[0] in ("direct", "valley")}
+        if c[0] in ("sig", "direct"):
+            entry["reg"], entry["pos"] = c[1], c[2]
+        else:
+            entry["pos"], entry["mirrors"] = c[1], "landmark"
+        out.append(entry)
+    return out
+
+
+def cell_value(spec, cell: Tuple, hyp: Tuple[int, ...]) -> int:
     """Deterministic expander, one cell, one hypothesis. Signpost/clearing: (r_i + p) — a lookup.
-    Valley: mirror the LANDMARK register the trail resolves to under this hypothesis: (r_landmark +
-    p) — a lookup too, once the trail is walked. No cell is ever a joint-solve; that is the B2 line."""
+    Valley: mirror the LANDMARK register the trail resolves to under this hypothesis
+    (`spec.landmark_reg`) — a lookup too, once the trail is walked. No cell is ever a joint-solve;
+    that is the B2 line."""
     kind = cell[0]
     if kind in ("sig", "direct"):
         _, i, p = cell
@@ -181,7 +245,7 @@ def cell_value(spec: TrailSpec, cell: Tuple, hyp: Tuple[int, ...]) -> int:
     return (hyp[spec.landmark_reg(hyp)] + p) % spec.K
 
 
-def build_tableau(spec: TrailSpec):
+def build_tableau(spec):
     """Rows = hypotheses (K**R register assignments); columns = cells; plus the cost vector and two
     index sets that are the whole design:
 
@@ -208,8 +272,11 @@ def build_tableau(spec: TrailSpec):
 # belief states, spending a COST budget. Computable on a small world (finite belief tree, no LLM
 # tokens) but NOT a shallow rule when the payoff is trail-deep — the threshold being cleared.
 # ---------------------------------------------------------------------------
-def oracle_value(spec: TrailSpec, budget: int = None) -> float:
-    """Expected cells determined by the optimal blind adaptive policy under the cost budget."""
+@lru_cache(maxsize=None)
+def oracle_value(spec, budget: int = None) -> float:
+    """Expected cells determined by the optimal blind adaptive policy under the cost budget. Cached
+    on the (frozen, hashable) spec so a world's reference is computed once and reused across every
+    episode it scores — the belief-MDP is the costly part."""
     B = spec.budget if budget is None else budget
     table, cells, costs, cov, probe = build_tableau(spec)
     H0 = frozenset(range(len(table)))
@@ -258,10 +325,11 @@ def clairvoyant_value(spec: TrailSpec, budget: int = None) -> float:
     return total / len(table)
 
 
-def floor_value(spec: TrailSpec, budget: int = None) -> float:
+@lru_cache(maxsize=None)
+def floor_value(spec, budget: int = None) -> float:
     """No-inference walker: determines only the cells it directly probes (never reads structure to
     predict the unseen), spending the cost budget on the cheapest cells. The dumb baseline that
-    proves *inference/allocation*, not raw probing, is doing the work."""
+    proves *inference/allocation*, not raw probing, is doing the work. Cached on the spec."""
     B = spec.budget if budget is None else budget
     _, _, costs, cov, probe = build_tableau(spec)
     walkable = sorted(costs[i] for i in set(cov) & set(probe))  # cells that are both coverage & probeable
@@ -394,12 +462,14 @@ def lookahead_value(spec: TrailSpec, depth: int) -> float:
 # registers are pinned -> a cliff risk); the direct-block mass is linear and counterbalances it.
 # The direct-to-valley mass ratio is the difficulty dial, exactly as in threshold.py.
 # ---------------------------------------------------------------------------
-def ramp_curve(spec: TrailSpec) -> List[float]:
+def ramp_curve(spec) -> List[float]:
     """curve[k] = mean fraction of COVERAGE cells determined when a random k-subset of registers is
-    known. Clearing cells: Ld per known clearing (linear in k). Valley: Lv iff the (data-dependent) trail
-    registers are all known -> averaged over hypotheses (convex). Signposts are instruments, not
-    coverage, so they do not appear. The linear clearing mass flattens the convex valley step (anti-
-    cliff); the clearing-to-valley ratio is the difficulty dial, exactly as in threshold.py.
+    known. Clearing cells: Ld per known clearing (linear in k). Valley: Lv iff the (data-dependent)
+    trail registers are all known -> averaged over hypotheses (convex). Signposts are instruments,
+    not coverage, so they do not appear. The linear clearing mass flattens the convex valley step
+    (anti-cliff); the clearing-to-valley ratio is the difficulty dial. Generic over the spec
+    protocol (`clearings`, `trail_regs`, Ld/Lv/R), so a ForkedTrailSpec's variable-depth live trail
+    rides the same formula.
 
     M_cov is the coverage denominator (clearings + valley), not the full cell count."""
     hyps = list(product(range(spec.K), repeat=spec.R))
