@@ -47,24 +47,28 @@ llm, config), the **anchor trail world** (`hta/ch2/anchor.py`, build-screened by
 and the **option-B substrate**: `hta/ch2/episode_state.py` (world-state machine + band judge),
 `hta/ch2/probe_server.py` (confined stdio-MCP, the seven primitives + `spawn`), `hta/ch2/loop.py`
 (the model-orchestrated DGM-H loop), `hta/ch2/seed/playbook.md` (the only evolvable node), and
-`run_loop.py`. Offline-green (46 tests), and **calibrated live**: the seed now lands **mean_norm ≈
-0.50 in-band** (see below).
+`run_loop.py`. Offline-green (46 tests), **calibrated live**, and the **agent loop is validated**: one
+real iteration took the seed → gen_0001 (the coach *discovered* the withheld allocation note on its
+own) and held-out coverage climbed **0.50 → 1.00** (see below).
 
-**Next action — RUN THE LOOP** (`RESET_DESIGN.md` → "Next actions" 4 is now ✅ DONE):
+**Next action — THE WORLD-SMITH (the second loop)** (`ROADMAP.md` → closing the loop):
 
-The calibrate step is landed. Live-eval surfaced the blocker as *legibility*: `world_map` hid the
-public value law (`value = (reg_value + pos) mod K`), so the B2 "reconstruction is a lookup" was
-unreachable — the agent pinned coverage (`determined=6`) but *guessed* the submission (`raw=3`),
-scoring ~0. Fix (committed): make the law legible in `world_map` (`value_rule` + valley
-`mirrors=landmark`) **without touching the band** (gate still oracle 9.0 ≫ heur 6.0), plus
-reconstruction discipline in the seed (submit every pinned cell, never guess). Now, 9 fresh live
-draws: **`raw == determined` on every draw** (submission airtight) and **mean_norm ≈ 0.50**, bimodal
-— **~6/9 walk the trail to the oracle**, **~3/9 stall** on signposts. **Allocation was withheld from
-the seed on purpose** — that ~⅓ stall is the gradient.
+The agent loop is proven: `run_loop.py --backend real` took seed → gen_0001 and the coach (Opus)
+*discovered* the withheld allocation note ("list every chain, count payoff-per-dig, commit to the
+deepest"); held-out coverage went **0.50 → 1.00**. A stage-1 probe (`run_probe.py`) then asked whether
+*scalar*-hardening the **same** world re-opens a gap: it does not. Every gated dial-setting keeps the
+**same** optimal policy (walk the trail) — only the stakes move (best greedy heuristic pinned at 6,
+only the oracle scales) — so a knob can't make the champion's strategy *wrong*; it holds (3/4 perfect,
+1/4 a budget-slack execution strand). The gradient now lives in the **world's structure**, not the dials.
 
-So the next dial is the **loop itself**: `python run_loop.py --backend real` — let Opus rewrite the
-playbook to cut the stall (push allocation toward the trail) and watch held-out coverage climb off
-0.50. Cost: a Haiku episode is cents; an Opus rewrite is ~$1 (the dominant term) — keep the eval lean.
+So build the **world-smith**: the curriculum half that *evolves the world's structure* — a deeper /
+branching / adaptive trail, **never a knob** — to demand a kind of taste the player **does not yet
+have**, accounting for what the last run surfaced (e.g. the strand under budget slack → a world that
+punishes blind full-commitment, where the new note must be *scout feasibility, then commit*). First
+deliverable is the closed-loop demonstration: author a structurally harder world, show the champion
+**fails by strategy** (not luck), run one coaching round, show the new player **passes**. **Budget
+co-evolves with the world** — as new behaviors need more steps the step budget may grow — but stays
+**tight** (scarcity is the point; probes, not turns, bind). Keep both invariants below; fresh session, with a plan.
 
 **Settled — don't reopen** (`RESET_DESIGN.md` → "Locked decisions"): the evolved unit is
 **English, never code** (that is the sieve that keeps the tacit residue and makes model-generality
@@ -79,6 +83,7 @@ python run_anchor.py                              # Ch2 build gate: free, model-
 pip install pytest && python -m pytest tests/ -q  # tests (pytest is not preinstalled)
 python run_loop.py --iterations 1 --backend mock  # the loop, offline (deterministic floor-player)
 python run_loop.py --iterations 1 --backend real  # the loop, live (cents/Haiku episode, ~$1/Opus edit)
+python run_probe.py --backend real                # stage-1: champion vs a scalar-harder world (cents)
 ```
 
 The `claude` CLI is installed and authenticated here, so the `real` backend works without an API
@@ -88,7 +93,8 @@ dependency.
 ## Files you'll edit vs. leave alone
 
 Edit now: `hta/config.py` (knobs), `hta/ch2/anchor.py` (the anchor world + oracle + build-screen),
-`run_anchor.py` (the build gate), and the **evolvable node `hta/ch2/seed/playbook.md`** (the loop
+`run_anchor.py` (the build gate), `run_probe.py` (stage-1 champion-vs-harder-world probe), and the
+**evolvable node `hta/ch2/seed/playbook.md`** (the loop
 rewrites *this*; for calibration you may hand-edit the seed). The reseed built the **frozen
 substrate** — `hta/ch2/episode_state.py` (world-state machine + band judge), `hta/ch2/probe_server.py`
 (confined probe-MCP + the seven primitives), `hta/ch2/loop.py` (the model-orchestrated loop),
@@ -106,6 +112,12 @@ spine — `hta/archive.py` (archive + selection), `hta/taste.py` (MDL prior), `h
   the consistent hypothesis set, normalized into a model-free **floor→oracle band**; the oracle
   is the exact adaptive belief-MDP policy, **by simulation** over the world family
   (`hta/ch2/anchor.py`). The world stays **deterministic** so the oracle is computable.
+  *Lifted to the second loop (the world-smith):* the same wall holds one level up — **the inventor
+  proposes only the world's *structure*, never the score.** The referee (coverage) and the
+  perfect-play benchmark (oracle) are **re-derived mechanically** from that structure, and a world
+  ships only if it is still **hard** (oracle ≫ greedy) **and solvable** within budget. An inventor
+  that could also move the score would just mint worlds that *look* solved — the exact trap that
+  forced the reset.
 - **Safe-eval, lifted** — model output never executes. *Ch2:* the evolved artifact is **text**
   (`playbook.md`), read by the harness as context only — never imported or run. (Worlds are
   realized from a **validated declarative spec** by a deterministic expander — same principle.)
