@@ -25,6 +25,11 @@ from hta.ch2.worlds import Chain, ForkedTrailSpec, decoy_spec, single_chain_spec
 # 6/7/8) that the gap holds — fast enough for the suite while still shipping.
 FORK = ForkedTrailSpec("fork-zpd", R=9, K=2, Ld=2, Lv=9, gate=0,
                        chains=(Chain(1, ((2, 3),)), Chain(4, ((5, 6),))), budget=3)
+# A small LADDER fork (512 hypotheses, budget 5): iteration 2's move scaled down — a depth-2 gate
+# ladder (gate reg0 -> final gate reg1 or reg2) over two chains. The iteration-1 graduate's rule
+# (scout THE gate, then commit) reads only the first gate and fails; the adaptive scout solves it.
+LADDER = ForkedTrailSpec("ladder-zpd", R=9, K=2, Ld=2, Lv=9, gate=0, gate_hops=((1, 2),),
+                         chains=(Chain(3, ((6, 7),)), Chain(4, ((7, 6),))), budget=5)
 
 
 def test_champion_method_fails_on_a_fork_but_wins_without_one():
@@ -60,6 +65,39 @@ def test_ship_requires_the_champion_to_fail_the_zpd_coupling():
 
 def test_propose_move_is_shippable():
     assert ws.ship_gate(ws.propose_move())["ship"]
+
+
+def test_gate_ladder_breaks_scout_the_first_gate_but_the_adaptive_scout_solves_it():
+    # Iteration 2's ZPD, one rung up: the decoy's FIX (scout THE gate, then commit) becomes the
+    # ladder's CHAMPION — it reads only the first gate, leaves the rest of the ladder unpinned, and
+    # stalls at the floor; the adaptive scout (walk the whole ladder, then commit) reaches the oracle.
+    champ_norm, _ = ws.policy_band(LADDER, ws.scout_then_commit)
+    fix_norm, _ = ws.policy_band(LADDER, ws.scout_ladder_then_commit)
+    assert champ_norm <= ws.FAIL_BAR
+    assert fix_norm >= ws.SOLVE_BAR
+
+
+def test_ship_gate_takes_the_champion_and_fix_methods_of_the_move():
+    # The move carries WHICH rule it must break and WHICH closes it. The ladder ships against the
+    # iteration-1 graduate (scout_then_commit) with the adaptive scout as the fix.
+    g = ws.ship_gate(LADDER, champion_method=ws.scout_then_commit,
+                     fix_method=ws.scout_ladder_then_commit)
+    assert g["hard"] and g["solvable"] and g["champion_fails"] and g["ship"]
+    # the decoy's fix is exactly the degenerate (zero-rung) adaptive scout, so on the single-gate
+    # decoy the two fix methods agree — the ladder logic generalizes scout-then-commit, not replaces it
+    d_then, _ = ws.policy_band(decoy_spec(), ws.scout_then_commit)
+    d_ladder, _ = ws.policy_band(decoy_spec(), ws.scout_ladder_then_commit)
+    assert d_then == d_ladder >= ws.SOLVE_BAR
+
+
+def test_curriculum_carries_the_graduate_forward_as_the_next_champion():
+    # The outer loop closing on itself: move 1's FIX is move 2's CHAMPION (the coached player carries
+    # forward), and each move declares a distinct harder world.
+    moves = ws.CURRICULUM
+    assert len(moves) == 2
+    assert moves[0]["fix"] is moves[1]["champion"]
+    assert moves[0]["spec"]().name != moves[1]["spec"]().name
+    assert moves[0]["child_name"] != moves[1]["child_name"]
 
 
 def test_realize_proposal_builds_validated_structure_from_data():

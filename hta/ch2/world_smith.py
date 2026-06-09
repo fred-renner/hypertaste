@@ -117,10 +117,13 @@ def commit_deepest(spec: ForkedTrailSpec) -> Callable:
 
 
 def scout_then_commit(spec: ForkedTrailSpec) -> Callable:
-    """The FIX (the new taste): read the gate FIRST (the cheap feasibility scout), then commit to the
-    LIVE chain it names, then mop up. Reaches the oracle band — the world is solvable by the right
-    method; the loop's job is for the model to discover it, since its content (which chain, where it
-    ends) is in the seed, learnable only by playing."""
+    """The FIX for the DECOY (iteration 1's new taste): read THE gate FIRST (the cheap feasibility
+    scout), then commit to the LIVE chain it names, then mop up. Reaches the oracle band on a
+    single-gate fork — the world is solvable by the right method; the loop's job is for the model to
+    discover it, since its content (which chain, where it ends) is in the seed, learnable only by
+    playing. On a gate LADDER this reads only the FIRST gate, so it becomes iteration 2's *champion*:
+    it commits without scouting the rest of the ladder, and fails the same way commit-deepest failed
+    the decoy."""
     sig_col, clearing_cols = _reg_index(spec)
     gate_col = sig_col.get(spec.gate)
 
@@ -133,10 +136,52 @@ def scout_then_commit(spec: ForkedTrailSpec) -> Callable:
     base = _walk_pick(spec, sig_col, clearing_cols, chain_of)
 
     def pick(table, cov, probe, costs, H, probed, b):
-        # explicit scout step: pin the gate before anything else (when there is a real fork)
+        # explicit scout step: pin the (first) gate before anything else (when there is a real fork)
         if spec.n_chains > 1 and _pinned(table, H, gate_col) is None:
             if gate_col is not None and gate_col not in probed and costs[gate_col] <= b:
                 return gate_col
+        return base(table, cov, probe, costs, H, probed, b)
+    return pick
+
+
+def _ladder_walk(spec: ForkedTrailSpec, sig_col, table, H):
+    """Walk the gate ladder by the values pinned SO FAR. Returns (reg, done): if a gate's value is not
+    yet pinned, (that gate reg, False) — it is the next to scout; else (final_gate_reg, True) once the
+    whole ladder resolves. With no `gate_hops` this is just (gate, gate-pinned?) — i.e. scout_then_commit
+    is exactly the degenerate one-rung case."""
+    r = spec.gate
+    for hop in spec.gate_hops:
+        v = _pinned(table, H, sig_col.get(r))
+        if v is None:
+            return r, False
+        r = hop[v % spec.K]
+    return r, _pinned(table, H, sig_col.get(r)) is not None
+
+
+def scout_ladder_then_commit(spec: ForkedTrailSpec) -> Callable:
+    """The FIX for the LADDER (iteration 2's new taste): scout the gate ladder ADAPTIVELY — read the
+    gate, let its value name the next gate, read that, ... to the final gate — THEN commit to the live
+    chain it names and walk it. Reaches the oracle band: the ladder world is solvable by the right
+    method, so the gap the champion (scout-the-FIRST-gate-then-commit) leaves is learnable (the ZPD),
+    not a wall. Generalizes scout_then_commit (which is this with a zero-rung ladder)."""
+    sig_col, clearing_cols = _reg_index(spec)
+
+    def chain_of(table, H):
+        r, done = _ladder_walk(spec, sig_col, table, H)
+        if spec.n_chains > 1 and not done:
+            return None                         # ladder not fully scouted -> keep scouting
+        gv = _pinned(table, H, sig_col.get(r))
+        return spec.chains[(gv or 0) % spec.n_chains]
+
+    base = _walk_pick(spec, sig_col, clearing_cols, chain_of)
+
+    def pick(table, cov, probe, costs, H, probed, b):
+        if spec.n_chains > 1:                   # adaptive scout: probe the next un-pinned gate
+            r, done = _ladder_walk(spec, sig_col, table, H)
+            if not done:
+                col = sig_col.get(r)
+                if col is not None and col not in probed and costs[col] <= b:
+                    return col
         return base(table, cov, probe, costs, H, probed, b)
     return pick
 
@@ -153,11 +198,17 @@ def policy_band(spec: ForkedTrailSpec, make_pick: Callable) -> Tuple[float, floa
 # The ship-gate: the model-free verdict on whether a proposed world may ship (hard + solvable + the
 # ZPD: the champion fails, the fix succeeds). Free, deterministic, token-free.
 # ---------------------------------------------------------------------------
-def ship_gate(spec: ForkedTrailSpec) -> dict:
+def ship_gate(spec: ForkedTrailSpec, champion_method: Callable = commit_deepest,
+              fix_method: Callable = scout_then_commit) -> dict:
+    """The model-free verdict on one structural move. `champion_method` is the CURRENT champion's
+    articulated rule (the one the move must break); `fix_method` is the reachable disposition that
+    closes it (the ZPD's upper edge). Iteration 1 uses the defaults (commit-deepest fails the decoy,
+    scout-the-gate fixes it); iteration 2 passes (scout_then_commit, scout_ladder_then_commit) — the
+    decoy's fix becomes the ladder's champion."""
     issues = worlds.validate(spec)
     s = anchor.screen(spec, clair=False)
-    champ_norm, champ_raw = policy_band(spec, commit_deepest)
-    fix_norm, fix_raw = policy_band(spec, scout_then_commit)
+    champ_norm, champ_raw = policy_band(spec, champion_method)
+    fix_norm, fix_raw = policy_band(spec, fix_method)
 
     hard = s["gap_norm"] >= MARGIN
     solvable = fix_norm >= SOLVE_BAR and s["oracle"] > s["floor"] + 1e-9
@@ -191,11 +242,13 @@ demands a kind of investigation the champion's playbook does NOT yet do — a de
 gated trail — never merely a bigger number or a tighter budget.
 
 You propose only STRUCTURE, as a JSON object (a `ForkedTrailSpec`): registers R, colors K, block
-lengths Ld/Lv, a `gate` register, a list of `chains` (each {"head": r, "hops": [[..K..], ...]}), and a
-`budget`. You do NOT propose the score or the oracle — the harness re-derives those mechanically from
-your structure and will only ship your world if it is still HARD (a belief-MDP oracle beats every
-generic planner) and SOLVABLE within budget, and if the champion measurably fails it while the right
-method succeeds. Reason about WHICH behavior the champion lacks; emit one JSON object, nothing else."""
+lengths Ld/Lv, a `gate` register, a list of `chains` (each {"head": r, "hops": [[..K..], ...]}), an
+optional `gate_hops` (an adaptive gate LADDER: each hop maps the current gate's value to the next gate
+register, so the live chain is reached only by scouting the gates step by step), and a `budget`. You do
+NOT propose the score or the oracle — the harness re-derives those mechanically from your structure and
+will only ship your world if it is still HARD (a belief-MDP oracle beats every generic planner) and
+SOLVABLE within budget, and if the champion measurably fails it while the right method succeeds. Reason
+about WHICH behavior the champion lacks; emit one JSON object, nothing else."""
 
 
 def realize_proposal(text: str) -> Tuple[Optional[ForkedTrailSpec], list]:
@@ -229,13 +282,13 @@ def propose_move(champion_dir: str = None, cfg=None, log=print) -> ForkedTrailSp
 # pass). Reuses the first loop's machinery wholesale (`loop.evaluate`, `loop.meta_edit`).
 # ---------------------------------------------------------------------------
 def demonstrate(champion_dir: str, spec: ForkedTrailSpec, cfg, n_eval: int = 4,
-                seed: int = 990_000, log=print) -> dict:
+                seed: int = 990_000, child_name: str = "coached", log=print) -> dict:
     worlds_before = [(spec, draw_hstar(spec, seed + i)) for i in range(n_eval)]
     log(f"\n[eval CHAMPION on '{spec.name}' — {n_eval} fresh draws; expect failure by strategy]")
     champ = loop.evaluate(champion_dir, worlds_before, cfg, log=log)
     log(f"  => champion mean_norm={champ['mean_norm']:.2f} solved={champ['solved']}/{champ['n_worlds']}")
 
-    child_dir = os.path.join(cfg.out_dir, "worldsmith", "coached")
+    child_dir = os.path.join(cfg.out_dir, "worldsmith", child_name)
     log("\n[one coaching round: Opus rewrites the playbook from the champion's conduct on this world]")
     loop.meta_edit(champion_dir, child_dir, champ["report_md"], cfg, log=log)
 
@@ -246,3 +299,45 @@ def demonstrate(champion_dir: str, spec: ForkedTrailSpec, cfg, n_eval: int = 4,
 
     return {"champion": champ, "coached": coached, "child_dir": child_dir,
             "closed": coached["mean_norm"] - champ["mean_norm"]}
+
+
+# ---------------------------------------------------------------------------
+# The curriculum — the two-loop run as a sequence of structural MOVES. Each move is a ZPD step: a
+# harder world, the CURRENT champion's articulated rule (the move must break it), and the reachable
+# fix (the move must be solvable by it). The coached player carries forward as the next champion, so
+# move 2's champion is move 1's graduate — the outer loop closing on itself.
+# ---------------------------------------------------------------------------
+CURRICULUM = [
+    {"label": "iteration 1 — the DECOY fork (scout THE gate, then commit)",
+     "spec": worlds.decoy_spec, "champion": commit_deepest, "fix": scout_then_commit,
+     "child_name": "coached_1"},
+    {"label": "iteration 2 — the gate LADDER (scout ADAPTIVELY, then commit)",
+     "spec": worlds.ladder_spec, "champion": scout_then_commit, "fix": scout_ladder_then_commit,
+     "child_name": "coached_2"},
+]
+
+
+def run_curriculum(champion_dir: str, cfg, n_eval: int = 4, log=print) -> list:
+    """Run the structural moves in order, the coached player from each carrying forward as the next
+    move's champion (move i's graduate is move i+1's champion). Each move is ship-gated model-free
+    first (it must SHIP — hard + solvable + this champion fails) and then demonstrated live. Returns a
+    per-move record; `child_dir` of the LAST move is the final champion."""
+    champ_dir = champion_dir
+    out = []
+    for i, mv in enumerate(CURRICULUM):
+        spec = mv["spec"]()
+        log("\n" + "#" * 100)
+        log(f"# {mv['label']}")
+        log("#" * 100)
+        gate = ship_gate(spec, champion_method=mv["champion"], fix_method=mv["fix"])
+        log(f"  ship-gate '{spec.name}': gap {gate['gap_norm']:.2f}n  champion {gate['champion_norm']:.2f}n"
+            f"  fix {gate['fix_norm']:.2f}n  ==> {'SHIP' if gate['ship'] else 'HOLD'}")
+        if not gate["ship"]:
+            log("  this move does not ship model-free; stopping the curriculum.")
+            out.append({"label": mv["label"], "spec": spec.name, "gate": gate, "rep": None})
+            break
+        rep = demonstrate(champ_dir, spec, cfg, n_eval=n_eval, seed=990_000 + 100_000 * i,
+                          child_name=mv["child_name"], log=log)
+        out.append({"label": mv["label"], "spec": spec.name, "gate": gate, "rep": rep})
+        champ_dir = rep["child_dir"]            # the graduate becomes the next champion
+    return out
