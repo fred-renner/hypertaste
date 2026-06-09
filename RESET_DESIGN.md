@@ -256,9 +256,10 @@ same skeleton (swap which signal is deceptive); the battery *is* the transfer te
    the legible, learnable gradient. **Next: run the loop** (Opus rewrites the playbook to cut the
    stall — push the allocation toward the trail) and watch held-out coverage climb off 0.50.
 
-5. **The world-smith (the second loop)** — ✅ **built; model-free proven, live demo wired.** The agent
-   loop ran (seed → gen_0001, the coach *discovered* "list every chain, commit to the deepest", held-out
-   **0.50 → 1.00**), and a stage-1 probe (`run_probe.py`) confirmed no *scalar* crank re-opens a gap —
+5. **The world-smith (the second loop)** — ✅ **built; model-free proven; the machinery runs and
+   extends, validated live.** The agent loop ran (seed → gen_0001, the coach *discovered* "list every
+   chain, commit to the deepest", held-out **0.50 → 1.00**), and a stage-1 probe (`run_probe.py`)
+   confirmed no *scalar* crank re-opens a gap —
    that note survives every dial, so the gradient lives in the world's **structure**. The world-smith
    (`hta/ch2/world_smith.py`) evolves that structure. Its first move is the **forked trail**
    (`hta/ch2/worlds.py` — `ForkedTrailSpec`/`decoy_spec`): two candidate chains and a **gate** whose
@@ -267,6 +268,16 @@ same skeleton (swap which signal is deceptive); the battery *is* the transfer te
    scout pins **zero** valley, whichever chain it is — the structural strategy-trap. The new taste is
    **scout feasibility, then commit** (the fifth battery virtue, calibrated commitment, made structural,
    exactly the "punishes blind full-commitment" the last run pointed at).
+
+   Its **second move** (`worlds.ladder_spec`) proves the family *extends*: the adaptive **gate ladder**.
+   The live chain is selected not by one gate but by a *ladder* of gates (read the gate → its hidden
+   value names the next gate → … → only the FINAL gate selects the chain), so the whole ladder is
+   load-bearing (`gate_chain` ⊆ `trail_regs`) and the decoy's own fix ("scout *the* gate, then commit")
+   now reads only the first rung and fails — exactly how `commit_deepest` failed the decoy, one level
+   up. The new taste is **scout *adaptively*, then commit**. The inventor proposes only the new
+   structure as data (`gate_hops`, a validated field — safe-eval intact); the oracle/coverage re-derive
+   mechanically, and the `CURRICULUM` runs the moves in sequence, each coached graduate carrying forward
+   as the next move's champion.
 
    The integrity wall is **lifted, intact**: the inventor proposes only the world's *structure* as
    validated data (`to_dict`/`from_dict`/`validate` — safe-eval lifted, never the score); the referee
@@ -280,18 +291,36 @@ same skeleton (swap which signal is deceptive); the battery *is* the transfer te
 
    **Model-free result** (`run_worldsmith.py`, free, deterministic): the decoy **SHIPS** — oracle 11 ≫
    floor 4, gap **0.71n**, anti-cliff ramp, heur **0.29n** (live-student room); "commit to the deepest"
-   scores **0.00n** (stalls at the floor), "scout the gate, then commit" scores **1.00n**. A no-fork
-   control (a single depth-3 chain, *above* threshold, gap 0.42n) correctly **holds** — the champion
-   already wins it (1.00n), so it is not in the ZPD. The SAME method, broken precisely by the fork.
+   scores **0.00n** (stalls at the floor), "scout the gate, then commit" scores **1.00n**. The ladder
+   **SHIPS** too — oracle 11 ≫ floor 5, gap **0.83n**, heur **0.17n**; "scout the gate, then commit"
+   now scores **0.00n** and "scout the ladder, then commit" **1.00n**. A no-fork control (a single
+   depth-3 chain, *above* threshold, gap 0.42n) correctly **holds** — the champion already wins it
+   (1.00n), so it is not in the ZPD. The SAME method, broken precisely by each structural move.
 
-   **Pending — the live confirmation** (`run_worldsmith.py --backend real`, ~$1): eval the champion on
-   fresh decoy draws (predict: fails by strategy), one Opus coaching round, eval the new player on
-   held-out draws (predict: passes). The champion node (`hta/ch2/champion/playbook.md`) is the recorded
-   gen_0001 disposition, so the demo is self-contained. Honest caveat (`ROADMAP.md` → "earning its
-   keep"): at Chapter-2 complexity Opus-the-coach *can* articulate scout-then-commit from outside, so
-   this demonstrates the **loop mechanism** (structure evolves → champion fails → coaching closes it),
-   not yet that the loop climbs past an articulable ceiling — that remains the staged, later claim on
-   richer substrate.
+   **Live result** (`run_worldsmith.py --backend real`, 2026-06-09; 18 `claude -p` calls, **$2.47**): the
+   machinery **runs and extends end-to-end** — both moves shipped, the ladder was authored after the
+   decoy and slotted into the `CURRICULUM`, the two-iteration two-loop ran live, and each graduate
+   carried forward as the next champion, the integrity wall intact one level up. **But the live loop did
+   NOT close the gap** (iter 1 decoy 0.00n→0.00n; iter 2 ladder 0.33n→0.00n), and *why* is the finding,
+   for the next session's brainstorm:
+
+   - **The model-free gap is not the live student's binding constraint.** The proxies (`commit_deepest`,
+     `scout_then_commit`) model an *allocation/scout* failure, but live Haiku **already scouts** (it reads
+     the gate, even the ladder, off `world_map`). What it cannot reliably do is the **pointer-chase
+     reconstruction** the score actually rewards — follow `head → hop[value] → landmark` and submit the
+     valley off the *true* landmark. It mis-resolves the last pointer ~half the time (`determined=9` but
+     `raw=0`), an axis the proxies assume away. The world is "hard" on an axis the live student has
+     already crossed; it fails on one the proxy is blind to.
+   - **Coaching regressed the player.** Opus's edits were strategically excellent — round 2 *diagnosed
+     the pointer bug precisely* — but kept a "bank what you can pin for sure" hedge that, against an
+     **all-or-nothing valley**, trades the valley for the floor. `coached_1` solved 2/4 ladder worlds;
+     the hedge dropped its graduate to 0. Local risk-aversion, global floor-cap.
+
+   The integrity wall did its job: an objective, agent-inaccessible scorer surfaced, honestly, that *the
+   proxy we can compute ≠ the constraint that binds the live student*. The two-loop machinery is sound
+   and extensible; making the model-free ship-gate **faithful to the live student** (so "champion fails"
+   means the *same thing* live) is the precondition for the loop's closure to mean anything — the open
+   question carried into the next session.
 
 Cost floor unchanged: a single-session Haiku episode is cents; an Opus meta edit (~$1) dominates a
 real iteration. Keep the eval lean.

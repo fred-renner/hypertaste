@@ -47,10 +47,11 @@ llm, config), the **anchor trail world** (`hta/ch2/anchor.py`, build-screened by
 and the **option-B substrate**: `hta/ch2/episode_state.py` (world-state machine + band judge),
 `hta/ch2/probe_server.py` (confined stdio-MCP, the seven primitives + `spawn`), `hta/ch2/loop.py`
 (the model-orchestrated DGM-H loop), `hta/ch2/seed/playbook.md` (the only evolvable node), and
-`run_loop.py`. Offline-green (61 tests), **calibrated live**, the **agent loop is validated** (seed →
+`run_loop.py`. Offline-green (66 tests), **calibrated live**, the **agent loop is validated** (seed →
 gen_0001, the coach *discovered* the withheld allocation note on its own, held-out **0.50 → 1.00**),
-and now the **world-smith (the second loop) is built** (`hta/ch2/worlds.py`, `hta/ch2/world_smith.py`,
-`run_worldsmith.py`).
+and the **world-smith (the second loop) is built and validated live** (`hta/ch2/worlds.py`,
+`hta/ch2/world_smith.py`, `run_worldsmith.py`) — the machinery **runs and extends**, but the live run
+surfaced a finding (below) that reframes the next step.
 
 **Where the world-smith stands.** A stage-1 probe (`run_probe.py`) showed no *scalar* crank of the
 anchor re-opens a gap — "list every chain, commit to the deepest" survives every dial, so the gradient
@@ -64,19 +65,36 @@ unchanged `anchor.py` machinery) and ships a world only if **hard** (oracle ≫ 
 **solvable** (a reachable *method* reaches the oracle) ∧ in the **ZPD** (the champion's method *fails*
 while the new one *succeeds* — the only legal coupling is the objective gap on the non-movable scorer,
 never the agent's internals). **Model-free proven** (`run_worldsmith.py`, free, deterministic): the
-decoy **ships** (gap 0.71n, champion 0.00n, fix 1.00n) while a no-fork control correctly *holds* (the
-champion already wins it) — the SAME method, broken precisely by the fork.
+decoy **ships** (gap 0.71n, champion 0.00n, fix 1.00n) and its **second move extends the family** — the
+adaptive **gate ladder** (`worlds.ladder_spec`, `gate_hops`): the live chain is chosen by a *ladder* of
+gates, so the decoy's own fix ("scout *the* gate") now fails and only "scout *adaptively*, then commit"
+ships (gap 0.83n, champion 0.00n, fix 1.00n). A `CURRICULUM` runs the moves in sequence, each graduate
+the next champion. A no-fork control correctly *holds* — the SAME method, broken precisely by each move.
 
-**Next action — RUN 2 FULL ITERATIONS LIVE** (`run_worldsmith.py --backend real`, ~$1/coaching round;
-fresh session): the ship-gate *predicts* the champion fails the fork by strategy and one coaching round
-closes it — confirm it live and run **two full iterations** of the two-loop. (1) The decoy fork:
-champion fails → Opus rewrites the playbook → new player passes on held-out draws; the champion is a
-faithful node (`hta/ch2/champion/playbook.md`, the recorded gen_0001 disposition), so it is
-self-contained. (2) Evolve the **next** structural move (deeper / adaptive — `ForkedTrailSpec` already
-supports variable-depth chains) and ship + coach again, the coached player carrying forward as the new
-champion. `run_worldsmith.py` runs one closed loop today, so iteration 2 needs the second world authored
-+ a thin loop wrapper. **Budget co-evolves with the world but stays tight** (scarcity is the point;
-probes, not turns, bind). Keep both invariants below.
+**Live run (2026-06-09, $2.47): machinery runs + extends, gap did NOT close — the finding for the next
+session.** Both moves shipped, the ladder was authored and slotted into the curriculum, and the
+two-iteration two-loop ran live end-to-end with each graduate carried forward (iter 1 decoy 0.00n→0.00n;
+iter 2 ladder 0.33n→0.00n). The extensibility was the deliverable and it holds; the **gap-closing did
+not**, and *why* is a research-taste finding: **the model-free proxy is not faithful to the live
+student.** The proxies model an *allocation/scout* failure, but live Haiku **already scouts** (gate and
+ladder, off `world_map`); it fails on the **pointer-chase reconstruction** the score rewards (follow
+`head → hop[value] → landmark`, submit the valley off the *true* landmark — it mis-resolves ~half the
+time, `determined=9` but `raw=0`). And **coaching regressed the player**: Opus diagnosed the pointer bug
+precisely but kept a "bank what's certain" hedge that, against an *all-or-nothing valley*, trades the
+valley for the floor (`coached_1` solved 2/4; the hedge dropped its graduate to 0). The integrity wall
+did its job — surfacing, honestly, that *the proxy we can compute ≠ the constraint that binds the live
+student*.
+
+**Next action — GENERAL-STATE BRAINSTORM (next session), then proceed.** Not more live runs yet. The
+open question: make the model-free ship-gate **faithful to the live student** so "champion fails" means
+the *same thing* live — the precondition for the loop's closure to mean anything. Live-discussed forks
+(your call next session): (a) **fix the coach** — kill the hedge, foreground that the valley is
+all-or-nothing, allow multi-round coaching (cheapest test; `coached_1`'s 2/4 suggests a non-hedging
+playbook gets ~halfway); (b) **realign the world** — partial credit for partial pointer-chains, or
+harden reconstruction (K>2 so mis-resolution self-detects) so the modeled gap *is* the live gap; (c)
+**step back to the student's floor** — harden pointer-chase reconstruction on the single anchor first,
+then re-run the curriculum. Keep both invariants below; **budget co-evolves but stays tight** (probes,
+not turns, bind).
 
 **Settled — don't reopen** (`RESET_DESIGN.md` → "Locked decisions"): the evolved unit is
 **English, never code** (that is the sieve that keeps the tacit residue and makes model-generality
@@ -92,8 +110,8 @@ pip install pytest && python -m pytest tests/ -q  # tests (pytest is not preinst
 python run_loop.py --iterations 1 --backend mock  # the loop, offline (deterministic floor-player)
 python run_loop.py --iterations 1 --backend real  # the loop, live (cents/Haiku episode, ~$1/Opus edit)
 python run_probe.py --backend real                # stage-1: champion vs a scalar-harder world (cents)
-python run_worldsmith.py                          # the world-smith ship-gate: free, model-free (no $)
-python run_worldsmith.py --backend real           # + the LIVE closed-loop demo (~$1/Opus coaching round)
+python run_worldsmith.py                          # ship-gate both curriculum moves: free, model-free (slow: the ladder oracle is 4096 hyps)
+python run_worldsmith.py --backend real           # + the LIVE two-iteration two-loop (~$1/Opus coaching round; ~$2.5 total)
 ```
 
 The `claude` CLI is installed and authenticated here, so the `real` backend works without an API
@@ -104,8 +122,9 @@ dependency.
 
 Edit now: `hta/config.py` (knobs), `hta/ch2/anchor.py` (the anchor world + oracle + build-screen — now
 generic over a spec *protocol* so the oracle/screen re-derive mechanically for any world shape),
-`hta/ch2/worlds.py` (the world-smith's structural family — `ForkedTrailSpec`, the forked/decoy worlds),
-`hta/ch2/world_smith.py` (the second loop — ship-gate + inventor scaffold + the closed-loop demo),
+`hta/ch2/worlds.py` (the world-smith's structural family — `ForkedTrailSpec` with the adaptive gate
+ladder `gate_hops`; the forked/decoy/ladder worlds), `hta/ch2/world_smith.py` (the second loop —
+ship-gate, the scout/ladder methods, inventor scaffold + the `CURRICULUM` two-iteration demo),
 `run_anchor.py` (the build gate), `run_probe.py` (stage-1 scalar-harder probe), `run_worldsmith.py`
 (the world-smith demo), and the **evolvable node `hta/ch2/seed/playbook.md`** (the loop rewrites
 *this*; for calibration you may hand-edit the seed). The reseed built the **frozen substrate** —
