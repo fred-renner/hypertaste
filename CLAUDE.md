@@ -67,13 +67,16 @@ never the agent's internals). **Model-free proven** (`run_worldsmith.py`, free, 
 decoy **ships** (gap 0.71n, champion 0.00n, fix 1.00n) while a no-fork control correctly *holds* (the
 champion already wins it) — the SAME method, broken precisely by the fork.
 
-**Next action — RUN THE LIVE CLOSED LOOP** (`run_worldsmith.py --backend real`, ~$1; fresh session):
-the ship-gate *predicts* the champion fails the fork by strategy and one coaching round closes it —
-confirm it live (champion fails → Opus rewrites the playbook → new player passes on held-out draws).
-The champion is provided as a faithful node (`hta/ch2/champion/playbook.md`, the recorded gen_0001
-disposition), so the demo is self-contained. Then evolve the **next** structural move (deeper /
-adaptive) and fold the smith into a true two-loop run. **Budget co-evolves with the world but stays
-tight** (scarcity is the point; probes, not turns, bind). Keep both invariants below.
+**Next action — RUN 2 FULL ITERATIONS LIVE** (`run_worldsmith.py --backend real`, ~$1/coaching round;
+fresh session): the ship-gate *predicts* the champion fails the fork by strategy and one coaching round
+closes it — confirm it live and run **two full iterations** of the two-loop. (1) The decoy fork:
+champion fails → Opus rewrites the playbook → new player passes on held-out draws; the champion is a
+faithful node (`hta/ch2/champion/playbook.md`, the recorded gen_0001 disposition), so it is
+self-contained. (2) Evolve the **next** structural move (deeper / adaptive — `ForkedTrailSpec` already
+supports variable-depth chains) and ship + coach again, the coached player carrying forward as the new
+champion. `run_worldsmith.py` runs one closed loop today, so iteration 2 needs the second world authored
++ a thin loop wrapper. **Budget co-evolves with the world but stays tight** (scarcity is the point;
+probes, not turns, bind). Keep both invariants below.
 
 **Settled — don't reopen** (`RESET_DESIGN.md` → "Locked decisions"): the evolved unit is
 **English, never code** (that is the sieve that keeps the tacit residue and makes model-generality
