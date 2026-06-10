@@ -90,6 +90,11 @@ python run_loop.py --iterations 1 --backend mock  # the loop, offline (determini
 python run_loop.py --iterations 1 --backend real  # the loop, live (cents/Haiku episode, ~$1/Opus edit)
 ```
 
+Every run persists its artifacts under `--out-dir`: the archive lineage, a per-iteration
+`iter_*.json` audit record (full transcripts + hidden draws, replayable via `loop.score_result`),
+and `run.json` (args, history, accounting). Scratch runs default to `outputs/` (gitignored);
+curated runs are committed under `runs/` — see `runs/sample-mock/`.
+
 Live **calibration** so Haiku lands in-band is the next step (`RESET_DESIGN.md` → "Next actions" 4);
 the Chapter-1 numeric pipeline and the trap-tetra harness were removed in the reset denoise (their
 history lives in `NOTEBOOK.md` and git).

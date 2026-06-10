@@ -6,6 +6,6 @@ outputs/
 .pytest_cache/
 .venv/
 venv/
-# Run logs and findings are local-only (kept on disk, not committed).
-runs/
+# Scratch runs go to outputs/ (ignored above). Curated runs are committed under runs/
+# (PLAN.md Pass 0: a run you can't inspect didn't happen).
 /outputs_smoke.log

@@ -277,6 +277,30 @@ def meta_edit(parent_dir: str, child_dir: str, report_md: str, cfg: Config, log=
 
 
 # ---------------------------------------------------------------------------
+# Run artifacts (PLAN.md Pass 0): the lab's audit log, written next to the archive. The
+# per-iteration record keeps the FULL transcripts (every probe, spawn, scratchpad, submission)
+# plus the hidden draws, so any score can be replayed via score_result(spec, hstar, result).
+# This file is never on an agent surface — the meta agent sees only its node dir (sanitized
+# report), the player only the MCP tools — so holding hidden state here leaks nothing.
+# ---------------------------------------------------------------------------
+def _persist_iteration(cfg: Config, iteration: int, record: dict) -> str:
+    os.makedirs(cfg.out_dir, exist_ok=True)
+    path = os.path.join(cfg.out_dir, f"iter_{iteration:04d}.json")
+    with open(path, "w") as f:
+        json.dump(record, f, indent=2)
+    return path
+
+
+def persist_run(cfg: Config, args: dict, history: List[dict], accounting: dict) -> str:
+    """The run-level summary: invocation, per-iteration outcomes, claude -p accounting."""
+    os.makedirs(cfg.out_dir, exist_ok=True)
+    path = os.path.join(cfg.out_dir, "run.json")
+    with open(path, "w") as f:
+        json.dump({"args": args, "history": history, "accounting": accounting}, f, indent=2)
+    return path
+
+
+# ---------------------------------------------------------------------------
 # One iteration.
 # ---------------------------------------------------------------------------
 def run_iteration(cfg: Config, iteration: int = 0, log=print) -> dict:
@@ -328,13 +352,20 @@ def run_iteration(cfg: Config, iteration: int = 0, log=print) -> dict:
     }
     archive.add(genid, parent, summary)
 
-    return {"parent": parent, "child": genid,
-            "parent_fitness": parent_eval["combined_fitness"],
-            "child_fitness": child_eval["combined_fitness"],
-            "improved": child_eval["combined_fitness"] > parent_eval["combined_fitness"],
-            "parent_norm": (parent_eval["train"]["mean_norm"], parent_eval["transfer"]["mean_norm"]),
-            "child_norm": (child_eval["train"]["mean_norm"], child_eval["transfer"]["mean_norm"]),
-            "valid_child": valid}
+    rep = {"parent": parent, "child": genid,
+           "parent_fitness": parent_eval["combined_fitness"],
+           "child_fitness": child_eval["combined_fitness"],
+           "improved": child_eval["combined_fitness"] > parent_eval["combined_fitness"],
+           "parent_norm": (parent_eval["train"]["mean_norm"], parent_eval["transfer"]["mean_norm"]),
+           "child_norm": (child_eval["train"]["mean_norm"], child_eval["transfer"]["mean_norm"]),
+           "valid_child": valid}
+    _persist_iteration(cfg, iteration, {
+        "iteration": iteration,
+        "spec": {"name": spec.name, "R": spec.R, "K": spec.K, "budget": spec.budget},
+        "worlds": {"train": [list(h) for _, h in train],
+                   "transfer": [list(h) for _, h in transfer]},
+        "summary": rep, "parent_eval": parent_eval, "child_eval": child_eval})
+    return rep
 
 
 def _read(path, default=""):

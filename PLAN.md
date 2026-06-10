@@ -91,7 +91,9 @@ invest in it.
 
 - **Pass 0 — safety net + artifacts.** Tests green; persist a curated run (archive +
   transcripts + accounting) into the repo; un-ignore the artifact path. *Gate: a sample
-  run's artifacts land in-repo and are readable.*
+  run's artifacts land in-repo and are readable.* **Done 2026-06-10:** the loop now writes
+  `iter_*.json` (full transcripts + hidden draws, replayable) and `run.json` (accounting)
+  next to the archive; `runs/` un-ignored; sample at `runs/sample-mock/`; 67 tests green.
 - **Pass 1 — delete the provably dead.** `hta/meta_agent.py` (the Chapter-1 meta agent —
   Chapter 2's lives in `loop.meta_edit` + `hta/sandbox.py` and **stays**), the dead halves of
   `taste.py` (Ch1 fitness/metrics), the inert config weights (`w_solve`/`w_approx`), stale
