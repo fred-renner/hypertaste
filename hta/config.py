@@ -1,4 +1,4 @@
-"""Central configuration: model assignment, knobs, fitness weights, paths.
+"""Central configuration: model assignment, knobs, paths.
 
 Model assignment lives here (and can be overridden by env vars), so "which model
 runs which role" is a one-stop decision:
@@ -55,14 +55,6 @@ class Config:
     # variance so a genuinely-better child is not lost to chance. 1 = no repeats (keeps
     # the deterministic mock pipeline untouched); real runs raise it (cost scales x N).
     eval_repeats: int = 1
-
-    # ---- fitness weights: OUTCOME-only. The agent is optimized against this, so it must
-    # carry no taste prior. "Solve the world" dominates; agreement is partial credit. The
-    # simplicity prior is NOT here -- it is a Solomonoff/MDL regularizer on the agent
-    # PROGRAM at selection time (mdl_lambda + hta/archive.py). info-gain/novelty/occam are
-    # computed only as report EVIDENCE (hta/taste.compute_metrics), never scored.
-    w_solve: float = 0.50     # exact rule recovery
-    w_approx: float = 0.20    # agreement fraction with hidden rule (partial-credit outcome)
 
     # ---- Solomonoff/MDL prior on the agent program ----
     # A small fitness-per-bit regularizer applied at SELECTION time (not a term in the
