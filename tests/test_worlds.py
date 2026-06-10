@@ -159,6 +159,6 @@ def test_world_map_public_hides_values_but_exposes_the_law():
     wm = FORK.world_map_public(remaining=3)
     assert wm["n_chains"] == 2 and wm["fork"]["gate"] == 0
     assert "LIVE chain" in wm["value_rule"]
-    # public descriptors only: cells carry role/cost, never a hidden value
-    assert all(set(c) <= {"col", "kind", "cost", "probeable", "coverage", "reg", "pos", "mirrors"}
+    # public descriptors only, generic vocabulary: cells carry cost/role flags, never a hidden value
+    assert all(set(c) <= {"col", "cost", "probeable", "coverage", "var", "pos", "mirrors"}
                for c in wm["cells"])

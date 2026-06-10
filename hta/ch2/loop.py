@@ -224,10 +224,10 @@ def _eval_split(node_dir, train, transfer, cfg, log):
 def _sanitized_report(per_world: List[dict], spec: anchor.TrailSpec, floor, oracle) -> str:
     lines = [
         "# Coverage evaluation report (sanitized)\n",
-        f"The world: {spec.report_blurb()} (register values 0..{spec.K - 1} are the only hidden "
+        f"The world: {spec.report_blurb()} (variable values 0..{spec.K - 1} are the only hidden "
         f"information). Probe budget per world: {spec.budget} (cost-weighted). Coverage band (raw "
         f"cells): floor {floor:.2f} -> oracle {oracle:.2f}.",
-        "You are NOT given the register values or the true values of un-probed cells; reason only "
+        "You are NOT given the variable values or the true values of un-probed cells; reason only "
         "about the agent's CONDUCT.\n",
     ]
     for i, r in enumerate(per_world):
