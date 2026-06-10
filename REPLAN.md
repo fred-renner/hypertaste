@@ -42,6 +42,10 @@ constant predictions earn exactly zero — the fix Chapter 1's agreement-blend l
 - Multi-horizon/coupling survive as world properties: coupled components mean you must hold
   a theory of one to design informative probes for another. Multi-goal later = multiple
   output ports with different payoffs. Measured, never installed.
+- The "wrong compass" lives here too: a world whose apparent best goal is a poor vein, with
+  evidence encountered en route revealing a richer one — so learning-gradient-following and
+  re-allocation pay *on the objective*. Interestingness must cash out within the episode's
+  score; it is never a score term.
 
 ## Proposal 2 — the ship-gate goes empirical (the live run already said it must)
 
@@ -85,7 +89,37 @@ because the question is comparative; "distance from perfect play" never answered
   *possible*, the procedure learns *when to fire it*.
 - **Affordance limits go through the ratified ring:** when run evidence says the bottleneck
   is the body, the loop proposes, the PI applies. Run artifacts must make affordance-limit
-  evidence legible.
+  evidence legible. Clarified: the default is a **frozen body**; "ratified" means rare,
+  evidence-backed proposals (repeated affordance failures, legible in artifacts), applied by
+  the PI **between lineages only** — never mid-lineage. The alternatives are frozen-forever
+  (real bottlenecks unfixable) or silent drift (trap-tetra one level up). Expect ~zero
+  proposals in early lineages.
+- **Pressures are hypotheses, not furniture.** Honest record: zero observed pressure→behavior
+  effects so far (the one live win was coaching, not a pressure). So every pressure ships
+  with an **ablation gate** — a cheap A/B (e.g. capped vs uncapped lineage, few iterations,
+  paired seeds) showing it actually bends behavior — and pressures stage **one at a time**:
+  the length cap first (it doubles as the coach fix), MDL second only if the cap alone
+  doesn't bend it.
+- **The cap binds the playbook only — never the scratchpad.** The scratchpad is capability
+  (within-episode, free); capping or MDL-pricing it installs pressure on the wrong object.
+  Its only constraints are the body's memory ops (append/revise — bookkeeping, never
+  choosing). A full playbook rewrite per meta-edit is fine and even desirable — compression
+  *is* rewriting; the cost is trivial inside the per-edit call.
+
+## Proposal 5 — model assignment (Fable 5 is out)
+
+Promote the **lab roles** — coach/meta-agent, inventor, and the threshold-gate adversary
+("can the strongest model write the optimal policy on paper?") — to **Fable 5**
+(`claude-fable-5`); the **student stays Haiku**. Rationale: the lab is infrastructure, not
+the measured object, and the coach is the weakest measured link — buy the best diagnosis
+available; the threshold gate's adversary should always be the strongest model, which makes
+the gate *stronger*; and the rewind means no lineage comparability is lost — this is the
+free moment to swap. The student is the test rig and must stay weak — never promote it.
+Per lineage the lab model is **locked and recorded** in run artifacts (no silent mid-lineage
+swaps — the same instrument-stability rule as the body). The port check gains a natural
+second player model. Cost: Fable is ~2× Opus per token ($10/$50 vs $5/$25 per MTok); on
+subscription auth that is quota, not a bill — a meta-edit goes from ~$1-equivalent to ~$2.
+Fine at current scale; revisit if iteration counts grow 10×.
 
 ## The two ratchets (reconciliation)
 
