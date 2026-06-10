@@ -130,6 +130,17 @@ because the question is comparative; "distance from perfect play" never answered
   correction mechanism is the slam-detector above, not feel. The cap's purpose is epistemic
   (every edit a trade), not economic (its per-turn context cost is noise next to the ~31k
   system tax).
+- **Generality is enforced by the exam, not by a guardrail on the artifact.** The cap fights
+  *length*; what fights *specificity* (the old weird-list failure) is that **every eval draw
+  is a fresh hidden system**, so a rule keyed to a particular observation ("if you see X, do
+  Y") cannot pay across draws — selection itself prices specificity out, *if* eval always
+  spans fresh draws. Longer-range backstops: vary the family dial across eval draws (group
+  counts, component shapes) so grammar-level habits get probed too, and the port check
+  (other player models). The honest residue — a playbook general across draws but
+  gym-shaped, overfit to the *grammar's* regularities — is exactly what no within-gym
+  guardrail can catch by construction; that is the cross-check's job (the alien-family
+  audit / real-domain canary), and otherwise the policy is: move forward and watch the
+  failure modes (open question 9 names the watch-fors).
 - **The cap binds the playbook only — never the scratchpad.** The scratchpad is capability
   (within-episode, free); capping or MDL-pricing it installs pressure on the wrong object.
   Its only constraints are the body's memory ops (append/revise — bookkeeping, never
@@ -187,3 +198,8 @@ framing where it conflicts with the open hypothesis space.
 8. The goal ledger: minimal claim/weight interface, and the anti-gaming rule (weights
    declared before the held-out reveal? an entry price for claims?). What does goal-menu v1
    look like — how many hidden goals, how are they revealed by structure?
+9. Generality watch-fors (not resolvable by design now — resolved by watching): early
+   warnings of specificity creep in grown playbooks — named entities or observed values
+   baked into rules, conditional lists keyed to particular structures, container vocabulary
+   leaking back in. Per occurrence, decide whether the fix is world-side (more variation
+   across draws) or selection-side (MDL enters).

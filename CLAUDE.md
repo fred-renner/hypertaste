@@ -85,6 +85,13 @@ valley for the floor (`coached_1` solved 2/4; the hedge dropped its graduate to 
 did its job — surfacing, honestly, that *the proxy we can compute ≠ the constraint that binds the live
 student*.
 
+> **Update 2026-06-10 — the paragraph below is history.** The general-state brainstorm happened; its
+> outcome is `PLAN.md` (the redesign lock + staged passes). PLAN.md's Pass-3 record (the hidden-map
+> world) was then **superseded by `REPLAN.md`** — the world fell below the threshold gate (public
+> lattice → articulable optimal policy) and is demoted to an offline fixture. Sequencing lives in
+> PLAN.md; **the next session is the Pass-3 redo brainstorm (a PI session) off `REPLAN.md`** — design
+> only, no implementation.
+
 **Next action — GENERAL-STATE BRAINSTORM (next session), then proceed.** Not more live runs yet. The
 open question: make the model-free ship-gate **faithful to the live student** so "champion fails" means
 the *same thing* live — the precondition for the loop's closure to mean anything. Live-discussed forks
