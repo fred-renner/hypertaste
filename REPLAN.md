@@ -46,6 +46,22 @@ constant predictions earn exactly zero — the fix Chapter 1's agreement-blend l
   evidence encountered en route revealing a richer one — so learning-gradient-following and
   re-allocation pay *on the objective*. Interestingness must cash out within the episode's
   score; it is never a score term.
+- **Goals are themselves discoverable — the serendipity mechanism (revises Pass-6
+  multi-goal).** The goal *menu* is part of the hidden structure: probing reveals claimable
+  goals; the agent claims and weights them (declared bets, committed before the held-out
+  reveal — anti-gaming, open question 8), and the dumb scorer rolls up delivered-vs-claimed.
+  Off-goal play is then instrumentally correct *because the menu is hidden*: the stepping
+  stone is not a wrong goal but *another* goal whose affordability the allocator must judge
+  under the remaining budget. The residue — a standing disposition to play — is grown at the
+  **selection horizon**: across draws with hidden menus, procedures that budget a slice for
+  the most surprising thing win *in expectation*, so the drive ends up written into the
+  playbook by selection — falls out of the agent, never installed, never a term (the same way
+  curiosity was written into humans by an environment where it paid on average). The body
+  provides the **goal ledger** (claim/weight ops — bookkeeping, and it makes allocation
+  *visible* in artifacts); the weighting *policy* stays in the grown procedure. Honest bound:
+  in a planted world serendipity is planted — what is trained is the trigger (notice →
+  afford? → re-weight), which is the thesis; unbounded innovation arrives only with the
+  open-ended smith and the port.
 
 ## Proposal 2 — the ship-gate goes empirical (the live run already said it must)
 
@@ -94,12 +110,26 @@ because the question is comparative; "distance from perfect play" never answered
   the PI **between lineages only** — never mid-lineage. The alternatives are frozen-forever
   (real bottlenecks unfixable) or silent drift (trap-tetra one level up). Expect ~zero
   proposals in early lineages.
-- **Pressures are hypotheses, not furniture.** Honest record: zero observed pressure→behavior
-  effects so far (the one live win was coaching, not a pressure). So every pressure ships
-  with an **ablation gate** — a cheap A/B (e.g. capped vs uncapped lineage, few iterations,
-  paired seeds) showing it actually bends behavior — and pressures stage **one at a time**:
-  the length cap first (it doubles as the coach fix), MDL second only if the cap alone
-  doesn't bend it.
+- **Rules of the game vs selection shapers (supersedes the ablation-gate idea — rejected by
+  the PI as over-ceremony, and rightly).** The cap is not a treatment to A/B; it is a
+  **boundary condition** — set once, like the probe budget, part of the game's definition
+  from day one. Pressures that shape *selection* (the MDL prior, staged eval) are **deferred
+  until the inner loop demonstrably climbs on plain selection**: a pressure amplifies a
+  selection differential and cannot create one — which is also the honest reading of why no
+  pressure has ever shown an effect (the loop has never yet been in the regime where any
+  second-order force could express; the one live win was coaching). MDL enters only if the
+  cap alone proves insufficient, and the evidence channel is **observational, not
+  experimental**: a meta-agent repeatedly slamming the cap (truncated edits, "no room"
+  notes) is legible in run artifacts without any A/B.
+- **Cap size is a derived prior, not a calibration — none is possible pre-loop.** Function
+  sets the bounds: the floor is room for a staged procedure (orient → probe → note → decide
+  → commit) plus a handful of triggers; the ceiling is what a weak player can demonstrably
+  *hold and apply* every turn (instruction-following degrades with list length — order ten
+  directives, not fifty). Prior: **~350 words / ~500 tokens**, deliberately generous so the
+  cap is not the binding constraint early — the *world* should bind, not the cap. The
+  correction mechanism is the slam-detector above, not feel. The cap's purpose is epistemic
+  (every edit a trade), not economic (its per-turn context cost is noise next to the ~31k
+  system tax).
 - **The cap binds the playbook only — never the scratchpad.** The scratchpad is capability
   (within-episode, free); capping or MDL-pricing it installs pressure on the wrong object.
   Its only constraints are the body's memory ops (append/revise — bookkeeping, never
@@ -150,6 +180,10 @@ framing where it conflicts with the open hypothesis space.
 4. Where situations plug in: a constructed mid-state is now "partial theory + remaining
    budget" — what is the minimal faithful encoding?
 5. The smith's mutation operator set v1, and what the no-op/control mutations are.
-6. The playbook cap: what length, and does the cap bind the seed too?
+6. The playbook cap: the ~500-token prior stands as a boundary condition — does the cap bind
+   the seed too, and what exactly does the slam-detector log?
 7. RSI scope: whether the loop runs long or short is an empirical output of the curve, not a
    commitment — what saturation evidence would close a chapter?
+8. The goal ledger: minimal claim/weight interface, and the anti-gaming rule (weights
+   declared before the held-out reveal? an entry price for claims?). What does goal-menu v1
+   look like — how many hidden goals, how are they revealed by structure?
