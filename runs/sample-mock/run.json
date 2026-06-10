@@ -1,0 +1,54 @@
+{
+  "args": {
+    "iterations": 2,
+    "backend": "mock",
+    "n_train": 2,
+    "n_transfer": 1,
+    "eval_repeats": 1,
+    "task_model": null,
+    "meta_model": null,
+    "meta_max_turns": null,
+    "sandbox": null,
+    "out_dir": "runs/sample-mock"
+  },
+  "history": [
+    {
+      "parent": 0,
+      "child": 1,
+      "parent_fitness": 0.0,
+      "child_fitness": 0.0,
+      "improved": false,
+      "parent_norm": [
+        0.0,
+        0.0
+      ],
+      "child_norm": [
+        0.0,
+        0.0
+      ],
+      "valid_child": true
+    },
+    {
+      "parent": 0,
+      "child": 2,
+      "parent_fitness": 0.0,
+      "child_fitness": 0.0,
+      "improved": false,
+      "parent_norm": [
+        0.0,
+        0.0
+      ],
+      "child_norm": [
+        0.0,
+        0.0
+      ],
+      "valid_child": true
+    }
+  ],
+  "accounting": {
+    "calls": 0,
+    "cost_usd": 0.0,
+    "by_role": {},
+    "by_model": {}
+  }
+}

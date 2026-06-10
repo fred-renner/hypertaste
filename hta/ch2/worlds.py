@@ -73,7 +73,7 @@ class ForkedTrailSpec:
     """
     name: str
     R: int                                  # registers (hidden values -> K**R hypotheses)
-    K: int                                  # colors per register
+    K: int                                  # values per variable
     Ld: int                                 # clearing direct-block length (immediate bait)
     Lv: int                                 # valley length (the live chain's deep payoff)
     gate: int                               # the FIRST gate register (entry of the selector ladder)
@@ -184,13 +184,13 @@ class ForkedTrailSpec:
             "ladder step by step.")
         value_rule = (
             "Cell values are a deterministic lookup, never a pattern to guess: a cell's value = "
-            "(its register's hidden value + pos) mod K. A signpost or clearing cell uses its own "
-            "`reg`. A valley cell (mirrors='landmark') uses the LIVE chain's LANDMARK register: the "
-            "FINAL gate register's hidden value selects which chain is live (final_gate_value mod "
-            "n_chains), and you walk that chain's pointer hops to its landmark." + ladder +
-            " So to reconstruct the valley you must pin the GATE LADDER (which chain is live) AND that "
-            "chain's registers (its landmark value) — walking the wrong chain, or skipping any gate, "
-            "pins nothing of the valley. Once a register's value is pinned, every cell keyed to it is "
+            "(its variable's hidden value + pos) mod K. A cell with a `var` field uses that "
+            "variable. A cell marked mirrors='target' uses the LIVE chain's TARGET variable: the "
+            "FINAL gate variable's hidden value selects which chain is live (final_gate_value mod "
+            "n_chains), and you walk that chain's pointer hops to its target." + ladder +
+            " So to reconstruct those cells you must pin the GATE LADDER (which chain is live) AND that "
+            "chain's variables (its target value) — walking the wrong chain, or skipping any gate, "
+            "pins nothing of them. Once a variable's value is pinned, every cell keyed to it is "
             "fully determined.")
         return {"R": self.R, "K": self.K, "budget": self.budget, "remaining": remaining,
                 "n_chains": self.n_chains, "value_rule": value_rule,

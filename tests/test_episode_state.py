@@ -59,22 +59,27 @@ def test_malformed_and_unaffordable_probes_are_not_charged():
 def test_world_map_is_public_only_no_value_leak():
     st = EpisodeState(SPEC, HSTAR)
     wm = st.world_map()
-    assert wm["trail"]["trailhead"] == 0 and wm["trail"]["waypoints"] == [1, 2]
+    # the link chain is public (generic vocabulary: variable/value, cells/links)
+    assert wm["links"]["root"] == 0 and wm["links"]["level1"] == [1, 2]
     # the layout is public; no cell carries its hidden value
     assert all("value" not in cell for cell in wm["cells"])
-    assert any(c["kind"] == "valley" and not c["probeable"] and c["coverage"] for c in wm["cells"])
-    assert any(c["kind"] == "sig" and c["probeable"] and not c["coverage"] for c in wm["cells"])
+    # role falls out of the generic flags, never a world-story kind label
+    assert all("kind" not in cell for cell in wm["cells"])
+    assert any(c.get("mirrors") == "target" and not c["probeable"] and c["coverage"]
+               for c in wm["cells"])
+    assert any("var" in c and c["probeable"] and not c["coverage"] for c in wm["cells"])
 
 
 def test_world_map_exposes_value_law_but_not_the_seed():
     """Calibration legibility: the deterministic VALUE LAW is public (so reconstruction is a
-    reachable lookup, not a guess), while the hidden register values never appear. Valley cells
-    flag that they mirror the landmark register."""
+    reachable lookup, not a guess), while the hidden variable values never appear. The deep cells
+    flag that they mirror the link-resolved target variable."""
     st = EpisodeState(SPEC, HSTAR)
     wm = st.world_map()
     assert "value_rule" in wm and "mod K" in wm["value_rule"]
-    assert all(c.get("mirrors") == "landmark" for c in wm["cells"] if c["kind"] == "valley")
-    # the law is structure, never the seed: no register value is recoverable from the map
+    cov_only = [c for c in wm["cells"] if c["coverage"] and not c["probeable"]]
+    assert cov_only and all(c.get("mirrors") == "target" for c in cov_only)
+    # the law is structure, never the seed: no variable value is recoverable from the map
     blob = json.dumps(wm)
     assert "hstar" not in blob and str(list(HSTAR)) not in blob
 

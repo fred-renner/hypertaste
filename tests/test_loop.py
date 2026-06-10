@@ -5,6 +5,7 @@ eval parent -> rewrite playbook -> eval child -> archive), the band judge replay
 deterministically, and the meta-agent report leaks no hidden world state.
 """
 
+import json
 import os
 import sys
 import tempfile
@@ -41,6 +42,27 @@ def test_iteration_seeds_evaluates_and_archives():
         # the mock meta edit changed the child's playbook
         with open(os.path.join(arc.node_dir(1), "playbook.md")) as f:
             assert "plumbing-stub" in f.read()
+
+
+def test_iteration_persists_replayable_artifacts():
+    """PLAN.md Pass 0: each iteration writes an audit record (full transcripts + hidden draws)
+    next to the archive, and a persisted transcript replays to its persisted score."""
+    with tempfile.TemporaryDirectory() as tmp:
+        cfg = _mock_cfg(tmp)
+        ch2_loop.run_iteration(cfg, iteration=0)
+        with open(os.path.join(tmp, "iter_0000.json")) as f:
+            rec = json.load(f)
+        assert len(rec["worlds"]["train"]) == 2 and len(rec["worlds"]["transfer"]) == 1
+        per_world = rec["child_eval"]["train"]["per_world"]
+        assert per_world and all("log" in r["result"] for r in per_world)
+        spec = canonical_spec()
+        hstar = tuple(rec["worlds"]["train"][0])
+        score, _ = ch2_loop.score_result(spec, hstar, per_world[0]["result"])
+        assert score["raw"] == per_world[0]["score"]["raw"]
+        path = ch2_loop.persist_run(cfg, {"backend": "mock"}, [rec["summary"]],
+                                    {"calls": 0, "cost_usd": 0.0})
+        with open(path) as f:
+            assert json.load(f)["history"][0]["child"] == 1
 
 
 def test_seed_node_is_playbook_only():

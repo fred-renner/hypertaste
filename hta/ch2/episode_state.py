@@ -125,8 +125,8 @@ class EpisodeState:
         return {"remaining": self.remaining_cost()}
 
     def world_map(self) -> dict:
-        """The PUBLIC rules of the game: the pointer tree, the cell layout with costs and roles, and
-        the deterministic VALUE LAW (`value_rule`). The register VALUES are absent — that is the
+        """The PUBLIC rules of the game: the link chain, the cell layout with costs and roles, and
+        the deterministic VALUE LAW (`value_rule`). The variable VALUES are absent — that is the
         hidden seed. Exposing the law (not the values) is what makes reconstruction a reachable
         LOOKUP for the player: it is public structure (the same law the model-free heuristics and
         oracle are computed under), so it lifts the live agent onto the screen's footing without

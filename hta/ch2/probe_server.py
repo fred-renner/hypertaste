@@ -48,18 +48,18 @@ WORKER_WRAPPER = (
 # ---- tool schemas (advertised by tools/list; the player reads the descriptions) ----
 _T_PROBE = {"name": "probe",
             "description": ("Reveal the hidden value (a small integer) at one cell, charging its "
-                            "cost against the global budget. Only cells world_map marks probeable "
-                            "can be probed; coverage cells are reconstructed, never probed. "
+                            "cost against the global budget. Only cells flagged `probeable` in "
+                            "world_map can be probed; the rest are reconstructed, never probed. "
                             "Returns {value, remaining, cost}."),
             "inputSchema": {"type": "object", "properties": {"index": {"type": "integer"}},
                             "required": ["index"]}}
 _T_REMAINING = {"name": "remaining", "description": "Cost budget left in this episode.",
                 "inputSchema": {"type": "object", "properties": {}}}
 _T_WORLD_MAP = {"name": "world_map",
-                "description": ("The public rules of the game: the map's structure, the cell "
-                                "layout with costs and roles, and the deterministic value law. "
-                                "The hidden values are what you probe. probe()/submit_map() use "
-                                "the `col` fields here."),
+                "description": ("The public rules of the game: the map's structure and the cell "
+                                "layout with costs and roles, plus the deterministic value law. "
+                                "The variable values are hidden — that is what you probe. "
+                                "probe()/submit_map() use the `col` fields here."),
                 "inputSchema": {"type": "object", "properties": {}}}
 _T_MEM_READ = {"name": "mem_read", "description": "Read your within-episode scratchpad.",
                "inputSchema": {"type": "object", "properties": {}}}

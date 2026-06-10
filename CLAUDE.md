@@ -135,8 +135,9 @@ leave it alone unless deliberately changing the harness (the world-smith touched
 coverage judge and the text artifact are untouched — both invariants intact).
 
 Leave alone unless deliberately changing them (and then keep the two invariants below): the loop
-spine — `hta/archive.py` (archive + selection), `hta/taste.py` (MDL prior), `hta/meta_agent.py`
-(Opus self-modify), `hta/sandbox.py` (the meta-agent airgap), `hta/llm.py` (the `claude -p` seam).
+spine — `hta/archive.py` (archive + selection), `hta/taste.py` (MDL prior), `hta/ch2/loop.py`
+`meta_edit` + `hta/sandbox.py` (Opus self-modify + the meta-agent airgap), `hta/llm.py` (the
+`claude -p` seam).
 
 ## The two invariants (the integrity floor — they survive every chapter)
 

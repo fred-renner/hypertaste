@@ -66,8 +66,7 @@ unit is an **English playbook** read as text context — never imported or execu
 | `hta/llm.py` | THE seam: `complete` / `episode` / `agentic` `claude -p` adapters, mock backend, accounting |
 | `hta/taste.py` | the MDL / program-length prior (generality pressure) |
 | `hta/archive.py` | archive of hyperagents + open-ended parent selection |
-| `hta/meta_agent.py` | Opus agentic self-modification of the evolving node |
-| `hta/sandbox.py` | meta-agent airgap: Direct (Bash-denied) \| Docker (container) |
+| `hta/sandbox.py` | meta-agent airgap: Direct (Bash-denied) \| Docker (container); runs the Opus self-modify edit (`hta/ch2/loop.py` `meta_edit`) |
 
 ## The anchor world (Chapter 2, built and build-screened)
 
@@ -89,6 +88,11 @@ pip install pytest && python -m pytest tests/ -q  # tests (offline; pytest not p
 python run_loop.py --iterations 1 --backend mock  # the loop, offline (deterministic floor-player)
 python run_loop.py --iterations 1 --backend real  # the loop, live (cents/Haiku episode, ~$1/Opus edit)
 ```
+
+Every run persists its artifacts under `--out-dir`: the archive lineage, a per-iteration
+`iter_*.json` audit record (full transcripts + hidden draws, replayable via `loop.score_result`),
+and `run.json` (args, history, accounting). Scratch runs default to `outputs/` (gitignored);
+curated runs are committed under `runs/` — see `runs/sample-mock/`.
 
 Live **calibration** so Haiku lands in-band is the next step (`RESET_DESIGN.md` → "Next actions" 4);
 the Chapter-1 numeric pipeline and the trap-tetra harness were removed in the reset denoise (their
@@ -114,7 +118,6 @@ hta/
   llm.py               claude -p adapters (complete/episode/agentic) + mock backend + accounting
   taste.py             MDL / program-length prior
   archive.py           archive of hyperagents + open-ended parent selection
-  meta_agent.py        Opus agentic self-modification of the evolving node
   sandbox.py           meta-agent airgap: Direct (Bash-denied) | Docker (container)
   ch2/
     anchor.py          the anchor trail world + oracle-by-simulation + the build-screen (generic over
@@ -123,7 +126,7 @@ hta/
     world_smith.py     the SECOND loop: ship-gate (hard ∧ solvable ∧ ZPD) + inventor scaffold + demo
     episode_state.py   the frozen world-state machine (the seven primitives) + the band judge
     probe_server.py    confined stdio-MCP server: probe/spawn/submit_map/world_map/remaining/mem_*
-    loop.py            the model-orchestrated (option-B) DGM-H loop over the anchor family
+    loop.py            the model-orchestrated (option-B) DGM-H loop + the Opus self-modify step (meta_edit)
     seed/playbook.md   the ONLY evolvable node (non-executable English; Opus rewrites this)
     champion/playbook.md  the recorded gen_0001 disposition (the closed-loop demo's champion)
 docker/Dockerfile.agent       agent-plane image (Node + claude CLI; no project code/world/secrets)

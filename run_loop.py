@@ -77,6 +77,8 @@ def main():
               f"train_norm={rep['child_norm'][0]:.2f} heldout_norm={rep['child_norm'][1]:.2f}")
     acct = llm.accounting()
     print(f"\ncost: {acct['calls']} claude -p calls, ${acct['cost_usd']:.4f}  by_role={acct['by_role']}")
+    run_path = ch2_loop.persist_run(cfg, vars(args), history, acct)
+    print(f"artifacts: {run_path} (+ per-iteration iter_*.json, archive/)")
 
 
 if __name__ == "__main__":

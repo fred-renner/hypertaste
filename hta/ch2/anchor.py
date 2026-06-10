@@ -109,8 +109,8 @@ class TrailSpec:
     per step until all three signposts land and the valley (`Lv` cells) flips on at once; a greedy
     or 2-step planner takes the clearings instead and never reaches it."""
     name: str
-    R: int                                  # registers (hidden values -> K**R hypotheses, small)
-    K: int                                  # colors per register
+    R: int                                  # variables (hidden values -> K**R hypotheses, small)
+    K: int                                  # values per variable
     Ld: int                                 # clearing direct-block length (the immediate-coverage bait)
     Lv: int                                 # valley length (the deep, trail-gated payoff — the prize)
     trailhead: int                               # the map register (entry of the trail)
@@ -171,29 +171,32 @@ class TrailSpec:
     def world_map_public(self, remaining: int) -> dict:
         """The PUBLIC rules of the game (no hidden values), owned by the spec so a *richer* world
         describes itself through the **unchanged** episode airgap (`episode_state.world_map`
-        delegates here): the pointer tree, the cell layout with costs/roles, and the deterministic
+        delegates here): the link chain, the cell layout with costs/roles, and the deterministic
         value law. Exposing the law (not the values) is what makes reconstruction a reachable LOOKUP
         — the same law the oracle/heuristics compute under — without touching the band; what stays
-        hidden is the ALLOCATION."""
+        hidden is the ALLOCATION. The interface is generic (variable/value, cells/links/budget/
+        coverage): no world-story leaks, so the player cannot overfit the container."""
         value_rule = (
             "Cell values are a deterministic lookup, never a pattern to guess: a cell's value = "
-            "(its register's hidden value + pos) mod K. A signpost or clearing cell uses its own "
-            "`reg`; a valley cell (mirrors='landmark') uses the LANDMARK register — the one the "
-            "public trail (trailhead -> waypoints[branch] -> landmarks[branch][waypoint]) resolves to "
-            "under the hidden values. So once your probes pin a register's value, every cell keyed to "
-            "that register is fully determined — you reconstruct it, you do not guess it.")
+            "(its variable's hidden value + pos) mod K. A cell with a `var` field uses that "
+            "variable; a cell marked mirrors='target' uses the TARGET variable — the one the public "
+            "link chain resolves to under the hidden values (start at variable `root`, its value "
+            "selects the next variable links.level1[value], that variable's value selects the target "
+            "links.level2[branch][value]). So once your probes pin a variable's value, every cell "
+            "keyed to that variable is fully determined — you reconstruct it, you do not guess it.")
         return {"R": self.R, "K": self.K, "budget": self.budget, "remaining": remaining,
                 "value_rule": value_rule,
-                "trail": {"trailhead": self.trailhead, "waypoints": list(self.waypoints),
-                          "landmarks": [list(r) for r in self.landmarks]},
+                "links": {"root": self.trailhead, "level1": list(self.waypoints),
+                          "level2": [list(r) for r in self.landmarks]},
                 "cells": public_cells(self)}
 
     def report_blurb(self) -> str:
         """One-line PUBLIC description for the sanitized meta/inventor report (no hidden values)."""
-        return (f"a single trail of public pointers (trailhead {self.trailhead} -> waypoints "
-                f"{list(self.waypoints)} -> landmarks {[list(r) for r in self.landmarks]}) through "
-                f"{self.R} registers; reading a signpost pays ZERO coverage, the clearing blocks pay "
-                f"immediately, the deep valley pays only once the trail is walked to its end")
+        return (f"a single chain of public links (root variable {self.trailhead} -> level1 "
+                f"{list(self.waypoints)} -> level2 {[list(r) for r in self.landmarks]}) over "
+                f"{self.R} variables; some cells only read link variables and pay ZERO coverage, "
+                f"others pay immediately, and a deep block of cells pays only once the link chain is "
+                f"walked end to end to its target variable")
 
     # ---- declarative (de)serialization (kind-tagged so the airgap can ride either spec) ----
     def to_dict(self) -> dict:
@@ -218,16 +221,18 @@ class TrailSpec:
 # while the oracle/screen below are re-derived mechanically, never re-authored.
 # ---------------------------------------------------------------------------
 def public_cells(spec) -> List[dict]:
-    """The cell layout as PUBLIC descriptors (col, kind, cost, role, reg/pos) — no hidden values.
-    Shared by every spec's `world_map_public`."""
+    """The cell layout as PUBLIC descriptors — no hidden values, no world-story. Each cell carries
+    its cost, whether it is `probeable` / counts for `coverage`, and which `var` it reads (or
+    `mirrors='target'` if its variable is the link-resolved target). The generic role falls out of
+    those flags, so no narrative kind label is exposed. Shared by every spec's `world_map_public`."""
     out = []
     for i, c in enumerate(spec.cells()):
-        entry = {"col": i, "kind": c[0], "cost": spec.cost_of(c),
+        entry = {"col": i, "cost": spec.cost_of(c),
                  "probeable": c[0] in ("sig", "direct"), "coverage": c[0] in ("direct", "valley")}
         if c[0] in ("sig", "direct"):
-            entry["reg"], entry["pos"] = c[1], c[2]
+            entry["var"], entry["pos"] = c[1], c[2]
         else:
-            entry["pos"], entry["mirrors"] = c[1], "landmark"
+            entry["pos"], entry["mirrors"] = c[1], "target"
         out.append(entry)
     return out
 

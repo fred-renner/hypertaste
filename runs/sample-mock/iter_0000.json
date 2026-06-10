@@ -1,0 +1,445 @@
+{
+  "iteration": 0,
+  "spec": {
+    "name": "anchor",
+    "R": 10,
+    "K": 2,
+    "budget": 3
+  },
+  "worlds": {
+    "train": [
+      [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        0,
+        0,
+        1
+      ],
+      [
+        1,
+        0,
+        0,
+        1,
+        1,
+        0,
+        1,
+        0,
+        0,
+        1
+      ]
+    ],
+    "transfer": [
+      [
+        1,
+        0,
+        1,
+        1,
+        1,
+        0,
+        1,
+        1,
+        0,
+        0
+      ]
+    ]
+  },
+  "summary": {
+    "parent": 0,
+    "child": 1,
+    "parent_fitness": 0.0,
+    "child_fitness": 0.0,
+    "improved": false,
+    "parent_norm": [
+      0.0,
+      0.0
+    ],
+    "child_norm": [
+      0.0,
+      0.0
+    ],
+    "valid_child": true
+  },
+  "parent_eval": {
+    "train": {
+      "mean_raw": 3.0,
+      "mean_norm": 0.0,
+      "solved": 0,
+      "n_worlds": 2,
+      "per_world": [
+        {
+          "result": {
+            "log": [
+              {
+                "col": 7,
+                "value": 0,
+                "cost": 1,
+                "via": "self"
+              },
+              {
+                "col": 8,
+                "value": 1,
+                "cost": 1,
+                "via": "self"
+              },
+              {
+                "col": 9,
+                "value": 0,
+                "cost": 1,
+                "via": "self"
+              }
+            ],
+            "spawns": [],
+            "mem": "",
+            "submitted": {
+              "7": 0,
+              "8": 1,
+              "9": 0
+            },
+            "used": 3,
+            "done": true,
+            "observations": [
+              [
+                7,
+                0
+              ],
+              [
+                8,
+                1
+              ],
+              [
+                9,
+                0
+              ]
+            ]
+          },
+          "score": {
+            "raw": 3.0,
+            "floor": 3.0,
+            "oracle": 9.0,
+            "norm": 0.0,
+            "determined": 4,
+            "used": 3,
+            "budget": 3
+          }
+        },
+        {
+          "result": {
+            "log": [
+              {
+                "col": 7,
+                "value": 0,
+                "cost": 1,
+                "via": "self"
+              },
+              {
+                "col": 8,
+                "value": 1,
+                "cost": 1,
+                "via": "self"
+              },
+              {
+                "col": 9,
+                "value": 0,
+                "cost": 1,
+                "via": "self"
+              }
+            ],
+            "spawns": [],
+            "mem": "",
+            "submitted": {
+              "7": 0,
+              "8": 1,
+              "9": 0
+            },
+            "used": 3,
+            "done": true,
+            "observations": [
+              [
+                7,
+                0
+              ],
+              [
+                8,
+                1
+              ],
+              [
+                9,
+                0
+              ]
+            ]
+          },
+          "score": {
+            "raw": 3.0,
+            "floor": 3.0,
+            "oracle": 9.0,
+            "norm": 0.0,
+            "determined": 4,
+            "used": 3,
+            "budget": 3
+          }
+        }
+      ],
+      "report_md": "# Coverage evaluation report (sanitized)\n\nThe world: a single trail of public pointers (trailhead 0 -> waypoints [1, 2] -> landmarks [[3, 4], [5, 6]]) through 10 registers; reading a signpost pays ZERO coverage, the clearing blocks pay immediately, the deep valley pays only once the trail is walked to its end (register values 0..1 are the only hidden information). Probe budget per world: 3 (cost-weighted). Coverage band (raw cells): floor 3.00 -> oracle 9.00.\nYou are NOT given the register values or the true values of un-probed cells; reason only about the agent's CONDUCT.\n\n\n## world_0\n- coverage: 0.00 of the floor->oracle band (raw 3.0 cells, 4 logically determined), budget used 3/3\n- probes by the top (in order): col7->0(c1), col8->1(c1), col9->0(c1)\n- reconstruction submitted: 3 cells\n\n## world_1\n- coverage: 0.00 of the floor->oracle band (raw 3.0 cells, 4 logically determined), budget used 3/3\n- probes by the top (in order): col7->0(c1), col8->1(c1), col9->0(c1)\n- reconstruction submitted: 3 cells"
+    },
+    "transfer": {
+      "mean_raw": 3.0,
+      "mean_norm": 0.0,
+      "solved": 0,
+      "n_worlds": 1,
+      "per_world": [
+        {
+          "result": {
+            "log": [
+              {
+                "col": 7,
+                "value": 1,
+                "cost": 1,
+                "via": "self"
+              },
+              {
+                "col": 8,
+                "value": 0,
+                "cost": 1,
+                "via": "self"
+              },
+              {
+                "col": 9,
+                "value": 0,
+                "cost": 1,
+                "via": "self"
+              }
+            ],
+            "spawns": [],
+            "mem": "",
+            "submitted": {
+              "7": 1,
+              "8": 0,
+              "9": 0
+            },
+            "used": 3,
+            "done": true,
+            "observations": [
+              [
+                7,
+                1
+              ],
+              [
+                8,
+                0
+              ],
+              [
+                9,
+                0
+              ]
+            ]
+          },
+          "score": {
+            "raw": 3.0,
+            "floor": 3.0,
+            "oracle": 9.0,
+            "norm": 0.0,
+            "determined": 4,
+            "used": 3,
+            "budget": 3
+          }
+        }
+      ],
+      "report_md": "# Coverage evaluation report (sanitized)\n\nThe world: a single trail of public pointers (trailhead 0 -> waypoints [1, 2] -> landmarks [[3, 4], [5, 6]]) through 10 registers; reading a signpost pays ZERO coverage, the clearing blocks pay immediately, the deep valley pays only once the trail is walked to its end (register values 0..1 are the only hidden information). Probe budget per world: 3 (cost-weighted). Coverage band (raw cells): floor 3.00 -> oracle 9.00.\nYou are NOT given the register values or the true values of un-probed cells; reason only about the agent's CONDUCT.\n\n\n## world_0\n- coverage: 0.00 of the floor->oracle band (raw 3.0 cells, 4 logically determined), budget used 3/3\n- probes by the top (in order): col7->1(c1), col8->0(c1), col9->0(c1)\n- reconstruction submitted: 3 cells"
+    },
+    "combined_fitness": 0.0
+  },
+  "child_eval": {
+    "train": {
+      "mean_raw": 3.0,
+      "mean_norm": 0.0,
+      "solved": 0,
+      "n_worlds": 2,
+      "per_world": [
+        {
+          "result": {
+            "log": [
+              {
+                "col": 7,
+                "value": 0,
+                "cost": 1,
+                "via": "self"
+              },
+              {
+                "col": 8,
+                "value": 1,
+                "cost": 1,
+                "via": "self"
+              },
+              {
+                "col": 9,
+                "value": 0,
+                "cost": 1,
+                "via": "self"
+              }
+            ],
+            "spawns": [],
+            "mem": "",
+            "submitted": {
+              "7": 0,
+              "8": 1,
+              "9": 0
+            },
+            "used": 3,
+            "done": true,
+            "observations": [
+              [
+                7,
+                0
+              ],
+              [
+                8,
+                1
+              ],
+              [
+                9,
+                0
+              ]
+            ]
+          },
+          "score": {
+            "raw": 3.0,
+            "floor": 3.0,
+            "oracle": 9.0,
+            "norm": 0.0,
+            "determined": 4,
+            "used": 3,
+            "budget": 3
+          }
+        },
+        {
+          "result": {
+            "log": [
+              {
+                "col": 7,
+                "value": 0,
+                "cost": 1,
+                "via": "self"
+              },
+              {
+                "col": 8,
+                "value": 1,
+                "cost": 1,
+                "via": "self"
+              },
+              {
+                "col": 9,
+                "value": 0,
+                "cost": 1,
+                "via": "self"
+              }
+            ],
+            "spawns": [],
+            "mem": "",
+            "submitted": {
+              "7": 0,
+              "8": 1,
+              "9": 0
+            },
+            "used": 3,
+            "done": true,
+            "observations": [
+              [
+                7,
+                0
+              ],
+              [
+                8,
+                1
+              ],
+              [
+                9,
+                0
+              ]
+            ]
+          },
+          "score": {
+            "raw": 3.0,
+            "floor": 3.0,
+            "oracle": 9.0,
+            "norm": 0.0,
+            "determined": 4,
+            "used": 3,
+            "budget": 3
+          }
+        }
+      ],
+      "report_md": "# Coverage evaluation report (sanitized)\n\nThe world: a single trail of public pointers (trailhead 0 -> waypoints [1, 2] -> landmarks [[3, 4], [5, 6]]) through 10 registers; reading a signpost pays ZERO coverage, the clearing blocks pay immediately, the deep valley pays only once the trail is walked to its end (register values 0..1 are the only hidden information). Probe budget per world: 3 (cost-weighted). Coverage band (raw cells): floor 3.00 -> oracle 9.00.\nYou are NOT given the register values or the true values of un-probed cells; reason only about the agent's CONDUCT.\n\n\n## world_0\n- coverage: 0.00 of the floor->oracle band (raw 3.0 cells, 4 logically determined), budget used 3/3\n- probes by the top (in order): col7->0(c1), col8->1(c1), col9->0(c1)\n- reconstruction submitted: 3 cells\n\n## world_1\n- coverage: 0.00 of the floor->oracle band (raw 3.0 cells, 4 logically determined), budget used 3/3\n- probes by the top (in order): col7->0(c1), col8->1(c1), col9->0(c1)\n- reconstruction submitted: 3 cells"
+    },
+    "transfer": {
+      "mean_raw": 3.0,
+      "mean_norm": 0.0,
+      "solved": 0,
+      "n_worlds": 1,
+      "per_world": [
+        {
+          "result": {
+            "log": [
+              {
+                "col": 7,
+                "value": 1,
+                "cost": 1,
+                "via": "self"
+              },
+              {
+                "col": 8,
+                "value": 0,
+                "cost": 1,
+                "via": "self"
+              },
+              {
+                "col": 9,
+                "value": 0,
+                "cost": 1,
+                "via": "self"
+              }
+            ],
+            "spawns": [],
+            "mem": "",
+            "submitted": {
+              "7": 1,
+              "8": 0,
+              "9": 0
+            },
+            "used": 3,
+            "done": true,
+            "observations": [
+              [
+                7,
+                1
+              ],
+              [
+                8,
+                0
+              ],
+              [
+                9,
+                0
+              ]
+            ]
+          },
+          "score": {
+            "raw": 3.0,
+            "floor": 3.0,
+            "oracle": 9.0,
+            "norm": 0.0,
+            "determined": 4,
+            "used": 3,
+            "budget": 3
+          }
+        }
+      ],
+      "report_md": "# Coverage evaluation report (sanitized)\n\nThe world: a single trail of public pointers (trailhead 0 -> waypoints [1, 2] -> landmarks [[3, 4], [5, 6]]) through 10 registers; reading a signpost pays ZERO coverage, the clearing blocks pay immediately, the deep valley pays only once the trail is walked to its end (register values 0..1 are the only hidden information). Probe budget per world: 3 (cost-weighted). Coverage band (raw cells): floor 3.00 -> oracle 9.00.\nYou are NOT given the register values or the true values of un-probed cells; reason only about the agent's CONDUCT.\n\n\n## world_0\n- coverage: 0.00 of the floor->oracle band (raw 3.0 cells, 4 logically determined), budget used 3/3\n- probes by the top (in order): col7->1(c1), col8->0(c1), col9->0(c1)\n- reconstruction submitted: 3 cells"
+    },
+    "combined_fitness": 0.0
+  }
+}
