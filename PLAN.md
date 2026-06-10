@@ -137,6 +137,52 @@ invest in it.
   *different* model for a few episodes. If it only helps Haiku, we grew Haiku-whispering,
   not a procedure. Cheap; it is the thesis test.
 
+## Pass-3 design record (locked 2026-06-10 — the brainstorm's outcome; Q1-Q4 answered)
+
+**The grammar (`hta/ch2/hidden_map.py`).** A world is a set of node GROUPS plus one shared
+backbone. Each group: an entry, public layers of candidate successors, and one hidden realized
+path — which candidate each node links to and where it stops (the hidden depth). Hidden
+variables: (path, key) per group + the backbone — a product of per-variable ranges, so the
+family is public and enumerable (capped at 4096) and best-play stays the exact belief-MDP by
+simulation: **Q1's answer** — topology variables are just variables with ragged ranges, riding
+`anchor.py`'s machinery through a three-point protocol extension (`hypotheses`, `value`,
+`PROBE_KINDS`/`COV_KINDS`). Probe cells: links (a node's place on the realized path: off / stop
+/ next), one key per group, the backbone. Coverage cells: regions, inference-only — value =
+(key + backbone + path_length + pos) mod 2, backbone only when coupled. Probeable and coverage
+are disjoint, so the no-inference floor is exactly 0 (design lock 4 enforced by construction);
+the band is 0 -> best-play. The LENGTH term keeps the deep payoff strictly beyond a 2-move
+horizon (no key+backbone shortcut); a layerless uncoupled group is the 1-probe bait.
+
+**Q2 (coupling):** the backbone — one cheap probe that pays nothing alone and unlocks the last
+mile of every coupled region; the dial is how many groups couple and their region masses.
+**Q3 (discovery pressure):** the candidate lattice is public, the realized edges/depth hidden —
+every draw is a different shape, so held-out generality is by construction (Pass 4's exam).
+**Q4 (drills vs exam):** the harness is built (`hta/ch2/situations.py` — prefix probes replayed
+through the ordinary probe path, scratchpad pre-seeded, scored against the situation's own
+best-play-continuation band); the mix policy is decided in Passes 4-5.
+
+**The canonical world** (`canonical_spec`, screened by `run_hiddenmap.py` — controls separate,
+7/8 sweep rows ship, the no-mid control correctly holds): one deep coupled group (depth 1..3,
+region 8), one mid coupled group (depth 1, region 5), two baits (region 2), budget 6. Gates:
+floor 0; best-play 15.86 vs best generic planner 9.0 (gap 0.43n, room 0.57n); the articulable
+reference method (backbone -> key -> pin depth by probing links DEEPEST LAYER FIRST, an off-path
+read killing every deeper shape at once) reaches best-play exactly — solvable; cliff 0.47.
+
+**Faithful to the live student** (the 2026-06-09 finding, enacted): the pointer chase is
+probe-mediated — the world answers every hop, so mis-resolution cannot happen silently in-head;
+reconstruction at submit is one line of arithmetic; coverage is four mid-size regions, never one
+all-or-nothing valley. **Gate-3b live smoke (2026-06-10, $0.10):** seed-playbook Haiku played
+coherently — all keys + backbone + one link, resolved the mid group and both baits, submitted
+exactly what it earned (raw == determined: the reconstruction pathology is gone) — 0.57n,
+landing precisely at the generic-planner mark with the whole taste gap above it. Multi-goal:
+`goals()` present, off. The trajectory renderer is `hta/ch2/trajectory.py` (design lock 9).
+
+```bash
+python run_hiddenmap.py                         # the Pass-3 build gate: free, model-free (~2 min)
+python run_hiddenmap.py --smoke [--backend real]  # one episode + trajectory (real: cents)
+python run_loop.py --world hidden --backend mock  # the loop on the new world, offline
+```
+
 ## Open questions (the Pass-3 brainstorm, before anything is built there)
 
 1. **Computability first:** with hidden topology the hypothesis space is topologies ×

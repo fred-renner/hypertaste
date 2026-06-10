@@ -41,6 +41,12 @@ class Config:
     # turns, so give generous turn headroom (Gotchas: "probes, not turns, bind").
     top_max_turns: int = 40
 
+    # ---- world ----
+    # Which build-screened spec the loop trains on: "anchor" (the canary, default) or "hidden"
+    # (the Pass-3 hidden-map family, hta/ch2/hidden_map.py). The canary stays default until the
+    # new world replaces it (PLAN.md -> "The staged passes").
+    world_kind: str = field(default_factory=lambda: _env("HTA_WORLD_KIND", "anchor"))
+
     # ---- evaluation ----
     n_train_worlds: int = 4
     n_transfer_worlds: int = 4  # frozen held-out worlds -> measures generalization
