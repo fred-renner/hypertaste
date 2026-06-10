@@ -55,15 +55,23 @@ def spec_from_dict(d: dict):
     if kind == "forked":
         from .worlds import ForkedTrailSpec
         return ForkedTrailSpec.from_dict(d)
+    if kind == "hidden":
+        from .hidden_map import HiddenMapSpec
+        return HiddenMapSpec.from_dict(d)
     return anchor.TrailSpec.from_dict(d)
 
 
-def draw_hstar(spec: anchor.TrailSpec, seed: int) -> Tuple[int, ...]:
-    """A fresh hidden world: a uniform register assignment (the only hidden information). Different
-    seeds end the trail on different landmark registers, so the winning policy's CONTENT is
-    learnable only by playing this instance, never read off the public structure."""
+def draw_hstar(spec, seed: int) -> Tuple[int, ...]:
+    """A fresh hidden world: a uniform draw of the hidden variables (the only hidden
+    information). A spec with ragged per-variable ranges (`variable_ranges`, the hidden-map
+    family — where some variables ARE the topology) draws each in its own range; the trail
+    default is the uniform K**R register assignment. Different seeds realize different shapes /
+    trail ends, so the winning policy's CONTENT is learnable only by playing this instance,
+    never read off the public structure."""
     import random
     rng = random.Random(seed)
+    if hasattr(spec, "variable_ranges"):
+        return tuple(rng.randrange(n) for n in spec.variable_ranges())
     return tuple(rng.randrange(spec.K) for _ in range(spec.R))
 
 
@@ -277,4 +285,14 @@ def state_from_env(env: dict) -> EpisodeState:
     spec = spec_from_dict(json.loads(env["HTA_WORLD"]))
     hstar = tuple(json.loads(env["HTA_HSTAR"]))
     budget = int(env.get("HTA_BUDGET", spec.budget))
-    return EpisodeState(spec, hstar, budget=budget)
+    state = EpisodeState(spec, hstar, budget=budget)
+    # A SITUATION (PLAN.md design lock 8): a constructed mid-episode state — the prefix probes
+    # are replayed (charging their cost, populating the log so the judge counts them) and the
+    # scratchpad is pre-seeded (the only memory a resumed live session has of the prefix).
+    if env.get("HTA_SITUATION"):
+        d = json.loads(env["HTA_SITUATION"])
+        for col in d.get("probed", []):
+            state.probe(int(col))
+        if d.get("mem"):
+            state.mem = str(d["mem"])
+    return state

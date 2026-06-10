@@ -236,7 +236,10 @@ def cell_value(spec, cell: Tuple, hyp: Tuple[int, ...]) -> int:
     """Deterministic expander, one cell, one hypothesis. Signpost/clearing: (r_i + p) — a lookup.
     Valley: mirror the LANDMARK register the trail resolves to under this hypothesis
     (`spec.landmark_reg`) — a lookup too, once the trail is walked. No cell is ever a joint-solve;
-    that is the B2 line."""
+    that is the B2 line. A spec may own its whole value law (`spec.value`, e.g. the hidden-map
+    family) — the trail law below is the default for the trail-shaped specs."""
+    if hasattr(spec, "value"):
+        return spec.value(cell, hyp)
     kind = cell[0]
     if kind in ("sig", "direct"):
         _, i, p = cell
@@ -257,13 +260,24 @@ def build_tableau(spec):
         here — they are instruments (the map's legend), not map cells. So walking the trail pays
         **zero coverage** until the valley flips on; no prefix of the trail pays, which is what
         makes the gap robust to a bounded planner (it can climb a trail whose every step pays +1;
-        it cannot climb one whose steps pay 0 with the reward three probes away)."""
+        it cannot climb one whose steps pay 0 with the reward three probes away).
+
+    Generic over the spec protocol: a spec may own its hypothesis enumeration (`hypotheses()`,
+    e.g. topology x value variables with ragged ranges — the hidden-map family) and its cell-kind
+    split (`PROBE_KINDS`/`COV_KINDS`); the trail defaults below keep every existing spec
+    unchanged. The oracle/floor/basket machinery underneath never looks inside a hypothesis, so
+    it rides along for free."""
     cells = spec.cells()
-    hyps = list(product(range(spec.K), repeat=spec.R))
+    if hasattr(spec, "hypotheses"):
+        hyps = list(spec.hypotheses())
+    else:
+        hyps = list(product(range(spec.K), repeat=spec.R))
     table = tuple(tuple(cell_value(spec, c, h) for c in cells) for h in hyps)
     costs = tuple(spec.cost_of(c) for c in cells)
-    probe_cols = tuple(i for i, c in enumerate(cells) if c[0] in ("sig", "direct"))
-    cov_cols = tuple(i for i, c in enumerate(cells) if c[0] in ("direct", "valley"))
+    probe_kinds = getattr(spec, "PROBE_KINDS", ("sig", "direct"))
+    cov_kinds = getattr(spec, "COV_KINDS", ("direct", "valley"))
+    probe_cols = tuple(i for i, c in enumerate(cells) if c[0] in probe_kinds)
+    cov_cols = tuple(i for i, c in enumerate(cells) if c[0] in cov_kinds)
     return table, cells, costs, cov_cols, probe_cols
 
 
