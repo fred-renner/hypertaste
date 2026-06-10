@@ -141,6 +141,12 @@ invest in it.
 
 ## Pass-3 design record (locked 2026-06-10 — the brainstorm's outcome; Q1-Q4 answered)
 
+> **Superseded 2026-06-10 (the PI conversation) — see `REPLAN.md`.** The hidden-map world
+> sits below the threshold gate (public lattice → the optimal policy is articulable); it is
+> demoted to an offline regression fixture. This brainstorm is redone as a PI session,
+> starting from `REPLAN.md`, which also moves design lock 4's oracle band to an empirical
+> band. The record below is kept as history.
+
 **The grammar (`hta/ch2/hidden_map.py`).** A world is a set of node GROUPS plus one shared
 backbone. Each group: an entry, public layers of candidate successors, and one hidden realized
 path — which candidate each node links to and where it stops (the hidden depth). Hidden
