@@ -1,5 +1,10 @@
 # REPLAN — the Pass-3 rewind (proposals for the PI brainstorm; nothing here is locked)
 
+> **Status update 2026-06-11:** the redo brainstorm ran as a live PI session. Every proposal
+> below was worked, amended, and ratified in conversation; the outcome is drafted as
+> **PLAN.md → "Pass-3 design record v2"**, pending the PI's reread — the lock lands with the
+> merge to `main`. This file stays as history of the rewind reasoning.
+
 Drafted 2026-06-10 from the live PI conversation. Status: **agenda + recommendations for the
 redo of the Pass-3 brainstorm** — the session PLAN.md always scheduled and the previous
 session ran solo. Every item below is a proposal until ratified. Process line, adopted now:

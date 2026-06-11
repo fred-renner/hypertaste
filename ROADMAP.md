@@ -276,6 +276,46 @@ the line that beats it, and how we'll know which side of the line we're on.
   on purpose (pay for richer substrate, or scope early chapters to plumbing-validation and move
   the taste claim later), never by tuning a sub-threshold toy until the noise looks positive.
 
+## The gym and its chains — why taste, why this world (drafted 2026-06-11, PI reread pending; preserve through every docs collapse)
+
+**Why taste is the right thing to grow.** Capability is the abundant resource: the labs pour
+billions into it, and it arrives — from this project's perspective — free and forever
+improving. What does not arrive is the judgment layer that converts capability into progress:
+which question to ask next, what to ignore, when to check, when to stop, when to quit. Watch
+an agent fail a long task: it is almost never "couldn't make the move" — it is "made the
+wrong move, confidently." Taste is that layer. Its positive form is **allocation**: spending
+the next probe, hour, or unit of belief where it buys the most. Five faces of one skill:
+direction (not getting lost), the next-move call, attention (noticing the anomaly that
+matters), belief management (how sure am I, really), and exit judgment (commit, abandon, or
+find the way around). A grown procedure compounds in a way capability spending doesn't: it
+ports onto every better engine that ships.
+
+**The three chains, accepted on purpose.** (1) The grader must be dumb and mechanical — never
+an LLM judge, or the agent learns to please the judge. This rules out grading real research
+directly. (2) Episodes must be cheap and repeatable thousands of times. (3) The winning
+strategy must not fit on an executable napkin, or a hand prompt ties the grown playbook and
+the loop is theater. Inside those chains, the planted machine — hidden structure, scarce
+probes, graded on predicting behavior never observed — is the skeleton of empirical science:
+nature is a black box, experiments cost, and theories are graded on prediction. Long horizons
+stay in reach (length scales cheaply in-gym); *real* is the chain, and the port is the bridge.
+
+**The honest boundary, named so it is never silently claimed.** Not in the gym yet: taste in
+choosing problems over years, and taste in inventing new concepts and representations.
+Problem choice gets its first step with the discoverable goal menu; concept invention arrives
+only at the port or with a truly open-ended smith. Instrument-making — build the meter you
+weren't given — *is* in the gym, late and ratified.
+
+**The compass.** Evolution never installed curiosity; it built environments where poking the
+surprising thing paid on average, and selection wrote the disposition in. The catalog
+(PLAN.md, record v2) is that move used deliberately: each human inquiry disposition names the
+world feature that makes it pay. It steers the smith and validates the loop — did selection
+rediscover these unprompted? — and it never touches the score, the seed, or any agent-side
+surface.
+
+**The thermometers.** The transfer bet is monitored, not assumed: an alien family the smith
+never touches, a planted bug in real code, and the vocabulary watch — all read-only to
+selection. The port is the meet; the gym is the gym.
+
 ## The staged plan
 
 The manual early chapters are **how we earn the right to automate the outer loop** — you
