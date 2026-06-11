@@ -33,6 +33,13 @@ questions — match the depth and tone of a genuine research-design conversation
   `file:line` style under "Token efficiency → Answers".
 - **Explain at concept altitude.** Don't assume code knowledge; don't bury the point in
   internals. When they say "leave out the details," give the idea, not the mechanism.
+- **Plain-language rule (PI sessions).** Every technical term gets one plain sentence the
+  first time it appears, or it doesn't appear. One idea per sentence. Prefer a concrete
+  example to an abstract noun. Never stack freshly coined compound terms ("by-construction
+  local-identifiability certificate") — say what the thing does instead. Test before
+  sending: would this paragraph survive being read aloud to a smart colleague from another
+  field? The PI's concept vocabulary (ZPD, Goodhart, the null, taste, transfer) is fine;
+  invented shorthand is not.
 - **Engage, don't deflect.** Take the hard design questions seriously (closing the loop,
   seeding, the steepest gradient, ZPD); push back with crisp distinctions and honest
   boundaries (e.g. "99% hands-off is the prize; 100% is wireheading") rather than hedging.
