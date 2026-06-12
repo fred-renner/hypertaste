@@ -242,13 +242,16 @@ the inputs are set to …?"), drawn from a space far larger than the budget so m
 one's own probes cannot pay. Exam size scales with machine size — a calibration output,
 like every other constant.
 
-- **Zero = the best blind guesser.** From the answer key the lab computes the best constant
-  answer per question; skill is scaled above that (lazy or all-abstain = exactly 0, wild
-  guessing < 0, perfect = 1). The normalization is for readable reporting — every decision
-  is a paired comparison on identical machines, where the zero point cancels.
+- **Zero = the best blind guesser.** From the answer key the lab computes the strongest
+  *lazy* strategy — one fixed answer per output, applied across the whole exam (not per
+  question: a per-question "best constant" would just be the answer key); skill is scaled
+  above that (lazy or all-abstain = exactly 0, wild guessing < 0, perfect = 1). The
+  normalization is for readable reporting — every decision is a paired comparison on
+  identical machines, where the zero point cancels.
 - **Many small questions, none dominant.** A question's weight grows with how much hidden
-  machinery sits upstream of it, more again behind a lock — computed from the wiring (a
-  graph heuristic: legible, cheap, scales). How much weight rides on any single hidden
+  machinery sits upstream of it, more again behind a lock — computed from the wiring (e.g.
+  weight ∝ the number of hidden values upstream of the asked output: legible, cheap,
+  scales). How much weight rides on any single hidden
   value is a watched statistic, not a fixed cap. One cruel jackpot question is how the old
   hedge pathology was born; it is outlawed by exam composition, never by softer grading.
 - **Abstain is allowed**, worth exactly that question's blind-guess credit. It never beats
@@ -272,7 +275,8 @@ assembles itself; model text is never executed. Three gates per world:
 2. **Fair?** Verified by construction: every component type in the kit carries its
    identification recipe (e.g. "an affine part is pinned by three probes"); the builder
    sums recipes in prerequisite order and confirms the budget buys a meaningful share of
-   the exam.
+   the drawn exam's weight (the question *pool* is huge so memorization can't pay; the
+   fairness check is about the exam actually drawn).
 3. **In the ZPD?** Only reality can answer whether the live champion fails here, so the
    world's first loop iteration *is* the check: champion fails, the coach gets a few
    rounds; no fix ⇒ the world returns to the smith. Any pre-loop stand-in for the student
@@ -306,8 +310,9 @@ lineage reports, never read back by the loop.
 **6 — The seed world (principles; every constant is a calibration output, frozen per
 lineage).** A handful of components; chains two or three deep; one shared hidden constant
 (transfer between regions exists from episode one); one gently locked readout (earned
-access exists from episode one); stateless; near-full control; a single goal region;
-uniform probe costs. Too easy ⇒ extend from the kit on day zero; gauging is iterative.
+access exists from episode one); stateless; full control (nature-driven inputs are a later
+axis); a single goal region (multi-goal likewise later, smith-opened); uniform probe
+costs. Too easy ⇒ extend from the kit on day zero; gauging is iterative.
 
 **7 — Student, lab, and the cap.** Lab roles (coach, inventor, smart-spec author) run the
 strongest available model, locked and recorded per lineage. The student stays weak (Haiku)
@@ -327,9 +332,11 @@ the bare student on a few fresh machines; the student with the frozen smart-spec
 coaching iterations. **The signal sought: the evolved playbook visibly beats the frozen
 day-one playbook on fresh machines.** Cost: a few dollars. If the signal exists, mechanisms
 come off the shelf as the loop's real behavior demands them; if it doesn't, we learned the
-core bet is in trouble before furnishing the house.
+core bet is in trouble before furnishing the house. The implementation session settles the
+remaining how-exactly questions (component formats, the exam-drawing algorithm, the probe
+interface, calibration constants) — this record fixes the what and the why.
 
-### Provisional mechanisms (the shelf — each adopted only when its failure appears)
+### Provisional mechanisms (the shelf — sketches; each specified and adopted only when its failure appears)
 
 - **Promotion statistics**: a pre-registered paired rule, sample size set from observed
   noise — for when eval noise actually starts fooling us; until then, "visibly beats" on
@@ -363,9 +370,9 @@ oracle band (→ the empirical baseline of §4). Design lock 1's "family public 
 enumerable" (→ open from the inside, planted from the lab side). Pass 6 as a calendar
 event (→ the multi-goal axis, smith-opened). The goal-ledger scoring of this record's
 first draft (→ earned weight, §2). Everything else stands: the generic interface,
-situations as instrument (drills replay a recorded probe log with an empty or
-champion-grown scratchpad, never a hand-written one), run artifacts in repo, and the two
-invariants.
+situations as instrument (drills for agents: replay a recorded probe log with an empty or
+champion-grown scratchpad, never a hand-written one — distinct from the scripted QA
+probers, which test worlds), run artifacts in repo, and the two invariants.
 
 ## Open questions (the v1 Pass-3 brainstorm — answered or dissolved by record v2 above; kept as history)
 
