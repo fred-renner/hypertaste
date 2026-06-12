@@ -99,6 +99,13 @@ student*.
 > PLAN.md; **the next session is the Pass-3 redo brainstorm (a PI session) off `REPLAN.md`** — design
 > only, no implementation.
 
+> **Update 2026-06-12 — the redo ran (two PI sessions).** Outcome: `PLAN.md` → **"Pass-3 design
+> record v2"** (draft: the machinery principles are stable; the world in its §1 is one concrete
+> instance, not the settled abstraction) and `ROADMAP.md` → "The gym and its chains" (the vision;
+> preserve through cleanups). `REPLAN.md` is ratified pending lock. **The next session is a PI
+> design brainstorm off `NEXT.md`** — the single entry point: one question (the world abstraction
+> and the generative principle for worlds), design only, no implementation until it settles.
+
 **Next action — GENERAL-STATE BRAINSTORM (next session), then proceed.** Not more live runs yet. The
 open question: make the model-free ship-gate **faithful to the live student** so "champion fails" means
 the *same thing* live — the precondition for the loop's closure to mean anything. Live-discussed forks

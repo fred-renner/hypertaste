@@ -198,8 +198,10 @@ python run_loop.py --world hidden --backend mock  # the loop on the new world, o
 
 ## Pass-3 design record v2 (drafted 2026-06-11, revised 2026-06-12 after the PI reread — pending final PI read; ratifies REPLAN.md, supersedes the v1 record above)
 
-> **Status: draft.** Outcome of the 2026-06-11/12 PI sessions; the lock lands when this
-> merges to `main` and this banner comes off. The record is layered on purpose:
+> **Status: draft — not locked until this banner comes off (explicit PI sign-off).** Outcome
+> of the 2026-06-11/12 PI sessions. The machinery layer (§2–§7, the milestone, the shelf) is
+> stable; **§1's world is one concrete instance, not the settled abstraction** — that is the
+> next session's single question (`NEXT.md`). The record is layered on purpose:
 > **Principles** are the bets we expect to survive; **Provisional mechanisms** are defaults
 > on a shelf, each adopted only when the failure it guards against actually appears. The
 > lab obeys its own thesis — unlock, don't install — for its own machinery too.
@@ -214,9 +216,10 @@ from its parents. The agent sees none of this. It sees only the machine's surfac
 sets them on its own seeded schedule and the agent can only watch) and whichever components
 have a **readout** (a channel making that component's value directly readable). Everything
 else — wiring, component types, shared hidden values, even how many components exist — must
-be inferred by probing. Two difficulty axes fall out: **control** (how many inputs are
-settable — experiments at one end, astronomy at the other) and **readout coverage** (every
-stage readable at one end; one far-downstream readout and everything inferred at the other).
+be inferred by probing. Difficulty, here, is simply how much is hidden and how hard it is to
+reach; two dials: **control** (how many inputs are settable — experiments at one end,
+astronomy at the other) and **readout coverage** (how much of the middle is directly
+readable).
 
 - **Access is earned.** Some readouts are dark (visible but dead until the machine is
   driven into the right condition) or unlisted (nothing advertises they exist until woken —
@@ -228,11 +231,11 @@ stage readable at one end; one far-downstream readout and everything inferred at
 - **Machines may be open-ended** — larger than any budget can fully pin. Fairness requires
   only that the budget can buy real ground (a meaningful share of the exam reachable);
   beyond the reachable frontier, honest abstention is the right answer.
-- **In the starting worlds the machine never changes during an episode** — probing is
-  reading; every answer is a permanent fact. Machine memory (state; equivalently, feedback
-  loops in the graph) is a later axis, opened deliberately — as are noise, low control,
-  hidden probe costs, planted literature, and instrument-building. All are named here so
-  the architecture accommodates them; the kit is implemented in slices, starting minimal.
+- **The seed family starts static** — probing is reading; every answer is a permanent fact.
+  Machine memory (state; equivalently, feedback loops in the graph), noise, low control,
+  hidden probe costs, planted literature, and instrument-building are axes the **smith**
+  opens through its gates whenever the champion is ready — named here only so the
+  architecture accommodates them; the kit is implemented in slices, starting minimal.
 
 **2 — Scoring: the exam, and only the exam.** Probes spend budget and earn nothing. At
 episode end the lab asks a set of held-out questions — fixed per machine and identical for
@@ -263,7 +266,10 @@ like every other constant.
 - **Goals need no ledger.** A multi-goal machine is one with regions of different richness;
   the exam covers the whole machine. Choosing goals *is* allocating budget; the choice pays
   through the weight actually earned and is visible in the probe log. No claims, no weight
-  declarations, nothing to game. (The goal-ledger scoring of the first draft is dropped.)
+  declarations, nothing to game. Competing goals themselves are wanted (the human analogy
+  stands) and live in the world; how the agent *tracks and weighs* them mid-episode is for
+  the loop to invent — watched for in artifacts, never installed. The score only ever sees
+  earned weight. (The goal-ledger scoring of the first draft is dropped.)
 
 **3 — The smith and its gates.** The smith's inventor (a strong model) proposes the next
 world as a **parts-list and wiring diagram in a fixed format** — data the lab validates and
@@ -301,7 +307,12 @@ persistence-vs-sunk-cost ← mixed walls (some have workarounds, some are true d
 replication ← noise; trust of sources ← planted literature (incomplete, occasionally
 wrong); cost sense ← hidden probe prices; instrument-making ← regions with no readout that
 a rig composed from already-pinned parts could read ("creating something that lets you
-create a meter"). **World-side only:** the inventor may read the catalog; coach, player,
+create a meter"); abstraction ← regions that stop yielding to enumeration and only yield
+to a compressed law (one trigger among several: mapped-but-stuck). One row lives at the
+meta-level rather than in any world: **learning from others** — coaching and the archive
+*are* cultural transmission; the loop itself is that row. Open (next session, `NEXT.md`):
+the catalog must not remain a hand-list — name the higher generative principle it falls
+out of. **World-side only:** the inventor may read the catalog; coach, player,
 and playbook never — or the rediscovery test (did selection find curiosity unprompted?) is
 contaminated. New component types are code, so they arrive through us — deliberate and
 logged, made routine by the **wish channel**: inventor wishes are inert text surfaced in
