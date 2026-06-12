@@ -106,7 +106,8 @@ student*.
 > design brainstorm off `NEXT.md`** — the single entry point: one question (the world abstraction
 > and the generative principle for worlds), design only, no implementation until it settles.
 
-**Next action — GENERAL-STATE BRAINSTORM (next session), then proceed.** Not more live runs yet. The
+**Next action (historical — superseded by `NEXT.md` via the updates above; kept as the record of the
+2026-06-09 forks) — GENERAL-STATE BRAINSTORM, then proceed.** Not more live runs yet. The
 open question: make the model-free ship-gate **faithful to the live student** so "champion fails" means
 the *same thing* live — the precondition for the loop's closure to mean anything. Live-discussed forks
 (your call next session): (a) **fix the coach** — kill the hedge, foreground that the valley is
