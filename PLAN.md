@@ -89,9 +89,10 @@ spends money; live runs appear exactly where they are the point). The current an
 stays in place as the canary until the new world replaces it — we refactor on it, we don't
 invest in it.
 
-> **Note (2026-06-11, record v2 below):** Passes 3–6 are reshaped — every world axis ships
-> in the recipe book on day one and is opened by the gated smith (axes, not passes); Pass 6
-> dissolves into the goal-menu axis.
+> **Note (2026-06-11, record v2 below):** Passes 3–6 are reshaped — every world axis is
+> named in the kit's design from day one and opened by the gated smith (axes, not passes;
+> the kit itself is implemented in slices, starting minimal); Pass 6 dissolves into the
+> multi-goal axis.
 
 - **Pass 0 — safety net + artifacts.** Tests green; persist a curated run (archive +
   transcripts + accounting) into the repo; un-ignore the artifact path. *Gate: a sample
@@ -195,161 +196,176 @@ python run_hiddenmap.py --smoke [--backend real]  # one episode + trajectory (re
 python run_loop.py --world hidden --backend mock  # the loop on the new world, offline
 ```
 
-## Pass-3 design record v2 (drafted 2026-06-11 — the PI redo brainstorm; ratifies REPLAN.md, supersedes the v1 record above)
+## Pass-3 design record v2 (drafted 2026-06-11, revised 2026-06-12 after the PI reread — pending final PI read; ratifies REPLAN.md, supersedes the v1 record above)
 
-> **Status: draft.** Written from the 2026-06-11 PI session; every element below was worked
-> and ratified in that conversation, but the PI rereads before the lock — the lock lands when
-> this merges to `main` and this banner comes off.
+> **Status: draft.** Outcome of the 2026-06-11/12 PI sessions; the lock lands when this
+> merges to `main` and this banner comes off. The record is layered on purpose:
+> **Principles** are the bets we expect to survive; **Provisional mechanisms** are defaults
+> on a shelf, each adopted only when the failure it guards against actually appears. The
+> lab obeys its own thesis — unlock, don't install — for its own machinery too.
 
-**The world: planted machines.** The lab builds a hidden machine from a **recipe book** (the
-rules for what can be built — formerly "grammar"): small **parts** wired into a directed graph.
-The agent sees only the **front panel** — dials it can set, meters it can read. Everything
-else — parts, wiring, shared constants, even how many parts exist — is inferred, never
-announced. Three structural locks so the world can never collapse into a solvable pipe:
+### Principles
 
-1. **A graph, not a pipe.** Machines branch, re-converge, interdepend. The graph stays
-   loop-free until the machine-memory axis opens — a feedback loop *is* memory; they are one
-   door, opened once, deliberately.
-2. **The surface is scattered.** Dials and meters attach at arbitrary depths: some regions
-   carry their own dial-and-meter pair (self-contained sub-investigations), some have no
-   window at all. Tap density is a difficulty dial, from test-bench (instrumented everywhere)
-   to telescope (one meter, everything inferred).
-3. **Access is earned.** Dark meters (visible but dead until conditions are met), truly
-   hidden meters (not listed until woken — the Neptune case: only a misfit in the visible
-   region hints they exist), and connecting inputs (dials that route rather than feed).
-   Unlocks are knowledge, not machine state: the machine never changes; the combination is
-   learnable from elsewhere in it. The map the agent grows is its charted subgraph — each
-   region's understanding is the instrument for the next.
+**1 — The world: a hidden machine, assembled from a kit.** The lab owns a **kit**: a small
+set of component types (formulas, lookup tables, switches) plus assembly rules. Per episode
+it assembles a hidden **machine**: a directed graph of components, each computing its value
+from its parents. The agent sees none of this. It sees only the machine's surface:
+**inputs** (root nodes — some **settable** by the agent, some **nature-driven**: the world
+sets them on its own seeded schedule and the agent can only watch) and whichever components
+have a **readout** (a channel making that component's value directly readable). Everything
+else — wiring, component types, shared hidden values, even how many components exist — must
+be inferred by probing. Two difficulty axes fall out: **control** (how many inputs are
+settable — experiments at one end, astronomy at the other) and **readout coverage** (every
+stage readable at one end; one far-downstream readout and everything inferred at the other).
 
-**Scoring: the exam, and only the exam.** Probing earns nothing; it spends budget. At episode
-end the lab reveals K held-out questions ("what does meter m read at these dial settings?" —
-the same flat vocabulary as probes, never structural hints), drawn from an input space ≫
-budget so memorizing probes caps out low. **Zero = the best blind guesser**: the lab computes
-the best constant answer per question from the answer key; skill is scaled above that
-(perfect = 1; lazy constant or all-abstain = exactly 0; wild guessing < 0). **Many small
-honest questions, never one cruel one**: K starts at 16 and grows with machine size; question
-weights = how much hidden structure bears on each answer (computed by the near-miss sweep);
-every part appears in the exam; no question carries more than ~1/8 of the weight; the weight
-riding on any single hidden number is a watched dashboard statistic, not a fixed cap.
-**Abstain is allowed**, earning exactly that question's blind-guess credit — it never beats
-knowledge, only wrong confidence; self-aware partial knowledge outscores oblivious bluffing
-(calibration measured without a judge). The grader stays exact-match and dumb — distance-
-graded answers would reward predicting the middle (the hedge reborn); all mercy lives in the
-exam draw, where it can't be gamed. Confidently-almost-right ≈ wrong is a feature: it is how
-nature grades.
+- **Access is earned.** Some readouts are dark (visible but dead until the machine is
+  driven into the right condition) or unlisted (nothing advertises they exist until woken —
+  the Neptune case: only a misfit in the visible region hints at them). Switch components
+  route what is connected to what. The setting that opens a locked region is always
+  inferable from what other regions teach — never a brute-force secret. The map the agent
+  grows is its charted subgraph; often one region's understanding is the instrument for the
+  next, and some regions are dead ends on purpose.
+- **Machines may be open-ended** — larger than any budget can fully pin. Fairness requires
+  only that the budget can buy real ground (a meaningful share of the exam reachable);
+  beyond the reachable frontier, honest abstention is the right answer.
+- **In the starting worlds the machine never changes during an episode** — probing is
+  reading; every answer is a permanent fact. Machine memory (state; equivalently, feedback
+  loops in the graph) is a later axis, opened deliberately — as are noise, low control,
+  hidden probe costs, planted literature, and instrument-building. All are named here so
+  the architecture accommodates them; the kit is implemented in slices, starting minimal.
 
-**The three checks before a world ships.**
+**2 — Scoring: the exam, and only the exam.** Probes spend budget and earn nothing. At
+episode end the lab asks a set of held-out questions — fixed per machine and identical for
+every player on that machine (tailoring the exam to an agent's path would break paired
+comparison), phrased in the same flat vocabulary as probes ("what does output o read when
+the inputs are set to …?"), drawn from a space far larger than the budget so memorizing
+one's own probes cannot pay. Exam size scales with machine size — a calibration output,
+like every other constant.
 
-1. **Too easy?** Frozen scripted probers (random, sweep-and-fit) must score ≈ 0 — free. At
-   live calibration the smart-spec null (below) must fail it too: the threshold gate,
-   continuously enforced.
-2. **Fair?** The **builder writes the plan while building** (it holds the answer key): per
-   part, the probes that pin it; prerequisites where access must be earned; total ≤ budget.
-   Verified by the **near-miss sweep**: every single-number change to the planted machine —
-   plus pairs within connected neighborhoods, since only wired-together numbers can mask each
-   other — that alters any exam answer must be separated by the plan's probes. The same sweep
-   yields the exam weights and the smith's difficulty profile. Local and cheap, linear in
-   machine size; the live runs are the global net.
-3. **In the ZPD?** Checked in-loop, never pretended model-free: the world's first live
-   iteration *is* the check — champion fails, the coach gets k rounds; no fix ⇒ the world
-   returns to the smith. The only coupling between smith and student is the objective gap on
-   the unmovable score.
+- **Zero = the best blind guesser.** From the answer key the lab computes the best constant
+  answer per question; skill is scaled above that (lazy or all-abstain = exactly 0, wild
+  guessing < 0, perfect = 1). The normalization is for readable reporting — every decision
+  is a paired comparison on identical machines, where the zero point cancels.
+- **Many small questions, none dominant.** A question's weight grows with how much hidden
+  machinery sits upstream of it, more again behind a lock — computed from the wiring (a
+  graph heuristic: legible, cheap, scales). How much weight rides on any single hidden
+  value is a watched statistic, not a fixed cap. One cruel jackpot question is how the old
+  hedge pathology was born; it is outlawed by exam composition, never by softer grading.
+- **Abstain is allowed**, worth exactly that question's blind-guess credit. It never beats
+  knowledge, only wrong confidence — and on questions beyond the reachable frontier it is
+  the *correct* answer, so knowing the edge of one's own map is scored without a judge.
+- **Grading is exact-match and dumb.** "Close counts" grading would reward middle-value
+  guessing (the hedge reborn as arithmetic). All mercy lives in the exam's composition;
+  none in the grader. Confidently-almost-right ≈ wrong is how nature grades.
+- **Goals need no ledger.** A multi-goal machine is one with regions of different richness;
+  the exam covers the whole machine. Choosing goals *is* allocating budget; the choice pays
+  through the weight actually earned and is visible in the probe log. No claims, no weight
+  declarations, nothing to game. (The goal-ledger scoring of the first draft is dropped.)
 
-**The bench and the noise discipline.** Three frozen rivals run forever on the same paired
-draws as the champion: a vanilla weak player; the same plus a one-line "tasteful researcher"
-prompt; and the **smart-spec null** — the best day-one playbook the lab model can write,
-frozen (the napkin test made measurable; if it keeps up indefinitely, the harness is not
-earning its keep and said so honestly). **Promotion is a frozen rule, not a judgment**: 16
-paired machines per comparison, promote at ≥ 12 wins (priors — tested once at calibration,
-then frozen per lineage; no one, the model included, eyeballs significance mid-run). Standing
-controls: the **renamed twin** (structure-preserving relabel; any gap ⇒ leak or broken
-instrument — halt), the **re-rolled draw** (the wobble estimate), the **scalar crank**
-(dial-only changes must not reopen gaps — the stage-1 finding as a permanent regression test).
+**3 — The smith and its gates.** The smith's inventor (a strong model) proposes the next
+world as a **parts-list and wiring diagram in a fixed format** — data the lab validates and
+assembles itself; model text is never executed. Three gates per world:
 
-**The recipe book holds every axis from day one; passes dissolve into gated smith moves.** No
-capability is scheduled by calendar. The book ships with: machine memory (opens cycles),
-seeded noise (replicate-before-believing; deterministic under the hood, only the agent
-experiences randomness), mode switches (regime change), dark and hidden meters, connecting
-inputs, shared constants, tap density, heterogeneous probe prices (cost discovery — deciding
-the smart next probe *is* taste), planted literature fragments (incomplete, occasionally
-wrong: when to consult, whom to trust, what to verify before building on it), walls
-(workaround-exists and true-dead-end, mixed across draws so neither always-grind nor
-always-quit can win), decoys, and the **goal menu + ledger**. The smith opens each axis when
-the champion is ready — possibly its first move — through the three checks. The inventor
-proposes machine specs as **data** (validated, deterministically expanded), never code —
-safe-eval lifted, unchanged. Genuinely new part types beyond the day-one book are rare,
-PI-ratified, logged code events (the ratified ring): the ratchet returns only deliberately.
-**Instrument-making** is committed but late (the largest body change): *creating something
-that lets you create a meter* — composing a rig from pinned parts to attach a window (or an
-actuator) where nature gave none; ground truth untouched, the probe language enriched.
+1. **Too easy?** Scripted probers (random pokes; sweep-and-fit) must score ≈ 0. These are
+   free unit tests of the world, run at build time — QA on the world, not baselines for
+   the agent.
+2. **Fair?** Verified by construction: every component type in the kit carries its
+   identification recipe (e.g. "an affine part is pinned by three probes"); the builder
+   sums recipes in prerequisite order and confirms the budget buys a meaningful share of
+   the exam.
+3. **In the ZPD?** Only reality can answer whether the live champion fails here, so the
+   world's first loop iteration *is* the check: champion fails, the coach gets a few
+   rounds; no fix ⇒ the world returns to the smith. Any pre-loop stand-in for the student
+   is a model of the student — the unfaithful-proxy trap that forced this redesign. The
+   only coupling between smith and student is the objective gap on the unmovable score.
 
-**The catalog (the evolution move).** Never install a disposition in the score or the seed;
-build the world feature that makes it the winning strategy across draws, and let selection
-write it into the playbook. Rows so far: curiosity ← hidden doors; boredom ← diminishing
-veins; the anomaly itch ← mode switches; calibration ← hidden exam + abstain; stopping ← the
-budget; externalizing ← episodes longer than working memory; persistence-vs-sunk-cost ←
-mixed walls; replication ← noise; trust of sources ← literature; cost sense ← hidden prices;
-instrument-making ← windowless regions. **World-side only:** the inventor may read it; coach,
-player, and playbook never — or the rediscovery test (did selection find curiosity
-unprompted?) is contaminated. Growth channels: PI sessions; the **wish channel** (inventor
-wishes are inert text surfaced in lineage reports, never read back by the loop); the
-**exhaustion signal** (k consecutive candidates rejected as champion-already-solves ⇒ "the
-book may be the bottleneck"). Catalog additions are ratified at lineage boundaries only.
+**4 — The baseline principle.** One standing baseline per lineage: the **smart-spec null** —
+the best day-one playbook the lab's strongest model can write, frozen at lineage start and
+never rewritten mid-lineage; comparing against it later just means running it (cents). The
+claim under test is always: *the evolved procedure beats the best day-one procedure on
+fresh machines, same student, same body.* The bare student (no playbook) is checked
+occasionally — is a playbook net-positive at all, or are we installing nonsense in the way
+of decent behavior? We need a clear signal relative to the baseline, not a fortress of
+proof.
 
-**The seed world (principles locked; constants at calibration).** A handful of parts; chains
-2–3 deep plus one shared constant (inference-through and transfer from episode one); one
-gently gated meter (earned access from episode one); one epistemology — stateless, loop-free,
-every answer a permanent fact; single public goal; uniform probe prices. Budget, part count,
-and exam size are set once at live calibration, then frozen per lineage. If the seed is too
-easy, the smith extends from the book on day zero — gauging is iterative.
+**5 — The catalog (the evolution move).** Never install a disposition in the score or the
+seed; build the world feature that makes it the winning strategy across fresh draws, and
+let selection write it into the playbook. Rows so far: curiosity ← hidden doors; boredom ←
+diminishing veins; the anomaly itch ← regime switches; calibration ← hidden exam + abstain;
+stopping ← the budget; externalizing ← episodes longer than working memory;
+persistence-vs-sunk-cost ← mixed walls (some have workarounds, some are true dead ends);
+replication ← noise; trust of sources ← planted literature (incomplete, occasionally
+wrong); cost sense ← hidden probe prices; instrument-making ← regions with no readout that
+a rig composed from already-pinned parts could read ("creating something that lets you
+create a meter"). **World-side only:** the inventor may read the catalog; coach, player,
+and playbook never — or the rediscovery test (did selection find curiosity unprompted?) is
+contaminated. New component types are code, so they arrive through us — deliberate and
+logged, made routine by the **wish channel**: inventor wishes are inert text surfaced in
+lineage reports, never read back by the loop.
 
-**The goal ledger (built day one; lit when the smith opens multi-goal).** Body ops:
-claim(goal), weight(goal, w), normalized, zero probe cost, fully logged — allocation made
-visible in artifacts; the weighting policy stays in the playbook. **Weights freeze at submit,
-before the exam is revealed** — bets declared before the race; rollup = Σ w·skill per goal,
-each goal scaled above its own blind guesser. Dilution polices freeloading in v1 (claiming
-everything spreads weight over goals never pursued); an entry price only if live logs show
-gaming. Hidden goals are revealed by structure, with discovery provenance logged.
+**6 — The seed world (principles; every constant is a calibration output, frozen per
+lineage).** A handful of components; chains two or three deep; one shared hidden constant
+(transfer between regions exists from episode one); one gently locked readout (earned
+access exists from episode one); stateless; near-full control; a single goal region;
+uniform probe costs. Too easy ⇒ extend from the kit on day zero; gauging is iterative.
 
-**The cap, and the real anti-list force.** The playbook is capped (~350 words, the seed
-included) so every addition costs a deletion — but the cap is insurance, not the mechanism:
-what prices out situation-specific rules is that **every eval draw is a fresh machine**, so a
-rule keyed to one observation cannot pay twice. Slam events (truncated edits, "no room"
-notes, the length-vs-cap trace) are logged per meta-edit. The scratchpad is never capped;
-whether note hierarchy emerges on long episodes is watched for, made legible if absent,
-never installed.
+**7 — Student, lab, and the cap.** Lab roles (coach, inventor, smart-spec author) run the
+strongest available model, locked and recorded per lineage. The student stays weak (Haiku)
+on purpose: on a weak engine any horizon extension is attributable to the procedure, not
+the engine — never promote it. The playbook is capped (~350 words, the seed included) so
+every addition costs a deletion — insurance only: the real force against overfit rules is
+that **every eval draw is a fresh machine**, so a rule keyed to one observation cannot pay
+twice. The within-episode scratchpad is never capped.
 
-**Models.** Lab roles — coach, inventor, smart-spec author — run the strongest available
-model, locked and recorded per lineage. The student stays Haiku, deliberately weak: on a
-strong engine, orchestration gains are masked by capability; on a weak one, any horizon
-extension is visible and attributable to the procedure. Never promote the student.
+### The proof of principle — the next milestone, before any further machinery
 
-**Transfer thermometers (measurement-only — never visible to selection, or Goodhart kills
-them).** Periodic from mid-lineage: the **alien-family audit** (a small task family the book
-did not generate and the smith never touches); the **planted-bug canary** (a fault we planted
-in a real codebase — real substrate, plantable truth, dumb pass/fail); the **leak watch**
-(method vocabulary is the goal; implementation vocabulary is a leak). The transfer bet is
-answered only at the port; these keep it monitored instead of assumed.
+**Kit v1 is the new world** (the graph-of-components machine above); the old anchor and
+hidden-map worlds survive only as offline regression fixtures. Smallest honest slice: two
+or three stateless component types (formula, table, switch), settable inputs, builder +
+exam + scripted QA. One seed family. The experiment, in order: scripted QA green (free);
+the bare student on a few fresh machines; the student with the frozen smart-spec; a few
+coaching iterations. **The signal sought: the evolved playbook visibly beats the frozen
+day-one playbook on fresh machines.** Cost: a few dollars. If the signal exists, mechanisms
+come off the shelf as the loop's real behavior demands them; if it doesn't, we learned the
+core bet is in trouble before furnishing the house.
 
-**Situations (drills).** A recorded probe log + scratchpad + remaining budget (+ ledger
-state), replayed through the ordinary path. Scratchpads are empty or a grown champion's own —
-never hand-written, which would install theory through the side door.
+### Provisional mechanisms (the shelf — each adopted only when its failure appears)
 
-**Chapter close (saturation).** Jointly: the champion-vs-smart-spec gap plateaus across ≥ 3
-consecutive shipped worlds; the smith stops finding shippable ZPD worlds; the port check
-holds at the plateau. Any one alone is reportable; all three close the chapter.
+- **Promotion statistics**: a pre-registered paired rule, sample size set from observed
+  noise — for when eval noise actually starts fooling us; until then, "visibly beats" on
+  paired draws decides.
+- **Standing controls**: the renamed twin (a structure-preserving relabel of the same
+  machine must show zero gap — a leak detector); the re-rolled draw (same blueprint, fresh
+  instance — the noise estimate); the scalar crank (size-only changes must not reopen
+  gaps — a regression test of the old "no scalar dial reopens the gap" finding).
+- **The near-miss sweep**: change one hidden value at a time and check the builder's plan
+  would notice (the exact version of fairness checking and question weighting) — an
+  offline debugging tool for suspicious worlds, not a standing gate.
+- **Transfer thermometers** (from mid-lineage; always invisible to selection, or Goodhart
+  kills them): the alien-family audit (a small task family the kit did not generate); the
+  planted-bug canary (a fault we plant in a real codebase — real substrate, plantable
+  truth, dumb pass/fail); the leak watch (method vocabulary in playbooks is the goal;
+  machine-internals vocabulary is a leak); the port check (the champion playbook dropped
+  onto a different student model — the thesis test).
+- **The exhaustion signal**: several smith candidates in a row already solved by the
+  champion ⇒ "the kit may be the bottleneck", flagged in the lineage report.
+- **Chapter-close criteria** (defined when a chapter actually runs long): the
+  champion-vs-baseline gap plateaus across consecutive shipped worlds + the smith stops
+  finding shippable ZPD worlds + the port check holds.
+- **Goal bookkeeping affordances** — only if multi-goal play turns out to need them.
+- **Later kit axes** (named in §1): machine memory, noise, nature-driven inputs, planted
+  literature, heterogeneous probe costs, instrument-making.
 
-**Cost.** The build side is free (plan, sweep, bench are arithmetic — seconds). Episodes are
-cents; a promotion eval costs about what the meta-edit it gates costs; the live ZPD check is
-cents per shipped world. Probes, not turns, bind — unchanged.
+### What this supersedes
 
-**What this supersedes.** The v1 record above (hidden-map world → offline regression
-fixture); design lock 4's oracle band (→ the empirical bench); design lock 1's "family public
-and enumerable" (→ open from the inside, planted from the lab side); Pass 6 as a calendar
-event (→ the goal-menu axis, smith-opened); Pass 3's content (→ recipe book v1 + exam +
-checks + bench, same gate discipline: free build gate, then mock loop + one live smoke
-episode). Everything else in the design lock stands: the generic interface, situations as
-instrument, run artifacts in repo, and the two invariants.
+The v1 record above (hidden-map world → offline regression fixture). Design lock 4's
+oracle band (→ the empirical baseline of §4). Design lock 1's "family public and
+enumerable" (→ open from the inside, planted from the lab side). Pass 6 as a calendar
+event (→ the multi-goal axis, smith-opened). The goal-ledger scoring of this record's
+first draft (→ earned weight, §2). Everything else stands: the generic interface,
+situations as instrument (drills replay a recorded probe log with an empty or
+champion-grown scratchpad, never a hand-written one), run artifacts in repo, and the two
+invariants.
 
 ## Open questions (the v1 Pass-3 brainstorm — answered or dissolved by record v2 above; kept as history)
 
