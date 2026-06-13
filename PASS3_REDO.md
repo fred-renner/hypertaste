@@ -45,7 +45,7 @@ later session may sharpen it.
 What the cold reads said was *not* required — hidden state, a probe budget, a long horizon, an
 oracle to grade against — we treat as our **choices**, not rules (see §5).
 
-## 3 — The no-certificate rule (the method that makes the open parts safe)
+## 3 — "Don't prove it, price it" (the method that makes the open parts safe)
 
 The actual method of the whole project, and the thing that lets us live with what we can't yet
 prove:
@@ -149,11 +149,13 @@ parts-list in the language so it's the smith's worked example, not a throwaway.
 ## 8 — Naming
 
 **In use:** the **definition** (§1, settled) · the **rules of the game** (§2, what a world must
-have) · the **no-certificate rule** (§3) · the **taste catalogue** (habits, not "rows") · the
+have) · **"Don't prove it, price it"** (§3) · the **taste catalogue** (habits, not "rows") · the
 **world language** (instances are disposable) · the **learning gradient** (the give-back dial).
 
-**Retired — don't reuse:** curvature, faces, lawfulness, world properties, clauses, spine, and
-the capability clause inside the definition.
+**Retired — don't reuse:** curvature, faces, lawfulness, world properties, clauses, spine. And
+the "what capability doesn't buy" clause is retired **from the definition only** — it lives on
+as the *thesis* (taste is the situational trigger, not the capability) and the measurement angle
+(the port check), never as what taste *is*. See §1.
 
 ## 9 — Open
 

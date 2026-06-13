@@ -6,12 +6,16 @@ the "Next action" sections of `CLAUDE.md`/`RESET_DESIGN.md` for sequencing; the 
 and the locked decisions of the reset still stand except where this document explicitly moves
 them (the plodder, the virtue battery, the body ring).
 
-## The thesis (the one sentence everything serves)
+## The definition and the thesis
 
-**Taste is the situational trigger, never the capability.** The model can already make every
-move (abstract, falsify, delegate, commit); what separates good inquiry from lazy inquiry is
-being equipped with the operating procedure that fires the right move when the situation
-demands it. We grow that procedure, measure it objectively, and ship it.
+**The definition (settled 2026-06-13, see `PASS3_REDO.md`).** Taste is choosing your next move
+well by evaluating your position.
+
+**The thesis (why grow it — the portability claim).** Taste is the situational trigger, not the
+capability. The model can already make every move (abstract, falsify, delegate, commit); what
+separates good inquiry from lazy inquiry is the operating procedure that fires the right move
+when the position calls for it — so in principle you could equip even a weak model with it. We
+grow that procedure, measure it objectively (against the same model without it), and ship it.
 
 ## The three layers (vocabulary, so it stops being slippery)
 
@@ -200,8 +204,9 @@ python run_loop.py --world hidden --backend mock  # the loop on the new world, o
 
 > **Status: draft — not locked until this banner comes off (explicit PI sign-off).** Outcome
 > of the 2026-06-11/12 PI sessions. The machinery layer (§2–§7, the milestone, the shelf) is
-> stable; **§1's world is one concrete instance, not the settled abstraction** — that is the
-> next session's single question (`NEXT.md`). The record is layered on purpose:
+> stable; **§1's world is one concrete instance, not the settled abstraction** — now resolved in
+> `PASS3_REDO.md` (the taste definition, the rules of the game, and our world as one instance;
+> fold it in here on the lock). The record is layered on purpose:
 > **Principles** are the bets we expect to survive; **Provisional mechanisms** are defaults
 > on a shelf, each adopted only when the failure it guards against actually appears. The
 > lab obeys its own thesis — unlock, don't install — for its own machinery too.
@@ -300,7 +305,7 @@ proof.
 
 **5 — The catalog (the evolution move).** Never install a disposition in the score or the
 seed; build the world feature that makes it the winning strategy across fresh draws, and
-let selection write it into the playbook. Rows so far: curiosity ← hidden doors; boredom ←
+let selection write it into the playbook. Habits so far: curiosity ← hidden doors; boredom ←
 diminishing veins; the anomaly itch ← regime switches; calibration ← hidden exam + abstain;
 stopping ← the budget; externalizing ← episodes longer than working memory;
 persistence-vs-sunk-cost ← mixed walls (some have workarounds, some are true dead ends);

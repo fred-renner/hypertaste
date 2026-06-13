@@ -1,5 +1,11 @@
 # Chapter-2 reset — the design we locked (decision record)
 
+> **Superseded 2026-06-13 — kept as history.** This is the anchor-trail chapter. The current
+> design is `PASS3_REDO.md` (the taste definition, the rules any world must meet, and this
+> probe-world demoted to *one instance*, not the world). The locked decisions here — English
+> playbook, model-orchestrated, objective scoring, the airgap — still hold; the specific world
+> and its mechanics are now a regression fixture. Don't treat this file as current.
+
 This is the forward design from the session that followed the "harness writes the oracle"
 finding (`NOTEBOOK.md` → "The harness substrate"). It supersedes the Chapter-2 *mechanics* in the
 archived `NOTEBOOK.md` (the slice-by-slice lab history). Read this first.

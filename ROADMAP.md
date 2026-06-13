@@ -93,7 +93,8 @@ in a world that has none.
 
 `hypertaste` is a bet that **research taste is a real, portable, learnable thing** — and
 that a system can grow it in itself, recursively, with a human progressively stepping out
-of the way. "Taste" = the instincts that separate good inquiry from lazy inquiry:
+of the way. Taste is **choosing your next move well by evaluating your position** — the
+instincts that separate good inquiry from lazy inquiry:
 hunting for the case that falsifies you (not the one that confirms you), decomposing a
 hypothesis, knowing what you don't know, designing the experiment that isolates the
 variable. If those instincts are real, they **transfer** across very different problems.
@@ -124,7 +125,7 @@ makes a **new research virtue** necessary to win:
 | Chapter | World kind | Judge (objective principle) | Virtue it forces | Status |
 |---|---|---|---|---|
 | **1** | deterministic hidden rule `f(x,y,z)→bool` | **exact equivalence** — your rule behaves identically to mine on a fixed battery | falsification, hypothesis decomposition, Occam | done — pivoted (binary oracle → flat signal) |
-| **2** | navigable hidden **investigation-map** (the anchor → forked trail worlds) | **coverage** — how much of the structure you uncovered under a scarce budget | budget allocation, value-of-information, reading global structure, predict-the-unseen | **current — English playbook, model-orchestrated; agent loop ran (held-out 0.50→1.00); the world-smith (second loop) is built — it evolves the world's *structure* and ships only in the ZPD; live closed-loop demo next (`RESET_DESIGN.md`)** |
+| **2** | hidden world discovered by probing (one instance of the rules any world must meet) | **coverage** — how much of the structure you uncovered under a scarce budget | budget allocation, value-of-information, reading global structure, predict-the-unseen | **current — redesigned; see `PASS3_REDO.md`: taste defined, the world defined by the rules of the game, the probe-world is one instance; next is the proof of principle (build instance 0)** |
 | **3** | no exact rule — an uncertain/noisy process | **calibration** — how much probability you put on what actually happened | weighing evidence, quantifying uncertainty, knowing what you don't know | future |
 | **4+** | worlds you must act on, not just observe | **intervention quality** — the soundness of the experiment you designed | experimental design, controlling confounds, causal reasoning | future |
 

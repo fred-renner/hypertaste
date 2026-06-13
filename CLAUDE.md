@@ -4,19 +4,22 @@ Guidance for Claude Code working in this repository.
 
 ## Orientation
 
-`hypertaste` is a self-improving research-taste harness (DGM-H pipeline): it co-evolves a
-task agent and its curriculum on a "discover the hidden structure by probing" world.
+`hypertaste` is a self-improving research-taste harness (DGM-H pipeline): it co-evolves a task
+agent and its curriculum so the agent grows **taste** — *choosing your next move well by
+evaluating your position*. (The thesis: taste is the situational trigger, not the capability —
+the moves are the model's; which one fires from the position read is the grown procedure, so it
+should port onto even a weak model.)
 
-- Architecture + how to run the **current code** (Chapter 2, post-reset): `README.md`.
-- Long-term direction (the two-loop model, staircase of judges, closing the loop): `ROADMAP.md`.
-- Design + rationale for the **current chapter** (Chapter 2 after the reset — the English
-  playbook, the model-orchestrated harness, the anchor trail world): `RESET_DESIGN.md`.
-- Archived Chapter-2 lab history (the tape slices, the trap-tetra "harness writes the oracle"
-  finding that triggered the reset): `NOTEBOOK.md`.
+- **Current design frontier — read first:** `PASS3_REDO.md` (the settled taste definition, the
+  rules any world must meet, and the machinery). `NEXT.md` is the one-line entry point.
+- Machinery detail (draft): `PLAN.md` → "Pass-3 design record v2". Vision: `ROADMAP.md` → "The
+  gym and its chains".
+- How to run the code (the current fixture chapter, for now): `README.md`.
+- History — kept, not current: `RESET_DESIGN.md` (the anchor-trail chapter, now one instance),
+  `NOTEBOOK.md` (the tape slices + the trap-tetra "harness writes the oracle" finding).
 
-This file plus `README.md` are the orientation — open only the files you're about to
-change rather than re-reading the whole tree. `ROADMAP.md` is the direction; `RESET_DESIGN.md`
-is the current chapter's mechanics; `NOTEBOOK.md` is history.
+This file plus `README.md` are the orientation — open only the files you're about to change
+rather than re-reading the whole tree.
 
 ## Voice & altitude — working with the PI
 
@@ -47,6 +50,13 @@ questions — match the depth and tone of a genuine research-design conversation
   short and last.
 
 ## Run & test
+
+> **Update 2026-06-13 — the "Where we are" block below is history.** The Pass-3 redo settled the
+> taste definition, the rules of the game, and our anchor/probe world as *one instance* (see
+> `PASS3_REDO.md`). Next action: **build instance 0** — the proof of principle. The anchor +
+> world-smith code (`anchor.py`, `worlds.py`, `world_smith.py`, `run_anchor.py`, `run_probe.py`,
+> `run_worldsmith.py`, and the "Files you'll edit" list below) are now **regression fixtures**,
+> not the live edit surface. The `bash` commands still run and the two invariants still hold.
 
 **Where we are:** the Chapter-2 **reset** is locked (`RESET_DESIGN.md`), the **denoise is done**, and
 the **reseed is built** — the repo is the loop spine (archive, MDL prior, meta-agent, sandbox airgap,

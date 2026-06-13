@@ -1,5 +1,13 @@
 # NEXT — the entry point (written 2026-06-12, closing the Pass-3 redo sessions)
 
+> **Update 2026-06-13 — the single question below is settled.** The Pass-3 redo brainstorm ran.
+> Outcome in `PASS3_REDO.md`: the taste definition ("choosing your next move well by evaluating
+> your position"), the rules of the game (what any world must have — validated by independent
+> cold reads, still provisional), and our hidden-probe world as **one instance**, not the world.
+> Next is no longer a brainstorm: **build instance 0** — the proof of principle (the world
+> language's first slice + one hand-authored world + the inner-loop test). The question below is
+> kept as the record of what was asked.
+
 **For the next session: a PI design brainstorm. One question. Design only, no
 implementation, $0. Brainstorm together — never lock solo; explicit PI sign-off before any
 doc changes status; plain language per the CLAUDE.md rule.**

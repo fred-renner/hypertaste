@@ -24,6 +24,13 @@ world plus a meta agent that rewrites the task agent — specialized so that:
 > mechanically. Model-free proven; the **live closed-loop demo** is the next step
 > (`run_worldsmith.py --backend real`; `RESET_DESIGN.md` → "Next actions" 5).
 
+> **Update 2026-06-13 — the design moved on.** Current design: `PASS3_REDO.md` (entry point
+> `NEXT.md`). Taste is now defined — *choosing your next move well by evaluating your position* —
+> the world is defined by the rules any world must meet, and the anchor/world-smith world is
+> **one instance**, not the world. The code and chapter described below are a **regression
+> fixture**; the next step is the proof of principle (build instance 0). This README body gets
+> its full rewrite later.
+
 **The three docs:** `RESET_DESIGN.md` is the current chapter's design (the locked decisions, the
 harness spec, the anchor world). `ROADMAP.md` is the North Star — the two-loop model, the
 staircase of objective judges, the path to a closed, hands-off loop. `NOTEBOOK.md` is the
