@@ -149,32 +149,40 @@ def run_episode(playbook: str, machine, cfg: Config, log=print) -> dict:
     return {"result": result, "score": score}
 
 
-def _real_episode(playbook: str, machine, cfg: Config, log=print) -> dict:
-    fd, result_path = tempfile.mkstemp(prefix="hta_machine_", suffix=".json")
-    os.close(fd)
-    env = machine_to_env(machine)
-    env.update({"HTA_RESULT_PATH": result_path, "HTA_BACKEND": cfg.backend,
-                "HTA_TASK_MODEL": cfg.task_model})
+def _real_episode(playbook: str, machine, cfg: Config, log=print, attempts: int = 2) -> dict:
     allowed = ("mcp__probe__probe", "mcp__probe__remaining", "mcp__probe__machine_map",
                "mcp__probe__mem_read", "mcp__probe__mem_patch", "mcp__probe__submit")
-    try:
-        res = llm.episode(prompt=KICKOFF, model=cfg.task_model,
-                          mcp_server_argv=[__import__("sys").executable, "-m", "hta.ch2.machine_server"],
-                          server_env=env, cwd=_REPO_ROOT, allowed_tools=allowed,
-                          max_turns=cfg.top_max_turns, role="task_episode", cfg=cfg,
-                          append_system=(playbook or None))
-        if res.get("is_error"):
-            log(f"    episode error: {res.get('result')}")
-        with open(result_path) as f:
-            return json.load(f)
-    except (OSError, json.JSONDecodeError) as e:
-        log(f"    episode produced no result file ({e}); scoring as empty")
-        return {"log": [], "mem": "", "submitted": {}, "used": 0}
-    finally:
+    last_err = None
+    for attempt in range(max(attempts, 1)):
+        fd, result_path = tempfile.mkstemp(prefix="hta_machine_", suffix=".json")
+        os.close(fd)
+        env = machine_to_env(machine)
+        env.update({"HTA_RESULT_PATH": result_path, "HTA_BACKEND": cfg.backend,
+                    "HTA_TASK_MODEL": cfg.task_model})
         try:
-            os.remove(result_path)
-        except OSError:
-            pass
+            res = llm.episode(prompt=KICKOFF, model=cfg.task_model,
+                              mcp_server_argv=[__import__("sys").executable, "-m", "hta.ch2.machine_server"],
+                              server_env=env, cwd=_REPO_ROOT, allowed_tools=allowed,
+                              max_turns=cfg.top_max_turns, role="task_episode", cfg=cfg,
+                              append_system=(playbook or None))
+            with open(result_path) as f:
+                result = json.load(f)
+            # A run that crashed before submit leaves a result with no models; retry it once. A run
+            # that deliberately submitted (even all-abstain) is a real outcome — keep it.
+            if result.get("submitted") or result.get("done"):
+                return result
+            last_err = res.get("result") if res.get("is_error") else "no submission"
+        except (OSError, json.JSONDecodeError) as e:
+            last_err = str(e)
+        finally:
+            try:
+                os.remove(result_path)
+            except OSError:
+                pass
+        if attempt + 1 < attempts:
+            log(f"    episode attempt {attempt + 1} produced no submission ({last_err}); retrying")
+    log(f"    episode produced no submission after {attempts} attempts ({last_err}); scoring as empty")
+    return {"log": [], "mem": "", "submitted": {}, "used": 0}
 
 
 def _mock_player(machine) -> dict:
