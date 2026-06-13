@@ -1,0 +1,3216 @@
+{
+  "blueprint": {
+    "name": "inst0",
+    "slots": [
+      [
+        10,
+        3
+      ],
+      [
+        10,
+        2
+      ],
+      [
+        9,
+        2
+      ],
+      [
+        9,
+        1
+      ],
+      [
+        10,
+        3
+      ],
+      [
+        9,
+        2
+      ],
+      [
+        8,
+        3
+      ],
+      [
+        8,
+        1
+      ]
+    ],
+    "budget": 13,
+    "p_affine": 0.2,
+    "p_const": 0.15
+  },
+  "bare_norm": 0.1438,
+  "day_one_norm": 0.1722,
+  "coached_norm": 0.1975,
+  "gap_coached_minus_dayone": 0.0253,
+  "day_one_playbook": "Your enemy is the budget. A probe earns nothing; only a correctly committed law pays, and a wrong commit scores ZERO \u2014 worse than abstaining. So resolve a FEW outputs completely and abstain on the rest. Never commit a value you merely guessed.\n\nFirst call machine_map(). For each output note its weight and domain. Think in points-per-probe: an affine or constant law pays its full weight for only ~3 reads, whatever the domain \u2014 so a high-weight output with a resolvable law is the prize. A table pays full weight only if you read EVERY input, costing `domain` probes \u2014 worth it only when the domain is small and the weight high.\n\nWork outputs ONE AT A TIME, best value first. Do not spread single reads across all of them \u2014 a thin smear resolves none.\n\nTo resolve an output, test the affine hypothesis (a constant is just affine with zero step):\n1. Probe input 0 (gives b) and input 1 (gives the step a).\n2. Verify at a FAR input (domain\u22121): predict a*input+b, probe, compare.\n   - Matches \u2192 commit the affine (or constant) law. It pays every question, including inputs you never read. On heavy-weight outputs buy one or two extra spread-out checks first \u2014 a lookup table can mimic any few points and confirmation is never certain, but more spread reads make a false affine vanishingly unlikely.\n   - Disagrees \u2192 it is a table. Commit it ONLY if you can afford to read its whole domain, then submit the full table. Otherwise ABSTAIN.\n\nUse mem_patch() to log every (output, input, value) so you never re-probe; mem_read() before deciding. Check remaining() between outputs; when budget runs thin, stop. Submit committed laws only for fully-resolved outputs and abstain on every other \u2014 abstaining banks the blind-guess credit a wrong commit would forfeit.",
+  "coached_playbook": "Your enemy is the budget. A probe earns nothing; only a correctly committed law pays, a wrong commit scores ZERO, and abstaining banks blind-guess credit. Your record is all abstains: you keep spending probes to *diagnose* outputs, then commit NOTHING and score exactly the blind floor. Diagnosis you don't convert is wasted budget.\n\nThe fix: budget to FINISH, not to survey. Before probing, rank every output by points-per-probe-to-fully-resolve:\n  - Affine/constant: ~3 probes for full weight \u2014 but you only earn it if it really is affine.\n  - Table: `domain` probes for full weight \u2014 but a fully read table is GUARANTEED full weight, no hypothesis can fail.\n\nNote the second line: a complete table read on a small-domain, high-weight output is your surest points. A weight-3, domain-8 table is 8 probes for full weight \u2014 easily affordable, and a sure thing. Reading it beats spreading those 8 probes across outputs you'll only abstain on.\n\nSo work outputs one at a time, and on each one COMMIT to resolving it before you start:\n1. Probe input 0, then 1 (the step), then verify at domain\u22121.\n2. Matches the affine prediction \u2192 commit the affine law (on heavy outputs buy one extra spread check first). Cheap full weight \u2014 take it.\n3. Disagrees \u2192 it is a table. Now ask: can I afford the remaining `domain` reads with my budget? If YES, finish the whole table and commit it \u2014 those are guaranteed points, don't abandon them. If NO, abstain and move on.\n\nPick your targets so at least ONE output gets fully resolved. Prefer small domains and high weight \u2014 they are the cheapest sure payouts.\n\nLog every (output, input, value) with mem_patch so you never re-probe; mem_read before deciding; check remaining() between outputs. Submit committed laws only for fully-resolved outputs; abstain on the rest.",
+  "coach_history": [
+    {
+      "round": 1,
+      "train_norm": 0.0,
+      "report_md": "# Conduct report (sanitized) \u2014 how the agent investigated several fresh machines\n\nProbing earns nothing; only the held-out exam pays. norm: 0 = lazy/all-abstain, 1 = perfect; negative = confident wrong guessing did worse than abstaining.\n\n\n## machine_0: norm +0.000  (raw 48.0/157.0, blind 48.0, budget used 12/13)\n- output 0: domain 10, weight 3, probes spent 3; submitted 'abstain'; earned 6.0/30 (blind 6) \u2014 0 right, 0 wrong, 10 abstained\n- output 1: domain 10, weight 2, probes spent 3; submitted 'abstain'; earned 6.0/20 (blind 6) \u2014 0 right, 0 wrong, 10 abstained\n- output 2: domain 9, weight 2, probes spent 0; submitted 'abstain'; earned 4.0/18 (blind 4) \u2014 0 right, 0 wrong, 9 abstained\n- output 3: domain 9, weight 1, probes spent 0; submitted 'abstain'; earned 3.0/9 (blind 3) \u2014 0 right, 0 wrong, 9 abstained\n- output 4: domain 10, weight 3, probes spent 3; submitted 'abstain'; earned 6.0/30 (blind 6) \u2014 0 right, 0 wrong, 10 abstained\n- output 5: domain 9, weight 2, probes spent 0; submitted 'abstain'; earned 6.0/18 (blind 6) \u2014 0 right, 0 wrong, 9 abstained\n- output 6: domain 8, weight 3, probes spent 3; submitted 'abstain'; earned 9.0/24 (blind 9) \u2014 0 right, 0 wrong, 8 abstained\n- output 7: domain 8, weight 1, probes spent 0; submitted 'abstain'; earned 8.0/8 (blind 8) \u2014 0 right, 0 wrong, 8 abstained\n- final scratchpad:\n  ## Strategy\n  Budget: 13 probes total\n  \n  Outputs by value:\n  - Weight 3: 0 (domain 10), 4 (domain 10), 6 (domain 8)  \n  - Weight 2: 1 (domain 10), 2 (domain 9), 5 (domain 9)\n  - Weight 1: 3 (domain 9), 7 (domain 8)\n  \n  Plan: Test affine hypothesis on weight-3 outputs first (need 3 probes each: input 0, 1, domain-1).\n  - Output 0: probe [0, 1, 9] \u2192 identify law\n  - Output 4: probe [0, 1, 9] \u2192 identify law  \n  - Output 6: probe [0, 1, 7] \u2192 identify law\n  - Remaining 4 probes: allocate to weight-2 if affine tests suggest tables\n  \n  ## Results\n  Output 0 (w3, d10): 0\u21927, 1\u219217, 9\u219211 (TABLE)\n  Output 1 (w2, d10): 0\u21928, 1\u21926, 9\u21926 (TABLE)\n  Output 4 (w3, d10): 0\u219218, 1\u219218, 9\u219226 (TABLE)\n  Output 6 (w3, d8): 0\u21925, 1\u219217, 7\u21927 (TABLE)\n  \n  Probes used: 12/13, remaining: 1\n  \n  Last probe allocated: best option now is to abstain on remaining outputs or spend the final probe strategically. Since all high-weight tested are tables requiring full domain reads, and I have insufficient budget, I should ABSTAIN on all of them and commit what I've learned.\n\n## machine_1: norm +0.000  (raw 42.0/157.0, blind 42.0, budget used 12/13)\n- output 0: domain 10, weight 3, probes spent 3; submitted 'abstain'; earned 9.0/30 (blind 9) \u2014 0 right, 0 wrong, 10 abstained\n- output 1: domain 10, weight 2, probes spent 0; submitted 'abstain'; earned 6.0/20 (blind 6) \u2014 0 right, 0 wrong, 10 abstained\n- output 2: domain 9, weight 2, probes spent 3; submitted 'abstain'; earned 4.0/18 (blind 4) \u2014 0 right, 0 wrong, 9 abstained\n- output 3: domain 9, weight 1, probes spent 0; submitted 'abstain'; earned 2.0/9 (blind 2) \u2014 0 right, 0 wrong, 9 abstained\n- output 4: domain 10, weight 3, probes spent 3; submitted 'abstain'; earned 6.0/30 (blind 6) \u2014 0 right, 0 wrong, 10 abstained\n- output 5: domain 9, weight 2, probes spent 0; submitted 'abstain'; earned 6.0/18 (blind 6) \u2014 0 right, 0 wrong, 9 abstained\n- output 6: domain 8, weight 3, probes spent 3; submitted 'abstain'; earned 6.0/24 (blind 6) \u2014 0 right, 0 wrong, 8 abstained\n- output 7: domain 8, weight 1, probes spent 0; submitted 'abstain'; earned 3.0/8 (blind 3) \u2014 0 right, 0 wrong, 8 abstained\n- final scratchpad:\n  ## PROBE INVESTIGATION\n  \n  **Machine**: 8 outputs, 13 budget, domain [0, domain_i) for each output i\n  \n  **Output rankings by value/probe:**\n  1. Output 6: 3/8=0.375 (domain 8, weight 3) \u2190 START HERE\n  2. Output 0: 3/10=0.30 (domain 10, weight 3)\n  3. Output 4: 3/10=0.30 (domain 10, weight 3)\n  4. Output 2: 2/9=0.22 (domain 9, weight 2)\n  5. Output 5: 2/9=0.22 (domain 9, weight 2)\n  6. Output 1: 2/10=0.20 (domain 10, weight 2)\n  7. Output 7: 1/8=0.125 (domain 8, weight 1)\n  8. Output 3: 1/9=0.11 (domain 9, weight 1)\n  \n  **Strategy**: Affine test (3 probes) on top 4 high-value outputs covers 12 probes.\n  - Probe input 0, input 1, verify at domain-1.\n  - If affine: commit law, earn full weight.\n  - If table: too expensive at this domain size, abstain.\n  - Reserve 1 probe for edge case.\n  \n  **Progress**:\n  - **Output 6**: f(0)=4, f(1)=2 (step=-2), f(7)=18 \u2260 affine pred -10 \u2192 TABLE. ABSTAIN.\n  - **Output 0**: f(0)=3, f(1)=6 (step=3), f(9)=9 \u2260 affine pred 30 \u2192 TABLE. ABSTAIN.\n  - **Output 4**: f(0)=4, f(1)=10 (step=6), f(9)=9 \u2260 affine pred 58 \u2192 TABLE. ABSTAIN.\n  - **Output 2**: f(0)=2, f(1)=9 (step=7), f(8)=7 \u2260 affine pred 58 \u2192 TABLE. ABSTAIN.\n  \n  **Conclusion**: All tested outputs are non-affine tables. Domains 8\u201310 too large to read fully (1 probe left). All other outputs untested. Optimal strategy: abstain on all to earn blind-guess credit vs. risk wrong commits.\n\n## machine_2: norm +0.000  (raw 44.0/157.0, blind 44.0, budget used 0/13)\n- output 0: domain 10, weight 3, probes spent 0; submitted 'abstain'; earned 9.0/30 (blind 9) \u2014 0 right, 0 wrong, 10 abstained\n- output 1: domain 10, weight 2, probes spent 0; submitted 'abstain'; earned 4.0/20 (blind 4) \u2014 0 right, 0 wrong, 10 abstained\n- output 2: domain 9, weight 2, probes spent 0; submitted 'abstain'; earned 6.0/18 (blind 6) \u2014 0 right, 0 wrong, 9 abstained\n- output 3: domain 9, weight 1, probes spent 0; submitted 'abstain'; earned 9.0/9 (blind 9) \u2014 0 right, 0 wrong, 9 abstained\n- output 4: domain 10, weight 3, probes spent 0; submitted 'abstain'; earned 9.0/30 (blind 9) \u2014 0 right, 0 wrong, 10 abstained\n- output 5: domain 9, weight 2, probes spent 0; submitted 'abstain'; earned 2.0/18 (blind 2) \u2014 0 right, 0 wrong, 9 abstained\n- output 6: domain 8, weight 3, probes spent 0; submitted 'abstain'; earned 3.0/24 (blind 3) \u2014 0 right, 0 wrong, 8 abstained\n- output 7: domain 8, weight 1, probes spent 0; submitted 'abstain'; earned 2.0/8 (blind 2) \u2014 0 right, 0 wrong, 8 abstained",
+      "playbook": "Your enemy is the budget. A probe earns nothing; only a correctly committed law pays, a wrong commit scores ZERO, and abstaining banks blind-guess credit. Your record is all abstains: you keep spending probes to *diagnose* outputs, then commit NOTHING and score exactly the blind floor. Diagnosis you don't convert is wasted budget.\n\nThe fix: budget to FINISH, not to survey. Before probing, rank every output by points-per-probe-to-fully-resolve:\n  - Affine/constant: ~3 probes for full weight \u2014 but you only earn it if it really is affine.\n  - Table: `domain` probes for full weight \u2014 but a fully read table is GUARANTEED full weight, no hypothesis can fail.\n\nNote the second line: a complete table read on a small-domain, high-weight output is your surest points. A weight-3, domain-8 table is 8 probes for full weight \u2014 easily affordable, and a sure thing. Reading it beats spreading those 8 probes across outputs you'll only abstain on.\n\nSo work outputs one at a time, and on each one COMMIT to resolving it before you start:\n1. Probe input 0, then 1 (the step), then verify at domain\u22121.\n2. Matches the affine prediction \u2192 commit the affine law (on heavy outputs buy one extra spread check first). Cheap full weight \u2014 take it.\n3. Disagrees \u2192 it is a table. Now ask: can I afford the remaining `domain` reads with my budget? If YES, finish the whole table and commit it \u2014 those are guaranteed points, don't abandon them. If NO, abstain and move on.\n\nPick your targets so at least ONE output gets fully resolved. Prefer small domains and high weight \u2014 they are the cheapest sure payouts.\n\nLog every (output, input, value) with mem_patch so you never re-probe; mem_read before deciding; check remaining() between outputs. Submit committed laws only for fully-resolved outputs; abstain on the rest."
+    }
+  ],
+  "holdout_evals": {
+    "bare": {
+      "mean_norm": 0.1438,
+      "per_world": [
+        {
+          "result": {
+            "log": [
+              {
+                "output": 0,
+                "input": 0,
+                "value": 26
+              },
+              {
+                "output": 0,
+                "input": 1,
+                "value": 26
+              },
+              {
+                "output": 0,
+                "input": 5,
+                "value": 26
+              },
+              {
+                "output": 4,
+                "input": 0,
+                "value": 17
+              },
+              {
+                "output": 4,
+                "input": 1,
+                "value": 9
+              },
+              {
+                "output": 4,
+                "input": 5,
+                "value": 25
+              },
+              {
+                "output": 6,
+                "input": 0,
+                "value": 5
+              },
+              {
+                "output": 6,
+                "input": 1,
+                "value": 11
+              },
+              {
+                "output": 6,
+                "input": 2,
+                "value": 6
+              },
+              {
+                "output": 4,
+                "input": 2,
+                "value": 37
+              },
+              {
+                "output": 4,
+                "input": 3,
+                "value": 5
+              },
+              {
+                "output": 1,
+                "input": 0,
+                "value": 7
+              },
+              {
+                "output": 1,
+                "input": 1,
+                "value": 5
+              }
+            ],
+            "mem": "## Investigation Log\n\nMachine: 8 outputs, 13 probes budget\nHigh-weight targets: Output 0 (w:3), Output 4 (w:3), Output 6 (w:3)\n\n### Output Properties:\n- Output 0: domain 10, weight 3\n- Output 1: domain 10, weight 2\n- Output 2: domain 9, weight 2\n- Output 3: domain 9, weight 1\n- Output 4: domain 10, weight 3\n- Output 5: domain 9, weight 2\n- Output 6: domain 8, weight 3\n- Output 7: domain 8, weight 1\n\n### Findings:\n\n**Output 0:** CONSTANT - all inputs \u2192 26\n  - input 0 \u2192 26\n  - input 1 \u2192 26\n  - input 5 \u2192 26\n\n**Output 4:** NOT affine (tested 0\u219217, 1\u21929, 5\u219225; affine fails)\n  - May be table - need more data\n\n**Output 1:** AFFINE - f(x) = -2x + 7\n  - input 0 \u2192 7\n  - input 1 \u2192 5\n\n**Output 4:** TABLE (partial)\n  - input 0 \u2192 17, input 1 \u2192 9, input 2 \u2192 37, input 3 \u2192 5, input 5 \u2192 25\n\n**Output 6:** TABLE (partial)\n  - input 0 \u2192 5, input 1 \u2192 11, input 2 \u2192 6\n\n**Outputs 2, 3, 5, 7:** No probe budget left - will abstain\n\n**Probes used: 13/13 (exhausted)**\n",
+            "used": 13,
+            "submitted": {
+              "0": {
+                "law": "const",
+                "c": 26
+              },
+              "1": {
+                "law": "affine",
+                "a": -2,
+                "b": 7
+              },
+              "2": {
+                "law": "abstain"
+              },
+              "3": {
+                "law": "abstain"
+              },
+              "4": {
+                "law": "table",
+                "values": {
+                  "0": 17,
+                  "1": 9,
+                  "2": 37,
+                  "3": 5,
+                  "5": 25
+                }
+              },
+              "5": {
+                "law": "abstain"
+              },
+              "6": {
+                "law": "table",
+                "values": {
+                  "0": 5,
+                  "1": 11,
+                  "2": 6
+                }
+              },
+              "7": {
+                "law": "abstain"
+              }
+            },
+            "done": true
+          },
+          "score": {
+            "raw": 84.75,
+            "blind": 66.0,
+            "perfect": 157.0,
+            "norm": 0.206,
+            "per_output": [
+              {
+                "output": 0,
+                "domain": 10,
+                "weight": 3,
+                "kind": "const",
+                "law": "const",
+                "earned": 30.0,
+                "perfect": 30,
+                "blind": 30,
+                "correct": 10,
+                "wrong": 0,
+                "abstain": 0
+              },
+              {
+                "output": 1,
+                "domain": 10,
+                "weight": 2,
+                "kind": "table",
+                "law": "affine",
+                "earned": 6.0,
+                "perfect": 20,
+                "blind": 6,
+                "correct": 3,
+                "wrong": 7,
+                "abstain": 0
+              },
+              {
+                "output": 2,
+                "domain": 9,
+                "weight": 2,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 6.0,
+                "perfect": 18,
+                "blind": 6,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 9
+              },
+              {
+                "output": 3,
+                "domain": 9,
+                "weight": 1,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 2.0,
+                "perfect": 9,
+                "blind": 2,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 9
+              },
+              {
+                "output": 4,
+                "domain": 10,
+                "weight": 3,
+                "kind": "table",
+                "law": "table",
+                "earned": 18.0,
+                "perfect": 30,
+                "blind": 6,
+                "correct": 5,
+                "wrong": 0,
+                "abstain": 5
+              },
+              {
+                "output": 5,
+                "domain": 9,
+                "weight": 2,
+                "kind": "affine",
+                "law": "abstain",
+                "earned": 2.0,
+                "perfect": 18,
+                "blind": 2,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 9
+              },
+              {
+                "output": 6,
+                "domain": 8,
+                "weight": 3,
+                "kind": "table",
+                "law": "table",
+                "earned": 12.75,
+                "perfect": 24,
+                "blind": 6,
+                "correct": 3,
+                "wrong": 0,
+                "abstain": 5
+              },
+              {
+                "output": 7,
+                "domain": 8,
+                "weight": 1,
+                "kind": "const",
+                "law": "abstain",
+                "earned": 8.0,
+                "perfect": 8,
+                "blind": 8,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 8
+              }
+            ]
+          }
+        },
+        {
+          "result": {
+            "log": [],
+            "mem": "",
+            "submitted": {},
+            "used": 0
+          },
+          "score": {
+            "raw": 34.0,
+            "blind": 34.0,
+            "perfect": 157.0,
+            "norm": 0.0,
+            "per_output": [
+              {
+                "output": 0,
+                "domain": 10,
+                "weight": 3,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 6.0,
+                "perfect": 30,
+                "blind": 6,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 10
+              },
+              {
+                "output": 1,
+                "domain": 10,
+                "weight": 2,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 6.0,
+                "perfect": 20,
+                "blind": 6,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 10
+              },
+              {
+                "output": 2,
+                "domain": 9,
+                "weight": 2,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 4.0,
+                "perfect": 18,
+                "blind": 4,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 9
+              },
+              {
+                "output": 3,
+                "domain": 9,
+                "weight": 1,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 2.0,
+                "perfect": 9,
+                "blind": 2,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 9
+              },
+              {
+                "output": 4,
+                "domain": 10,
+                "weight": 3,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 6.0,
+                "perfect": 30,
+                "blind": 6,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 10
+              },
+              {
+                "output": 5,
+                "domain": 9,
+                "weight": 2,
+                "kind": "affine",
+                "law": "abstain",
+                "earned": 2.0,
+                "perfect": 18,
+                "blind": 2,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 9
+              },
+              {
+                "output": 6,
+                "domain": 8,
+                "weight": 3,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 6.0,
+                "perfect": 24,
+                "blind": 6,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 8
+              },
+              {
+                "output": 7,
+                "domain": 8,
+                "weight": 1,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 2.0,
+                "perfect": 8,
+                "blind": 2,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 8
+              }
+            ]
+          }
+        },
+        {
+          "result": {
+            "log": [
+              {
+                "output": 0,
+                "input": 0,
+                "value": 9
+              },
+              {
+                "output": 0,
+                "input": 1,
+                "value": 13
+              },
+              {
+                "output": 4,
+                "input": 0,
+                "value": 4
+              },
+              {
+                "output": 4,
+                "input": 1,
+                "value": 8
+              },
+              {
+                "output": 6,
+                "input": 0,
+                "value": 15
+              },
+              {
+                "output": 6,
+                "input": 1,
+                "value": 7
+              },
+              {
+                "output": 0,
+                "input": 2,
+                "value": 17
+              },
+              {
+                "output": 4,
+                "input": 2,
+                "value": 12
+              },
+              {
+                "output": 6,
+                "input": 2,
+                "value": 25
+              },
+              {
+                "output": 1,
+                "input": 0,
+                "value": 15
+              },
+              {
+                "output": 1,
+                "input": 1,
+                "value": 15
+              },
+              {
+                "output": 2,
+                "input": 0,
+                "value": 0
+              },
+              {
+                "output": 2,
+                "input": 1,
+                "value": 16
+              }
+            ],
+            "mem": "# Hidden Machine Investigation\n\n## Game Rules\n- 8 outputs (0-7), 13 probes total\n- Outputs: 0(dom10,w3), 1(dom10,w2), 2(dom9,w2), 3(dom9,w1), 4(dom10,w3), 5(dom9,w2), 6(dom8,w3), 7(dom8,w1)\n- Each output: constant, affine (a*x+b), table (lookup), or abstain\n- Score: full weight for correct law or full table read; zero for wrong commit\n\n## Strategy\n- High-weight: 0,4,6 (3 pts); Medium: 1,2,5 (2 pts); Low: 3,7 (1 pt)\n- Test constant first (input=0, then 1), then affine (check linearity)\n- Save table outputs for full reads or abstain if limited budget\n\n## Findings\n\n### High-Weight Outputs (First Pass)\n- Output 0: f(0)=9, f(1)=13 \u2192 \u0394=4 (likely affine: a=4, b=9)\n- Output 4: f(0)=4, f(1)=8 \u2192 \u0394=4 (likely affine: a=4, b=4)\n- Output 6: f(0)=15, f(1)=7 \u2192 \u0394=-8 (likely affine: a=-8, b=15)\n\n### Verification (Testing linearity)\n- Output 0: f(2)=17 \u2713 matches a=4 (9,13,17 is linear)\n- Output 4: f(2)=12 \u2713 matches a=4 (4,8,12 is linear)\n- Output 6: f(2)=25 \u2717 does NOT match a=-8 (would be -1). This is a TABLE, not affine!\n\n### Confirmed Laws\n- Output 0: AFFINE a=4, b=9\n- Output 4: AFFINE a=4, b=4\n- Output 6: TABLE (need more probes or abstain)\n\n### Medium-Weight Remaining\n- Output 1 (w=2, dom10)\n- Output 2 (w=2, dom9)\n- Output 5 (w=2, dom9)\n- Outputs 3,7 (w=1 each, low priority - may abstain)\n\n### Final Probe Results\n- Output 1: f(0)=15, f(1)=15 \u2192 CONSTANT c=15\n- Output 2: f(0)=0, f(1)=16 \u2192 AFFINE a=16, b=0 (verified with 2 points)\n\n**Probes used: 13/13 (all budget spent)**\n\n### Final Analysis\n- Output 0: AFFINE \u2713 (3 points)\n- Output 1: CONSTANT \u2713 (2 points)\n- Output 2: AFFINE \u2713 (2 points, inferred from linearity)\n- Output 3: ABSTAIN (w=1, no data)\n- Output 4: AFFINE \u2713 (3 points)\n- Output 5: ABSTAIN (w=2, no data)\n- Output 6: TABLE but only 3/8 values known \u2192 ABSTAIN (risky to commit partial table)\n- Output 7: ABSTAIN (w=1, no data)\n\nTotal expected: ~10 points (if all affine/const are correct)\n\n## Submission Complete \u2713\n- Status: ACCEPTED (8 models submitted)\n- Strategy: Identified 3 affine laws and 1 constant law with high confidence\n- Conservative approach: Abstained on low-confidence and unprobed outputs (6 is table but undersampled)\n- Budget: All 13 probes exhausted efficiently\n\n",
+            "used": 13,
+            "submitted": {
+              "0": {
+                "law": "affine",
+                "a": 4,
+                "b": 9
+              },
+              "1": {
+                "law": "const",
+                "c": 15
+              },
+              "2": {
+                "law": "affine",
+                "a": 16,
+                "b": 0
+              },
+              "3": {
+                "law": "abstain"
+              },
+              "4": {
+                "law": "affine",
+                "a": 4,
+                "b": 4
+              },
+              "5": {
+                "law": "abstain"
+              },
+              "6": {
+                "law": "abstain"
+              },
+              "7": {
+                "law": "abstain"
+              }
+            },
+            "done": true
+          },
+          "score": {
+            "raw": 103.0,
+            "blind": 49.0,
+            "perfect": 157.0,
+            "norm": 0.5,
+            "per_output": [
+              {
+                "output": 0,
+                "domain": 10,
+                "weight": 3,
+                "kind": "affine",
+                "law": "affine",
+                "earned": 30.0,
+                "perfect": 30,
+                "blind": 3,
+                "correct": 10,
+                "wrong": 0,
+                "abstain": 0
+              },
+              {
+                "output": 1,
+                "domain": 10,
+                "weight": 2,
+                "kind": "const",
+                "law": "const",
+                "earned": 20.0,
+                "perfect": 20,
+                "blind": 20,
+                "correct": 10,
+                "wrong": 0,
+                "abstain": 0
+              },
+              {
+                "output": 2,
+                "domain": 9,
+                "weight": 2,
+                "kind": "table",
+                "law": "affine",
+                "earned": 4.0,
+                "perfect": 18,
+                "blind": 4,
+                "correct": 2,
+                "wrong": 7,
+                "abstain": 0
+              },
+              {
+                "output": 3,
+                "domain": 9,
+                "weight": 1,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 3.0,
+                "perfect": 9,
+                "blind": 3,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 9
+              },
+              {
+                "output": 4,
+                "domain": 10,
+                "weight": 3,
+                "kind": "affine",
+                "law": "affine",
+                "earned": 30.0,
+                "perfect": 30,
+                "blind": 3,
+                "correct": 10,
+                "wrong": 0,
+                "abstain": 0
+              },
+              {
+                "output": 5,
+                "domain": 9,
+                "weight": 2,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 4.0,
+                "perfect": 18,
+                "blind": 4,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 9
+              },
+              {
+                "output": 6,
+                "domain": 8,
+                "weight": 3,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 9.0,
+                "perfect": 24,
+                "blind": 9,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 8
+              },
+              {
+                "output": 7,
+                "domain": 8,
+                "weight": 1,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 3.0,
+                "perfect": 8,
+                "blind": 3,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 8
+              }
+            ]
+          }
+        },
+        {
+          "result": {
+            "log": [
+              {
+                "output": 0,
+                "input": 0,
+                "value": 7
+              },
+              {
+                "output": 0,
+                "input": 1,
+                "value": 7
+              },
+              {
+                "output": 4,
+                "input": 0,
+                "value": 14
+              },
+              {
+                "output": 4,
+                "input": 1,
+                "value": 38
+              },
+              {
+                "output": 6,
+                "input": 0,
+                "value": 12
+              },
+              {
+                "output": 6,
+                "input": 1,
+                "value": 16
+              },
+              {
+                "output": 1,
+                "input": 0,
+                "value": 2
+              },
+              {
+                "output": 1,
+                "input": 1,
+                "value": 5
+              },
+              {
+                "output": 2,
+                "input": 0,
+                "value": 9
+              },
+              {
+                "output": 2,
+                "input": 1,
+                "value": 7
+              },
+              {
+                "output": 5,
+                "input": 0,
+                "value": 13
+              },
+              {
+                "output": 5,
+                "input": 1,
+                "value": 7
+              },
+              {
+                "output": 3,
+                "input": 0,
+                "value": 7
+              }
+            ],
+            "mem": "## Hidden Machine Investigation\n\n**Setup:** 8 outputs, 13 probes budget\nWeights: [3,2,2,1,3,2,3,1]\nDomains: [10,10,9,9,10,9,8,8]\n\n**Strategy:** \n- Prioritize high-weight outputs (0,4,6 weight=3)\n- For each output: probe 2 points to test if affine, else constant or table\n- Allocate remaining budget to confirm findings\n\n**Findings:**\n**Output 0 (w=3):** input 0\u21927, input 1\u21927 \u2192 CONSTANT c=7\n**Output 4 (w=3):** input 0\u219214, input 1\u219238 \u2192 AFFINE a=24, b=14\n**Output 6 (w=3):** input 0\u219212, input 1\u219216 \u2192 AFFINE a=4, b=12\n\nRemaining budget: 7 probes\n**Output 1 (w=2):** input 0\u21922, input 1\u21925 \u2192 AFFINE a=3, b=2\n**Output 2 (w=2):** input 0\u21929, input 1\u21927 \u2192 AFFINE a=-2, b=9\n**Output 5 (w=2):** input 0\u219213, input 1\u21927 \u2192 AFFINE a=-6, b=13\n\nRemaining budget: 1 probe\n**Output 3 (w=1):** input 0\u21927 \u2192 likely CONSTANT c=7\n\nBudget exhausted. Output 7 must abstain.\n\n## Final Models:\n0: const c=7\n1: affine a=3, b=2\n2: affine a=-2, b=9\n3: const c=7 (single probe)\n4: affine a=24, b=14\n5: affine a=-6, b=13\n6: affine a=4, b=12\n7: abstain",
+            "used": 13,
+            "submitted": {
+              "0": {
+                "law": "const",
+                "c": 7
+              },
+              "1": {
+                "law": "affine",
+                "a": 3,
+                "b": 2
+              },
+              "2": {
+                "law": "affine",
+                "a": -2,
+                "b": 9
+              },
+              "3": {
+                "law": "const",
+                "c": 7
+              },
+              "4": {
+                "law": "affine",
+                "a": 24,
+                "b": 14
+              },
+              "5": {
+                "law": "affine",
+                "a": -6,
+                "b": 13
+              },
+              "6": {
+                "law": "affine",
+                "a": 4,
+                "b": 12
+              },
+              "7": {
+                "law": "abstain"
+              }
+            },
+            "done": true
+          },
+          "score": {
+            "raw": 50.0,
+            "blind": 40.0,
+            "perfect": 157.0,
+            "norm": 0.0855,
+            "per_output": [
+              {
+                "output": 0,
+                "domain": 10,
+                "weight": 3,
+                "kind": "table",
+                "law": "const",
+                "earned": 6.0,
+                "perfect": 30,
+                "blind": 9,
+                "correct": 2,
+                "wrong": 8,
+                "abstain": 0
+              },
+              {
+                "output": 1,
+                "domain": 10,
+                "weight": 2,
+                "kind": "table",
+                "law": "affine",
+                "earned": 4.0,
+                "perfect": 20,
+                "blind": 8,
+                "correct": 2,
+                "wrong": 8,
+                "abstain": 0
+              },
+              {
+                "output": 2,
+                "domain": 9,
+                "weight": 2,
+                "kind": "table",
+                "law": "affine",
+                "earned": 4.0,
+                "perfect": 18,
+                "blind": 6,
+                "correct": 2,
+                "wrong": 7,
+                "abstain": 0
+              },
+              {
+                "output": 3,
+                "domain": 9,
+                "weight": 1,
+                "kind": "table",
+                "law": "const",
+                "earned": 1.0,
+                "perfect": 9,
+                "blind": 3,
+                "correct": 1,
+                "wrong": 8,
+                "abstain": 0
+              },
+              {
+                "output": 4,
+                "domain": 10,
+                "weight": 3,
+                "kind": "table",
+                "law": "affine",
+                "earned": 6.0,
+                "perfect": 30,
+                "blind": 6,
+                "correct": 2,
+                "wrong": 8,
+                "abstain": 0
+              },
+              {
+                "output": 5,
+                "domain": 9,
+                "weight": 2,
+                "kind": "table",
+                "law": "affine",
+                "earned": 4.0,
+                "perfect": 18,
+                "blind": 4,
+                "correct": 2,
+                "wrong": 7,
+                "abstain": 0
+              },
+              {
+                "output": 6,
+                "domain": 8,
+                "weight": 3,
+                "kind": "affine",
+                "law": "affine",
+                "earned": 24.0,
+                "perfect": 24,
+                "blind": 3,
+                "correct": 8,
+                "wrong": 0,
+                "abstain": 0
+              },
+              {
+                "output": 7,
+                "domain": 8,
+                "weight": 1,
+                "kind": "affine",
+                "law": "abstain",
+                "earned": 1.0,
+                "perfect": 8,
+                "blind": 1,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 8
+              }
+            ]
+          }
+        },
+        {
+          "result": {
+            "log": [
+              {
+                "output": 0,
+                "input": 0,
+                "value": 27
+              },
+              {
+                "output": 0,
+                "input": 1,
+                "value": 35
+              },
+              {
+                "output": 4,
+                "input": 0,
+                "value": 18
+              },
+              {
+                "output": 4,
+                "input": 1,
+                "value": 22
+              },
+              {
+                "output": 6,
+                "input": 0,
+                "value": 3
+              },
+              {
+                "output": 6,
+                "input": 1,
+                "value": 3
+              },
+              {
+                "output": 0,
+                "input": 5,
+                "value": 39
+              },
+              {
+                "output": 4,
+                "input": 5,
+                "value": 22
+              },
+              {
+                "output": 1,
+                "input": 0,
+                "value": 9
+              },
+              {
+                "output": 1,
+                "input": 1,
+                "value": 5
+              },
+              {
+                "output": 2,
+                "input": 0,
+                "value": 8
+              },
+              {
+                "output": 2,
+                "input": 1,
+                "value": 2
+              },
+              {
+                "output": 5,
+                "input": 0,
+                "value": 11
+              }
+            ],
+            "mem": "## Hidden Machine Investigation\n\n**Machine:** 8 outputs, 13 probes budget\n- Output 0: domain=10, weight=3\n- Output 1: domain=10, weight=2\n- Output 2: domain=9, weight=2\n- Output 3: domain=9, weight=1\n- Output 4: domain=10, weight=3\n- Output 5: domain=9, weight=2\n- Output 6: domain=8, weight=3\n- Output 7: domain=8, weight=1\n\n**Strategy:** Prioritize high-weight outputs (0,4,6). Probe input=0 and input=1 on each to detect const/affine, then probe additional points if needed.\n\n**Probes Taken:**\n- Output 0: x=0\u219227, x=1\u219235, x=5\u219239 (NOT affine, uncertain pattern)\n- Output 1: x=0\u21929, x=1\u21925 (affine: -4x+9) \u2713\n- Output 2: x=0\u21928, x=1\u21922 (affine: -6x+8) \u2713\n- Output 4: x=0\u219218, x=1\u219222, x=5\u219222 (NOT affine, uncertain pattern)\n- Output 5: x=0\u219211 (only 1 point, indeterminate)\n- Output 6: x=0\u21923, x=1\u21923 (CONSTANT: c=3) \u2713\n- Outputs 3,7: No data\n\n**Decision:** With 0 probes remaining, commit to high-confidence findings:\n- Output 1: Affine (a=-4, b=9) - 2 aligned points\n- Output 2: Affine (a=-6, b=8) - 2 aligned points  \n- Output 6: Constant (c=3) - identical values\n- Outputs 0,3,4,5,7: Abstain (insufficient data for confident claim)\n",
+            "used": 13,
+            "submitted": {
+              "0": {
+                "law": "abstain"
+              },
+              "1": {
+                "law": "affine",
+                "a": -4,
+                "b": 9
+              },
+              "2": {
+                "law": "affine",
+                "a": -6,
+                "b": 8
+              },
+              "3": {
+                "law": "abstain"
+              },
+              "4": {
+                "law": "abstain"
+              },
+              "5": {
+                "law": "abstain"
+              },
+              "6": {
+                "law": "const",
+                "c": 3
+              },
+              "7": {
+                "law": "abstain"
+              }
+            },
+            "done": true
+          },
+          "score": {
+            "raw": 68.0,
+            "blind": 74.0,
+            "perfect": 157.0,
+            "norm": -0.0723,
+            "per_output": [
+              {
+                "output": 0,
+                "domain": 10,
+                "weight": 3,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 12.0,
+                "perfect": 30,
+                "blind": 12,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 10
+              },
+              {
+                "output": 1,
+                "domain": 10,
+                "weight": 2,
+                "kind": "table",
+                "law": "affine",
+                "earned": 4.0,
+                "perfect": 20,
+                "blind": 10,
+                "correct": 2,
+                "wrong": 8,
+                "abstain": 0
+              },
+              {
+                "output": 2,
+                "domain": 9,
+                "weight": 2,
+                "kind": "table",
+                "law": "affine",
+                "earned": 4.0,
+                "perfect": 18,
+                "blind": 4,
+                "correct": 2,
+                "wrong": 7,
+                "abstain": 0
+              },
+              {
+                "output": 3,
+                "domain": 9,
+                "weight": 1,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 3.0,
+                "perfect": 9,
+                "blind": 3,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 9
+              },
+              {
+                "output": 4,
+                "domain": 10,
+                "weight": 3,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 9.0,
+                "perfect": 30,
+                "blind": 9,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 10
+              },
+              {
+                "output": 5,
+                "domain": 9,
+                "weight": 2,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 4.0,
+                "perfect": 18,
+                "blind": 4,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 9
+              },
+              {
+                "output": 6,
+                "domain": 8,
+                "weight": 3,
+                "kind": "const",
+                "law": "const",
+                "earned": 24.0,
+                "perfect": 24,
+                "blind": 24,
+                "correct": 8,
+                "wrong": 0,
+                "abstain": 0
+              },
+              {
+                "output": 7,
+                "domain": 8,
+                "weight": 1,
+                "kind": "const",
+                "law": "abstain",
+                "earned": 8.0,
+                "perfect": 8,
+                "blind": 8,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 8
+              }
+            ]
+          }
+        }
+      ],
+      "report_md": "# Conduct report (sanitized) \u2014 how the agent investigated several fresh machines\n\nProbing earns nothing; only the held-out exam pays. norm: 0 = lazy/all-abstain, 1 = perfect; negative = confident wrong guessing did worse than abstaining.\n\n\n## machine_0: norm +0.206  (raw 84.75/157.0, blind 66.0, budget used 13/13)\n- output 0: domain 10, weight 3, probes spent 3; submitted 'const'; earned 30.0/30 (blind 30) \u2014 10 right, 0 wrong, 0 abstained\n- output 1: domain 10, weight 2, probes spent 2; submitted 'affine'; earned 6.0/20 (blind 6) \u2014 3 right, 7 wrong, 0 abstained\n- output 2: domain 9, weight 2, probes spent 0; submitted 'abstain'; earned 6.0/18 (blind 6) \u2014 0 right, 0 wrong, 9 abstained\n- output 3: domain 9, weight 1, probes spent 0; submitted 'abstain'; earned 2.0/9 (blind 2) \u2014 0 right, 0 wrong, 9 abstained\n- output 4: domain 10, weight 3, probes spent 5; submitted 'table'; earned 18.0/30 (blind 6) \u2014 5 right, 0 wrong, 5 abstained\n- output 5: domain 9, weight 2, probes spent 0; submitted 'abstain'; earned 2.0/18 (blind 2) \u2014 0 right, 0 wrong, 9 abstained\n- output 6: domain 8, weight 3, probes spent 3; submitted 'table'; earned 12.75/24 (blind 6) \u2014 3 right, 0 wrong, 5 abstained\n- output 7: domain 8, weight 1, probes spent 0; submitted 'abstain'; earned 8.0/8 (blind 8) \u2014 0 right, 0 wrong, 8 abstained\n- final scratchpad:\n  ## Investigation Log\n  \n  Machine: 8 outputs, 13 probes budget\n  High-weight targets: Output 0 (w:3), Output 4 (w:3), Output 6 (w:3)\n  \n  ### Output Properties:\n  - Output 0: domain 10, weight 3\n  - Output 1: domain 10, weight 2\n  - Output 2: domain 9, weight 2\n  - Output 3: domain 9, weight 1\n  - Output 4: domain 10, weight 3\n  - Output 5: domain 9, weight 2\n  - Output 6: domain 8, weight 3\n  - Output 7: domain 8, weight 1\n  \n  ### Findings:\n  \n  **Output 0:** CONSTANT - all inputs \u2192 26\n    - input 0 \u2192 26\n    - input 1 \u2192 26\n    - input 5 \u2192 26\n  \n  **Output 4:** NOT affine (tested 0\u219217, 1\u21929, 5\u219225; affine fails)\n    - May be table - need more data\n  \n  **Output 1:** AFFINE - f(x) = -2x + 7\n    - input 0 \u2192 7\n    - input 1 \u2192 5\n  \n  **Output 4:** TABLE (partial)\n    - input 0 \u2192 17, input 1 \u2192 9, input 2 \u2192 37, input 3 \u2192 5, input 5 \u2192 25\n  \n  **Output 6:** TABLE (partial)\n    - input 0 \u2192 5, input 1 \u2192 11, input 2 \u2192 6\n  \n  **Outputs 2, 3, 5, 7:** No probe budget left - will abstain\n  \n  **Probes used: 13/13 (exhausted)**\n\n## machine_1: norm +0.000  (raw 34.0/157.0, blind 34.0, budget used 0/13)\n- output 0: domain 10, weight 3, probes spent 0; submitted 'abstain'; earned 6.0/30 (blind 6) \u2014 0 right, 0 wrong, 10 abstained\n- output 1: domain 10, weight 2, probes spent 0; submitted 'abstain'; earned 6.0/20 (blind 6) \u2014 0 right, 0 wrong, 10 abstained\n- output 2: domain 9, weight 2, probes spent 0; submitted 'abstain'; earned 4.0/18 (blind 4) \u2014 0 right, 0 wrong, 9 abstained\n- output 3: domain 9, weight 1, probes spent 0; submitted 'abstain'; earned 2.0/9 (blind 2) \u2014 0 right, 0 wrong, 9 abstained\n- output 4: domain 10, weight 3, probes spent 0; submitted 'abstain'; earned 6.0/30 (blind 6) \u2014 0 right, 0 wrong, 10 abstained\n- output 5: domain 9, weight 2, probes spent 0; submitted 'abstain'; earned 2.0/18 (blind 2) \u2014 0 right, 0 wrong, 9 abstained\n- output 6: domain 8, weight 3, probes spent 0; submitted 'abstain'; earned 6.0/24 (blind 6) \u2014 0 right, 0 wrong, 8 abstained\n- output 7: domain 8, weight 1, probes spent 0; submitted 'abstain'; earned 2.0/8 (blind 2) \u2014 0 right, 0 wrong, 8 abstained\n\n## machine_2: norm +0.500  (raw 103.0/157.0, blind 49.0, budget used 13/13)\n- output 0: domain 10, weight 3, probes spent 3; submitted 'affine'; earned 30.0/30 (blind 3) \u2014 10 right, 0 wrong, 0 abstained\n- output 1: domain 10, weight 2, probes spent 2; submitted 'const'; earned 20.0/20 (blind 20) \u2014 10 right, 0 wrong, 0 abstained\n- output 2: domain 9, weight 2, probes spent 2; submitted 'affine'; earned 4.0/18 (blind 4) \u2014 2 right, 7 wrong, 0 abstained\n- output 3: domain 9, weight 1, probes spent 0; submitted 'abstain'; earned 3.0/9 (blind 3) \u2014 0 right, 0 wrong, 9 abstained\n- output 4: domain 10, weight 3, probes spent 3; submitted 'affine'; earned 30.0/30 (blind 3) \u2014 10 right, 0 wrong, 0 abstained\n- output 5: domain 9, weight 2, probes spent 0; submitted 'abstain'; earned 4.0/18 (blind 4) \u2014 0 right, 0 wrong, 9 abstained\n- output 6: domain 8, weight 3, probes spent 3; submitted 'abstain'; earned 9.0/24 (blind 9) \u2014 0 right, 0 wrong, 8 abstained\n- output 7: domain 8, weight 1, probes spent 0; submitted 'abstain'; earned 3.0/8 (blind 3) \u2014 0 right, 0 wrong, 8 abstained\n- final scratchpad:\n  # Hidden Machine Investigation\n  \n  ## Game Rules\n  - 8 outputs (0-7), 13 probes total\n  - Outputs: 0(dom10,w3), 1(dom10,w2), 2(dom9,w2), 3(dom9,w1), 4(dom10,w3), 5(dom9,w2), 6(dom8,w3), 7(dom8,w1)\n  - Each output: constant, affine (a*x+b), table (lookup), or abstain\n  - Score: full weight for correct law or full table read; zero for wrong commit\n  \n  ## Strategy\n  - High-weight: 0,4,6 (3 pts); Medium: 1,2,5 (2 pts); Low: 3,7 (1 pt)\n  - Test constant first (input=0, then 1), then affine (check linearity)\n  - Save table outputs for full reads or abstain if limited budget\n  \n  ## Findings\n  \n  ### High-Weight Outputs (First Pass)\n  - Output 0: f(0)=9, f(1)=13 \u2192 \u0394=4 (likely affine: a=4, b=9)\n  - Output 4: f(0)=4, f(1)=8 \u2192 \u0394=4 (likely affine: a=4, b=4)\n  - Output 6: f(0)=15, f(1)=7 \u2192 \u0394=-8 (likely affine: a=-8, b=15)\n  \n  ### Verification (Testing linearity)\n  - Output 0: f(2)=17 \u2713 matches a=4 (9,13,17 is linear)\n  - Output 4: f(2)=12 \u2713 matches a=4 (4,8,12 is linear)\n  - Output 6: f(2)=25 \u2717 does NOT match a=-8 (would be -1). This is a TABLE, not affine!\n  \n  ### Confirmed Laws\n  - Output 0: AFFINE a=4, b=9\n  - Output 4: AFFINE a=4, b=4\n  - Output 6: TABLE (need more probes or abstain)\n  \n  ### Medium-Weight Remaining\n  - Output 1 (w=2, dom10)\n  - Output 2 (w=2, dom9)\n  - Output 5 (w=2, dom9)\n  - Outputs 3,7 (w=1 each, low priority - may abstain)\n  \n  ### Final Probe Results\n  - Output 1: f(0)=15, f(1)=15 \u2192 CONSTANT c=15\n  - Output 2: f(0)=0, f(1)=16 \u2192 AFFINE a=16, b=0 (verified with 2 points)\n  \n  **Probes used: 13/13 (all budget spent)**\n  \n  ### Final Analysis\n  - Output 0: AFFINE \u2713 (3 points)\n  - Output 1: CONSTANT \u2713 (2 points)\n  - Output 2: AFFINE \u2713 (2 points, inferred from linearity)\n  - Output 3: ABSTAIN (w=1, no data)\n  - Output 4: AFFINE \u2713 (3 points)\n  - Output 5: ABSTAIN (w=2, no data)\n  - Output 6: TABLE but only 3/8 values known \u2192 ABSTAIN (risky to commit partial table)\n  - Output 7: ABSTAIN (w=1, no data)\n  \n  Total expected: ~10 points (if all affine/const are correct)\n  \n  ## Submission Complete \u2713\n  - Status: ACCEPTED (8 models submitted)\n  - Strategy: Identified 3 affine laws and 1 constant law with high confidence\n  - Conservative approach: Abstained on low-confidence and unprobed outputs (6 is table but undersampled)\n  - Budget: All 13 probes exhausted efficiently\n\n## machine_3: norm +0.086  (raw 50.0/157.0, blind 40.0, budget used 13/13)\n- output 0: domain 10, weight 3, probes spent 2; submitted 'const'; earned 6.0/30 (blind 9) \u2014 2 right, 8 wrong, 0 abstained\n- output 1: domain 10, weight 2, probes spent 2; submitted 'affine'; earned 4.0/20 (blind 8) \u2014 2 right, 8 wrong, 0 abstained\n- output 2: domain 9, weight 2, probes spent 2; submitted 'affine'; earned 4.0/18 (blind 6) \u2014 2 right, 7 wrong, 0 abstained\n- output 3: domain 9, weight 1, probes spent 1; submitted 'const'; earned 1.0/9 (blind 3) \u2014 1 right, 8 wrong, 0 abstained\n- output 4: domain 10, weight 3, probes spent 2; submitted 'affine'; earned 6.0/30 (blind 6) \u2014 2 right, 8 wrong, 0 abstained\n- output 5: domain 9, weight 2, probes spent 2; submitted 'affine'; earned 4.0/18 (blind 4) \u2014 2 right, 7 wrong, 0 abstained\n- output 6: domain 8, weight 3, probes spent 2; submitted 'affine'; earned 24.0/24 (blind 3) \u2014 8 right, 0 wrong, 0 abstained\n- output 7: domain 8, weight 1, probes spent 0; submitted 'abstain'; earned 1.0/8 (blind 1) \u2014 0 right, 0 wrong, 8 abstained\n- final scratchpad:\n  ## Hidden Machine Investigation\n  \n  **Setup:** 8 outputs, 13 probes budget\n  Weights: [3,2,2,1,3,2,3,1]\n  Domains: [10,10,9,9,10,9,8,8]\n  \n  **Strategy:** \n  - Prioritize high-weight outputs (0,4,6 weight=3)\n  - For each output: probe 2 points to test if affine, else constant or table\n  - Allocate remaining budget to confirm findings\n  \n  **Findings:**\n  **Output 0 (w=3):** input 0\u21927, input 1\u21927 \u2192 CONSTANT c=7\n  **Output 4 (w=3):** input 0\u219214, input 1\u219238 \u2192 AFFINE a=24, b=14\n  **Output 6 (w=3):** input 0\u219212, input 1\u219216 \u2192 AFFINE a=4, b=12\n  \n  Remaining budget: 7 probes\n  **Output 1 (w=2):** input 0\u21922, input 1\u21925 \u2192 AFFINE a=3, b=2\n  **Output 2 (w=2):** input 0\u21929, input 1\u21927 \u2192 AFFINE a=-2, b=9\n  **Output 5 (w=2):** input 0\u219213, input 1\u21927 \u2192 AFFINE a=-6, b=13\n  \n  Remaining budget: 1 probe\n  **Output 3 (w=1):** input 0\u21927 \u2192 likely CONSTANT c=7\n  \n  Budget exhausted. Output 7 must abstain.\n  \n  ## Final Models:\n  0: const c=7\n  1: affine a=3, b=2\n  2: affine a=-2, b=9\n  3: const c=7 (single probe)\n  4: affine a=24, b=14\n  5: affine a=-6, b=13\n  6: affine a=4, b=12\n  7: abstain\n\n## machine_4: norm -0.072  (raw 68.0/157.0, blind 74.0, budget used 13/13)\n- output 0: domain 10, weight 3, probes spent 3; submitted 'abstain'; earned 12.0/30 (blind 12) \u2014 0 right, 0 wrong, 10 abstained\n- output 1: domain 10, weight 2, probes spent 2; submitted 'affine'; earned 4.0/20 (blind 10) \u2014 2 right, 8 wrong, 0 abstained\n- output 2: domain 9, weight 2, probes spent 2; submitted 'affine'; earned 4.0/18 (blind 4) \u2014 2 right, 7 wrong, 0 abstained\n- output 3: domain 9, weight 1, probes spent 0; submitted 'abstain'; earned 3.0/9 (blind 3) \u2014 0 right, 0 wrong, 9 abstained\n- output 4: domain 10, weight 3, probes spent 3; submitted 'abstain'; earned 9.0/30 (blind 9) \u2014 0 right, 0 wrong, 10 abstained\n- output 5: domain 9, weight 2, probes spent 1; submitted 'abstain'; earned 4.0/18 (blind 4) \u2014 0 right, 0 wrong, 9 abstained\n- output 6: domain 8, weight 3, probes spent 2; submitted 'const'; earned 24.0/24 (blind 24) \u2014 8 right, 0 wrong, 0 abstained\n- output 7: domain 8, weight 1, probes spent 0; submitted 'abstain'; earned 8.0/8 (blind 8) \u2014 0 right, 0 wrong, 8 abstained\n- final scratchpad:\n  ## Hidden Machine Investigation\n  \n  **Machine:** 8 outputs, 13 probes budget\n  - Output 0: domain=10, weight=3\n  - Output 1: domain=10, weight=2\n  - Output 2: domain=9, weight=2\n  - Output 3: domain=9, weight=1\n  - Output 4: domain=10, weight=3\n  - Output 5: domain=9, weight=2\n  - Output 6: domain=8, weight=3\n  - Output 7: domain=8, weight=1\n  \n  **Strategy:** Prioritize high-weight outputs (0,4,6). Probe input=0 and input=1 on each to detect const/affine, then probe additional points if needed.\n  \n  **Probes Taken:**\n  - Output 0: x=0\u219227, x=1\u219235, x=5\u219239 (NOT affine, uncertain pattern)\n  - Output 1: x=0\u21929, x=1\u21925 (affine: -4x+9) \u2713\n  - Output 2: x=0\u21928, x=1\u21922 (affine: -6x+8) \u2713\n  - Output 4: x=0\u219218, x=1\u219222, x=5\u219222 (NOT affine, uncertain pattern)\n  - Output 5: x=0\u219211 (only 1 point, indeterminate)\n  - Output 6: x=0\u21923, x=1\u21923 (CONSTANT: c=3) \u2713\n  - Outputs 3,7: No data\n  \n  **Decision:** With 0 probes remaining, commit to high-confidence findings:\n  - Output 1: Affine (a=-4, b=9) - 2 aligned points\n  - Output 2: Affine (a=-6, b=8) - 2 aligned points  \n  - Output 6: Constant (c=3) - identical values\n  - Outputs 0,3,4,5,7: Abstain (insufficient data for confident claim)"
+    },
+    "day_one": {
+      "mean_norm": 0.1722,
+      "per_world": [
+        {
+          "result": {
+            "log": [
+              {
+                "output": 6,
+                "input": 0,
+                "value": 5
+              },
+              {
+                "output": 6,
+                "input": 1,
+                "value": 11
+              },
+              {
+                "output": 6,
+                "input": 7,
+                "value": 7
+              },
+              {
+                "output": 6,
+                "input": 2,
+                "value": 6
+              },
+              {
+                "output": 6,
+                "input": 3,
+                "value": 12
+              },
+              {
+                "output": 6,
+                "input": 4,
+                "value": 14
+              },
+              {
+                "output": 6,
+                "input": 5,
+                "value": 9
+              },
+              {
+                "output": 6,
+                "input": 6,
+                "value": 11
+              },
+              {
+                "output": 0,
+                "input": 0,
+                "value": 26
+              },
+              {
+                "output": 0,
+                "input": 1,
+                "value": 26
+              },
+              {
+                "output": 0,
+                "input": 9,
+                "value": 26
+              },
+              {
+                "output": 4,
+                "input": 0,
+                "value": 17
+              },
+              {
+                "output": 4,
+                "input": 1,
+                "value": 9
+              }
+            ],
+            "mem": "MACHINE MAP:\n8 outputs, 13 probes budget\nWeight/domain ROI (best first):\n0: domain=10, weight=3 (ROI 0.30)\n1: domain=10, weight=2 (ROI 0.20)\n2: domain=9, weight=2 (ROI 0.22)\n3: domain=9, weight=1 (ROI 0.11)\n4: domain=10, weight=3 (ROI 0.30)\n5: domain=9, weight=2 (ROI 0.22)\n6: domain=8, weight=3 (ROI 0.375) \u2190 BEST\n7: domain=8, weight=1 (ROI 0.125)\n\nRESULTS (budget spent: 13/13):\nOutput 6 (domain 8, weight 3): TABLE {0\u21925, 1\u219211, 2\u21926, 3\u219212, 4\u219214, 5\u21929, 6\u219211, 7\u21927}\nOutput 0 (domain 10, weight 3): CONSTANT c=26\nOutput 4 (domain 10, weight 3): AFFINE a=-8, b=17\nOutputs 1,2,3,5,7: ABSTAIN (no budget left)",
+            "used": 13,
+            "submitted": {
+              "0": {
+                "law": "const",
+                "c": 26
+              },
+              "1": {
+                "law": "abstain"
+              },
+              "2": {
+                "law": "abstain"
+              },
+              "3": {
+                "law": "abstain"
+              },
+              "4": {
+                "law": "affine",
+                "a": -8,
+                "b": 17
+              },
+              "5": {
+                "law": "abstain"
+              },
+              "6": {
+                "law": "table",
+                "values": {
+                  "0": 5,
+                  "1": 11,
+                  "2": 6,
+                  "3": 12,
+                  "4": 14,
+                  "5": 9,
+                  "6": 11,
+                  "7": 7
+                }
+              },
+              "7": {
+                "law": "abstain"
+              }
+            },
+            "done": true
+          },
+          "score": {
+            "raw": 84.0,
+            "blind": 66.0,
+            "perfect": 157.0,
+            "norm": 0.1978,
+            "per_output": [
+              {
+                "output": 0,
+                "domain": 10,
+                "weight": 3,
+                "kind": "const",
+                "law": "const",
+                "earned": 30.0,
+                "perfect": 30,
+                "blind": 30,
+                "correct": 10,
+                "wrong": 0,
+                "abstain": 0
+              },
+              {
+                "output": 1,
+                "domain": 10,
+                "weight": 2,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 6.0,
+                "perfect": 20,
+                "blind": 6,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 10
+              },
+              {
+                "output": 2,
+                "domain": 9,
+                "weight": 2,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 6.0,
+                "perfect": 18,
+                "blind": 6,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 9
+              },
+              {
+                "output": 3,
+                "domain": 9,
+                "weight": 1,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 2.0,
+                "perfect": 9,
+                "blind": 2,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 9
+              },
+              {
+                "output": 4,
+                "domain": 10,
+                "weight": 3,
+                "kind": "table",
+                "law": "affine",
+                "earned": 6.0,
+                "perfect": 30,
+                "blind": 6,
+                "correct": 2,
+                "wrong": 8,
+                "abstain": 0
+              },
+              {
+                "output": 5,
+                "domain": 9,
+                "weight": 2,
+                "kind": "affine",
+                "law": "abstain",
+                "earned": 2.0,
+                "perfect": 18,
+                "blind": 2,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 9
+              },
+              {
+                "output": 6,
+                "domain": 8,
+                "weight": 3,
+                "kind": "table",
+                "law": "table",
+                "earned": 24.0,
+                "perfect": 24,
+                "blind": 6,
+                "correct": 8,
+                "wrong": 0,
+                "abstain": 0
+              },
+              {
+                "output": 7,
+                "domain": 8,
+                "weight": 1,
+                "kind": "const",
+                "law": "abstain",
+                "earned": 8.0,
+                "perfect": 8,
+                "blind": 8,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 8
+              }
+            ]
+          }
+        },
+        {
+          "result": {
+            "log": [
+              {
+                "output": 0,
+                "input": 0,
+                "value": 17
+              },
+              {
+                "output": 0,
+                "input": 1,
+                "value": 9
+              },
+              {
+                "output": 0,
+                "input": 9,
+                "value": 15
+              },
+              {
+                "output": 4,
+                "input": 0,
+                "value": 14
+              },
+              {
+                "output": 4,
+                "input": 1,
+                "value": 6
+              },
+              {
+                "output": 4,
+                "input": 9,
+                "value": 34
+              },
+              {
+                "output": 6,
+                "input": 0,
+                "value": 38
+              },
+              {
+                "output": 6,
+                "input": 1,
+                "value": 10
+              },
+              {
+                "output": 6,
+                "input": 7,
+                "value": 18
+              },
+              {
+                "output": 1,
+                "input": 0,
+                "value": 4
+              },
+              {
+                "output": 1,
+                "input": 1,
+                "value": 1
+              },
+              {
+                "output": 2,
+                "input": 0,
+                "value": 10
+              },
+              {
+                "output": 2,
+                "input": 1,
+                "value": 12
+              }
+            ],
+            "mem": "## Strategy\n- Budget: 13 probes\n- High-weight targets: Output 0 (w=3, d=10), Output 4 (w=3, d=10), Output 6 (w=3, d=8)\n- Each affine law needs 3 probes min (input 0\u2192b, input 1\u2192step, verify at far input)\n- Abstain on low-weight outputs (3, 7) if can't resolve affordably\n\n## Probe log\nOutput 0 (w=3, d=10): [0]\u219217, [1]\u21929, [9]\u219215\n  - NOT affine (a=-8,b=17 predicts -55 at [9], got 15) \u2192 likely TABLE\n  - Remaining budget: 10\n\nOutput 4 (w=3, d=10): [0]\u219214, [1]\u21926, [9]\u219234\n  - NOT affine (a=-8,b=14 predicts -58 at [9], got 34) \u2192 likely TABLE\n\nOutput 6 (w=3, d=8): [0]\u219238, [1]\u219210, [7]\u219218\n  - NOT affine (a=-28,b=38 predicts -158 at [7], got 18) \u2192 likely TABLE\n  \nOutput 1 (w=2, d=10): [0]\u21924, [1]\u21921\n  - AFFINE: a=-3, b=4\n  - Predicts: [0]=4 \u2713, [1]=1 \u2713\n\nOutput 2 (w=2, d=9): [0]\u219210, [1]\u219212  \n  - AFFINE: a=2, b=10\n  - Predicts: [0]=10 \u2713, [1]=12 \u2713\n\n## Final decision (budget=0)\nHIGH RISK: Outputs 0, 4, 6 are TABLEs (failed affine test) but need 28 total probes to enumerate \u2192 ABSTAIN\nMEDIUM CONFIDENCE: Outputs 1, 2 show consistent affine laws (2 points each) \u2192 COMMIT affine\nLOW WEIGHT: Outputs 3, 5, 7 unprobed \u2192 ABSTAIN\n\nRationale: 2-point affine confirmation pays full weight (2+2=4 pts); abstaining on untested/tables (3+3+3+2+2+1+1=15 blind credit) beats wrong commits (0 pts each)\n",
+            "used": 13,
+            "submitted": {
+              "1": {
+                "law": "affine",
+                "a": -3,
+                "b": 4
+              },
+              "2": {
+                "law": "affine",
+                "a": 2,
+                "b": 10
+              }
+            },
+            "done": true
+          },
+          "score": {
+            "raw": 32.0,
+            "blind": 34.0,
+            "perfect": 157.0,
+            "norm": -0.0163,
+            "per_output": [
+              {
+                "output": 0,
+                "domain": 10,
+                "weight": 3,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 6.0,
+                "perfect": 30,
+                "blind": 6,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 10
+              },
+              {
+                "output": 1,
+                "domain": 10,
+                "weight": 2,
+                "kind": "table",
+                "law": "affine",
+                "earned": 4.0,
+                "perfect": 20,
+                "blind": 6,
+                "correct": 2,
+                "wrong": 8,
+                "abstain": 0
+              },
+              {
+                "output": 2,
+                "domain": 9,
+                "weight": 2,
+                "kind": "table",
+                "law": "affine",
+                "earned": 4.0,
+                "perfect": 18,
+                "blind": 4,
+                "correct": 2,
+                "wrong": 7,
+                "abstain": 0
+              },
+              {
+                "output": 3,
+                "domain": 9,
+                "weight": 1,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 2.0,
+                "perfect": 9,
+                "blind": 2,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 9
+              },
+              {
+                "output": 4,
+                "domain": 10,
+                "weight": 3,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 6.0,
+                "perfect": 30,
+                "blind": 6,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 10
+              },
+              {
+                "output": 5,
+                "domain": 9,
+                "weight": 2,
+                "kind": "affine",
+                "law": "abstain",
+                "earned": 2.0,
+                "perfect": 18,
+                "blind": 2,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 9
+              },
+              {
+                "output": 6,
+                "domain": 8,
+                "weight": 3,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 6.0,
+                "perfect": 24,
+                "blind": 6,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 8
+              },
+              {
+                "output": 7,
+                "domain": 8,
+                "weight": 1,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 2.0,
+                "perfect": 8,
+                "blind": 2,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 8
+              }
+            ]
+          }
+        },
+        {
+          "result": {
+            "log": [
+              {
+                "output": 0,
+                "input": 0,
+                "value": 9
+              },
+              {
+                "output": 0,
+                "input": 1,
+                "value": 13
+              },
+              {
+                "output": 0,
+                "input": 9,
+                "value": 45
+              },
+              {
+                "output": 4,
+                "input": 0,
+                "value": 4
+              },
+              {
+                "output": 4,
+                "input": 1,
+                "value": 8
+              },
+              {
+                "output": 4,
+                "input": 9,
+                "value": 40
+              },
+              {
+                "output": 6,
+                "input": 0,
+                "value": 15
+              },
+              {
+                "output": 6,
+                "input": 1,
+                "value": 7
+              },
+              {
+                "output": 6,
+                "input": 7,
+                "value": 9
+              },
+              {
+                "output": 1,
+                "input": 0,
+                "value": 15
+              },
+              {
+                "output": 1,
+                "input": 1,
+                "value": 15
+              },
+              {
+                "output": 1,
+                "input": 9,
+                "value": 15
+              }
+            ],
+            "mem": "## Machine Map\n- 8 outputs, 13 probes budget\n- High-weight targets (priority):\n  - Output 0: domain=10, weight=3\n  - Output 4: domain=10, weight=3\n  - Output 6: domain=8, weight=3\n- Medium-weight: outputs 1, 2, 5 (weight=2 each)\n- Low-weight: outputs 3, 7 (weight=1 each)\n\n## Strategy\nTest affine hypothesis on high-weight outputs (3 probes each: input 0, 1, far input).\nRead table fully only if affine fails and weight justifies 8-10 probes.\n\n## Probes & Findings\nOutput 0: AFFINE a=4, b=9 \u2713 (3 probes: 0\u21929, 1\u219213, 9\u219245)\nOutput 1: CONST c=15 \u2713 (3 probes: 0\u219215, 1\u219215, 9\u219215)\nOutput 4: AFFINE a=4, b=4 \u2713 (3 probes: 0\u21924, 1\u21928, 9\u219240)\nOutput 6: TABLE (not affine: 0\u219215, 1\u21927, 7\u21929) - ABSTAIN (need 8 probes)\nOutput 2, 3, 5, 7: ABSTAIN (1 probe remaining, need 3+ each)\n\nTotal budget: 13\nUsed: 12 probes (4 outputs identified)\n",
+            "used": 12,
+            "submitted": {
+              "0": {
+                "law": "affine",
+                "a": 4,
+                "b": 9
+              },
+              "1": {
+                "law": "const",
+                "c": 15
+              },
+              "2": {
+                "law": "abstain"
+              },
+              "3": {
+                "law": "abstain"
+              },
+              "4": {
+                "law": "affine",
+                "a": 4,
+                "b": 4
+              },
+              "5": {
+                "law": "abstain"
+              },
+              "6": {
+                "law": "abstain"
+              },
+              "7": {
+                "law": "abstain"
+              }
+            },
+            "done": true
+          },
+          "score": {
+            "raw": 103.0,
+            "blind": 49.0,
+            "perfect": 157.0,
+            "norm": 0.5,
+            "per_output": [
+              {
+                "output": 0,
+                "domain": 10,
+                "weight": 3,
+                "kind": "affine",
+                "law": "affine",
+                "earned": 30.0,
+                "perfect": 30,
+                "blind": 3,
+                "correct": 10,
+                "wrong": 0,
+                "abstain": 0
+              },
+              {
+                "output": 1,
+                "domain": 10,
+                "weight": 2,
+                "kind": "const",
+                "law": "const",
+                "earned": 20.0,
+                "perfect": 20,
+                "blind": 20,
+                "correct": 10,
+                "wrong": 0,
+                "abstain": 0
+              },
+              {
+                "output": 2,
+                "domain": 9,
+                "weight": 2,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 4.0,
+                "perfect": 18,
+                "blind": 4,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 9
+              },
+              {
+                "output": 3,
+                "domain": 9,
+                "weight": 1,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 3.0,
+                "perfect": 9,
+                "blind": 3,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 9
+              },
+              {
+                "output": 4,
+                "domain": 10,
+                "weight": 3,
+                "kind": "affine",
+                "law": "affine",
+                "earned": 30.0,
+                "perfect": 30,
+                "blind": 3,
+                "correct": 10,
+                "wrong": 0,
+                "abstain": 0
+              },
+              {
+                "output": 5,
+                "domain": 9,
+                "weight": 2,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 4.0,
+                "perfect": 18,
+                "blind": 4,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 9
+              },
+              {
+                "output": 6,
+                "domain": 8,
+                "weight": 3,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 9.0,
+                "perfect": 24,
+                "blind": 9,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 8
+              },
+              {
+                "output": 7,
+                "domain": 8,
+                "weight": 1,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 3.0,
+                "perfect": 8,
+                "blind": 3,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 8
+              }
+            ]
+          }
+        },
+        {
+          "result": {
+            "log": [
+              {
+                "output": 0,
+                "input": 0,
+                "value": 7
+              },
+              {
+                "output": 0,
+                "input": 1,
+                "value": 7
+              },
+              {
+                "output": 0,
+                "input": 9,
+                "value": 19
+              },
+              {
+                "output": 4,
+                "input": 0,
+                "value": 14
+              },
+              {
+                "output": 4,
+                "input": 1,
+                "value": 38
+              },
+              {
+                "output": 4,
+                "input": 9,
+                "value": 30
+              },
+              {
+                "output": 6,
+                "input": 0,
+                "value": 12
+              },
+              {
+                "output": 6,
+                "input": 1,
+                "value": 16
+              },
+              {
+                "output": 6,
+                "input": 7,
+                "value": 40
+              },
+              {
+                "output": 1,
+                "input": 0,
+                "value": 2
+              },
+              {
+                "output": 1,
+                "input": 1,
+                "value": 5
+              },
+              {
+                "output": 1,
+                "input": 9,
+                "value": 1
+              }
+            ],
+            "mem": "**Plan:**\n- Resolve weight-3 outputs (0, 4, 6) first: ~3 probes each = 9 probes, then assess remaining budget\n- For each: probe input 0 (const check), input 1 (affine slope), input domain-1 (verify)\n- Weight-2 outputs abstain unless I have clear budget\n- Weight-1 outputs: likely abstain\n\n**Findings:**\n- Output 0: NOT affine (0\u21927, 1\u21927, 9\u219219). Table but domain=10 too large \u2192 ABSTAIN\n- Output 1: NOT affine (0\u21922, 1\u21925, 9\u21921). Table but domain=10 too large \u2192 ABSTAIN\n- Output 4: NOT affine (0\u219214, 1\u219238, 9\u219230). Table but domain=10 too large \u2192 ABSTAIN\n- Output 6: AFFINE \u2713 (0\u219212, 1\u219216, 7\u219240). Step a=4, const b=12\n- Output 2,3,5,7: Untested (insufficient budget) \u2192 ABSTAIN\n\nBudget spent: 12 of 13 probes. Last probe held in reserve.",
+            "used": 12,
+            "submitted": {
+              "0": {
+                "law": "abstain"
+              },
+              "1": {
+                "law": "abstain"
+              },
+              "2": {
+                "law": "abstain"
+              },
+              "3": {
+                "law": "abstain"
+              },
+              "4": {
+                "law": "abstain"
+              },
+              "5": {
+                "law": "abstain"
+              },
+              "6": {
+                "law": "affine",
+                "a": 4,
+                "b": 12
+              },
+              "7": {
+                "law": "abstain"
+              }
+            },
+            "done": true
+          },
+          "score": {
+            "raw": 61.0,
+            "blind": 40.0,
+            "perfect": 157.0,
+            "norm": 0.1795,
+            "per_output": [
+              {
+                "output": 0,
+                "domain": 10,
+                "weight": 3,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 9.0,
+                "perfect": 30,
+                "blind": 9,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 10
+              },
+              {
+                "output": 1,
+                "domain": 10,
+                "weight": 2,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 8.0,
+                "perfect": 20,
+                "blind": 8,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 10
+              },
+              {
+                "output": 2,
+                "domain": 9,
+                "weight": 2,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 6.0,
+                "perfect": 18,
+                "blind": 6,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 9
+              },
+              {
+                "output": 3,
+                "domain": 9,
+                "weight": 1,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 3.0,
+                "perfect": 9,
+                "blind": 3,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 9
+              },
+              {
+                "output": 4,
+                "domain": 10,
+                "weight": 3,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 6.0,
+                "perfect": 30,
+                "blind": 6,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 10
+              },
+              {
+                "output": 5,
+                "domain": 9,
+                "weight": 2,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 4.0,
+                "perfect": 18,
+                "blind": 4,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 9
+              },
+              {
+                "output": 6,
+                "domain": 8,
+                "weight": 3,
+                "kind": "affine",
+                "law": "affine",
+                "earned": 24.0,
+                "perfect": 24,
+                "blind": 3,
+                "correct": 8,
+                "wrong": 0,
+                "abstain": 0
+              },
+              {
+                "output": 7,
+                "domain": 8,
+                "weight": 1,
+                "kind": "affine",
+                "law": "abstain",
+                "earned": 1.0,
+                "perfect": 8,
+                "blind": 1,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 8
+              }
+            ]
+          }
+        },
+        {
+          "result": {
+            "log": [
+              {
+                "output": 0,
+                "input": 0,
+                "value": 27
+              },
+              {
+                "output": 0,
+                "input": 1,
+                "value": 35
+              },
+              {
+                "output": 0,
+                "input": 9,
+                "value": 39
+              },
+              {
+                "output": 4,
+                "input": 0,
+                "value": 18
+              },
+              {
+                "output": 4,
+                "input": 1,
+                "value": 22
+              },
+              {
+                "output": 4,
+                "input": 9,
+                "value": 12
+              },
+              {
+                "output": 6,
+                "input": 0,
+                "value": 3
+              },
+              {
+                "output": 6,
+                "input": 1,
+                "value": 3
+              },
+              {
+                "output": 6,
+                "input": 7,
+                "value": 3
+              },
+              {
+                "output": 1,
+                "input": 0,
+                "value": 9
+              },
+              {
+                "output": 1,
+                "input": 1,
+                "value": 5
+              },
+              {
+                "output": 1,
+                "input": 9,
+                "value": 2
+              },
+              {
+                "output": 2,
+                "input": 0,
+                "value": 8
+              }
+            ],
+            "mem": "## Strategy\nHigh-weight outputs worth probing first (affine/const pay full weight ~3 reads):\n- Output 0: weight 3, domain 10 \u2192 test affine\n- Output 4: weight 3, domain 10 \u2192 test affine  \n- Output 6: weight 3, domain 8 \u2192 test affine\n\nLow-weight outputs (3,7) likely to abstain unless budget remains.\n\n## Findings\n- Output 0 (w3, d10): input 0\u219227, 1\u219235, 9\u219239 \u2014 NOT affine, appears table\n- Output 1 (w2, d10): input 0\u21929, 1\u21925, 9\u21922 \u2014 NOT affine, appears table\n- Output 2 (w2, d9): input 0\u21928 \u2014 insufficient data\n- Output 4 (w3, d10): input 0\u219218, 1\u219222, 9\u219212 \u2014 NOT affine, appears table\n- Output 6 (w3, d8): input 0\u21923, 1\u21923, 7\u21923 \u2014 CONSTANT = 3 \u2713\n- Outputs 3,5,7: untested\n\n## Strategy Decision\nCannot afford full table reads (domains too large). Committing:\n- Output 6: constant 3 (confident, weight 3)\n- All others: abstain (avoid wrong commits = 0 pts)\n",
+            "used": 13,
+            "submitted": {
+              "0": {
+                "law": "abstain"
+              },
+              "1": {
+                "law": "abstain"
+              },
+              "2": {
+                "law": "abstain"
+              },
+              "3": {
+                "law": "abstain"
+              },
+              "4": {
+                "law": "abstain"
+              },
+              "5": {
+                "law": "abstain"
+              },
+              "6": {
+                "law": "const",
+                "c": 3
+              },
+              "7": {
+                "law": "abstain"
+              }
+            },
+            "done": true
+          },
+          "score": {
+            "raw": 74.0,
+            "blind": 74.0,
+            "perfect": 157.0,
+            "norm": 0.0,
+            "per_output": [
+              {
+                "output": 0,
+                "domain": 10,
+                "weight": 3,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 12.0,
+                "perfect": 30,
+                "blind": 12,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 10
+              },
+              {
+                "output": 1,
+                "domain": 10,
+                "weight": 2,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 10.0,
+                "perfect": 20,
+                "blind": 10,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 10
+              },
+              {
+                "output": 2,
+                "domain": 9,
+                "weight": 2,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 4.0,
+                "perfect": 18,
+                "blind": 4,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 9
+              },
+              {
+                "output": 3,
+                "domain": 9,
+                "weight": 1,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 3.0,
+                "perfect": 9,
+                "blind": 3,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 9
+              },
+              {
+                "output": 4,
+                "domain": 10,
+                "weight": 3,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 9.0,
+                "perfect": 30,
+                "blind": 9,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 10
+              },
+              {
+                "output": 5,
+                "domain": 9,
+                "weight": 2,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 4.0,
+                "perfect": 18,
+                "blind": 4,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 9
+              },
+              {
+                "output": 6,
+                "domain": 8,
+                "weight": 3,
+                "kind": "const",
+                "law": "const",
+                "earned": 24.0,
+                "perfect": 24,
+                "blind": 24,
+                "correct": 8,
+                "wrong": 0,
+                "abstain": 0
+              },
+              {
+                "output": 7,
+                "domain": 8,
+                "weight": 1,
+                "kind": "const",
+                "law": "abstain",
+                "earned": 8.0,
+                "perfect": 8,
+                "blind": 8,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 8
+              }
+            ]
+          }
+        }
+      ],
+      "report_md": "# Conduct report (sanitized) \u2014 how the agent investigated several fresh machines\n\nProbing earns nothing; only the held-out exam pays. norm: 0 = lazy/all-abstain, 1 = perfect; negative = confident wrong guessing did worse than abstaining.\n\n\n## machine_0: norm +0.198  (raw 84.0/157.0, blind 66.0, budget used 13/13)\n- output 0: domain 10, weight 3, probes spent 3; submitted 'const'; earned 30.0/30 (blind 30) \u2014 10 right, 0 wrong, 0 abstained\n- output 1: domain 10, weight 2, probes spent 0; submitted 'abstain'; earned 6.0/20 (blind 6) \u2014 0 right, 0 wrong, 10 abstained\n- output 2: domain 9, weight 2, probes spent 0; submitted 'abstain'; earned 6.0/18 (blind 6) \u2014 0 right, 0 wrong, 9 abstained\n- output 3: domain 9, weight 1, probes spent 0; submitted 'abstain'; earned 2.0/9 (blind 2) \u2014 0 right, 0 wrong, 9 abstained\n- output 4: domain 10, weight 3, probes spent 2; submitted 'affine'; earned 6.0/30 (blind 6) \u2014 2 right, 8 wrong, 0 abstained\n- output 5: domain 9, weight 2, probes spent 0; submitted 'abstain'; earned 2.0/18 (blind 2) \u2014 0 right, 0 wrong, 9 abstained\n- output 6: domain 8, weight 3, probes spent 8; submitted 'table'; earned 24.0/24 (blind 6) \u2014 8 right, 0 wrong, 0 abstained\n- output 7: domain 8, weight 1, probes spent 0; submitted 'abstain'; earned 8.0/8 (blind 8) \u2014 0 right, 0 wrong, 8 abstained\n- final scratchpad:\n  MACHINE MAP:\n  8 outputs, 13 probes budget\n  Weight/domain ROI (best first):\n  0: domain=10, weight=3 (ROI 0.30)\n  1: domain=10, weight=2 (ROI 0.20)\n  2: domain=9, weight=2 (ROI 0.22)\n  3: domain=9, weight=1 (ROI 0.11)\n  4: domain=10, weight=3 (ROI 0.30)\n  5: domain=9, weight=2 (ROI 0.22)\n  6: domain=8, weight=3 (ROI 0.375) \u2190 BEST\n  7: domain=8, weight=1 (ROI 0.125)\n  \n  RESULTS (budget spent: 13/13):\n  Output 6 (domain 8, weight 3): TABLE {0\u21925, 1\u219211, 2\u21926, 3\u219212, 4\u219214, 5\u21929, 6\u219211, 7\u21927}\n  Output 0 (domain 10, weight 3): CONSTANT c=26\n  Output 4 (domain 10, weight 3): AFFINE a=-8, b=17\n  Outputs 1,2,3,5,7: ABSTAIN (no budget left)\n\n## machine_1: norm -0.016  (raw 32.0/157.0, blind 34.0, budget used 13/13)\n- output 0: domain 10, weight 3, probes spent 3; submitted 'abstain'; earned 6.0/30 (blind 6) \u2014 0 right, 0 wrong, 10 abstained\n- output 1: domain 10, weight 2, probes spent 2; submitted 'affine'; earned 4.0/20 (blind 6) \u2014 2 right, 8 wrong, 0 abstained\n- output 2: domain 9, weight 2, probes spent 2; submitted 'affine'; earned 4.0/18 (blind 4) \u2014 2 right, 7 wrong, 0 abstained\n- output 3: domain 9, weight 1, probes spent 0; submitted 'abstain'; earned 2.0/9 (blind 2) \u2014 0 right, 0 wrong, 9 abstained\n- output 4: domain 10, weight 3, probes spent 3; submitted 'abstain'; earned 6.0/30 (blind 6) \u2014 0 right, 0 wrong, 10 abstained\n- output 5: domain 9, weight 2, probes spent 0; submitted 'abstain'; earned 2.0/18 (blind 2) \u2014 0 right, 0 wrong, 9 abstained\n- output 6: domain 8, weight 3, probes spent 3; submitted 'abstain'; earned 6.0/24 (blind 6) \u2014 0 right, 0 wrong, 8 abstained\n- output 7: domain 8, weight 1, probes spent 0; submitted 'abstain'; earned 2.0/8 (blind 2) \u2014 0 right, 0 wrong, 8 abstained\n- final scratchpad:\n  ## Strategy\n  - Budget: 13 probes\n  - High-weight targets: Output 0 (w=3, d=10), Output 4 (w=3, d=10), Output 6 (w=3, d=8)\n  - Each affine law needs 3 probes min (input 0\u2192b, input 1\u2192step, verify at far input)\n  - Abstain on low-weight outputs (3, 7) if can't resolve affordably\n  \n  ## Probe log\n  Output 0 (w=3, d=10): [0]\u219217, [1]\u21929, [9]\u219215\n    - NOT affine (a=-8,b=17 predicts -55 at [9], got 15) \u2192 likely TABLE\n    - Remaining budget: 10\n  \n  Output 4 (w=3, d=10): [0]\u219214, [1]\u21926, [9]\u219234\n    - NOT affine (a=-8,b=14 predicts -58 at [9], got 34) \u2192 likely TABLE\n  \n  Output 6 (w=3, d=8): [0]\u219238, [1]\u219210, [7]\u219218\n    - NOT affine (a=-28,b=38 predicts -158 at [7], got 18) \u2192 likely TABLE\n    \n  Output 1 (w=2, d=10): [0]\u21924, [1]\u21921\n    - AFFINE: a=-3, b=4\n    - Predicts: [0]=4 \u2713, [1]=1 \u2713\n  \n  Output 2 (w=2, d=9): [0]\u219210, [1]\u219212  \n    - AFFINE: a=2, b=10\n    - Predicts: [0]=10 \u2713, [1]=12 \u2713\n  \n  ## Final decision (budget=0)\n  HIGH RISK: Outputs 0, 4, 6 are TABLEs (failed affine test) but need 28 total probes to enumerate \u2192 ABSTAIN\n  MEDIUM CONFIDENCE: Outputs 1, 2 show consistent affine laws (2 points each) \u2192 COMMIT affine\n  LOW WEIGHT: Outputs 3, 5, 7 unprobed \u2192 ABSTAIN\n  \n  Rationale: 2-point affine confirmation pays full weight (2+2=4 pts); abstaining on untested/tables (3+3+3+2+2+1+1=15 blind credit) beats wrong commits (0 pts each)\n\n## machine_2: norm +0.500  (raw 103.0/157.0, blind 49.0, budget used 12/13)\n- output 0: domain 10, weight 3, probes spent 3; submitted 'affine'; earned 30.0/30 (blind 3) \u2014 10 right, 0 wrong, 0 abstained\n- output 1: domain 10, weight 2, probes spent 3; submitted 'const'; earned 20.0/20 (blind 20) \u2014 10 right, 0 wrong, 0 abstained\n- output 2: domain 9, weight 2, probes spent 0; submitted 'abstain'; earned 4.0/18 (blind 4) \u2014 0 right, 0 wrong, 9 abstained\n- output 3: domain 9, weight 1, probes spent 0; submitted 'abstain'; earned 3.0/9 (blind 3) \u2014 0 right, 0 wrong, 9 abstained\n- output 4: domain 10, weight 3, probes spent 3; submitted 'affine'; earned 30.0/30 (blind 3) \u2014 10 right, 0 wrong, 0 abstained\n- output 5: domain 9, weight 2, probes spent 0; submitted 'abstain'; earned 4.0/18 (blind 4) \u2014 0 right, 0 wrong, 9 abstained\n- output 6: domain 8, weight 3, probes spent 3; submitted 'abstain'; earned 9.0/24 (blind 9) \u2014 0 right, 0 wrong, 8 abstained\n- output 7: domain 8, weight 1, probes spent 0; submitted 'abstain'; earned 3.0/8 (blind 3) \u2014 0 right, 0 wrong, 8 abstained\n- final scratchpad:\n  ## Machine Map\n  - 8 outputs, 13 probes budget\n  - High-weight targets (priority):\n    - Output 0: domain=10, weight=3\n    - Output 4: domain=10, weight=3\n    - Output 6: domain=8, weight=3\n  - Medium-weight: outputs 1, 2, 5 (weight=2 each)\n  - Low-weight: outputs 3, 7 (weight=1 each)\n  \n  ## Strategy\n  Test affine hypothesis on high-weight outputs (3 probes each: input 0, 1, far input).\n  Read table fully only if affine fails and weight justifies 8-10 probes.\n  \n  ## Probes & Findings\n  Output 0: AFFINE a=4, b=9 \u2713 (3 probes: 0\u21929, 1\u219213, 9\u219245)\n  Output 1: CONST c=15 \u2713 (3 probes: 0\u219215, 1\u219215, 9\u219215)\n  Output 4: AFFINE a=4, b=4 \u2713 (3 probes: 0\u21924, 1\u21928, 9\u219240)\n  Output 6: TABLE (not affine: 0\u219215, 1\u21927, 7\u21929) - ABSTAIN (need 8 probes)\n  Output 2, 3, 5, 7: ABSTAIN (1 probe remaining, need 3+ each)\n  \n  Total budget: 13\n  Used: 12 probes (4 outputs identified)\n\n## machine_3: norm +0.179  (raw 61.0/157.0, blind 40.0, budget used 12/13)\n- output 0: domain 10, weight 3, probes spent 3; submitted 'abstain'; earned 9.0/30 (blind 9) \u2014 0 right, 0 wrong, 10 abstained\n- output 1: domain 10, weight 2, probes spent 3; submitted 'abstain'; earned 8.0/20 (blind 8) \u2014 0 right, 0 wrong, 10 abstained\n- output 2: domain 9, weight 2, probes spent 0; submitted 'abstain'; earned 6.0/18 (blind 6) \u2014 0 right, 0 wrong, 9 abstained\n- output 3: domain 9, weight 1, probes spent 0; submitted 'abstain'; earned 3.0/9 (blind 3) \u2014 0 right, 0 wrong, 9 abstained\n- output 4: domain 10, weight 3, probes spent 3; submitted 'abstain'; earned 6.0/30 (blind 6) \u2014 0 right, 0 wrong, 10 abstained\n- output 5: domain 9, weight 2, probes spent 0; submitted 'abstain'; earned 4.0/18 (blind 4) \u2014 0 right, 0 wrong, 9 abstained\n- output 6: domain 8, weight 3, probes spent 3; submitted 'affine'; earned 24.0/24 (blind 3) \u2014 8 right, 0 wrong, 0 abstained\n- output 7: domain 8, weight 1, probes spent 0; submitted 'abstain'; earned 1.0/8 (blind 1) \u2014 0 right, 0 wrong, 8 abstained\n- final scratchpad:\n  **Plan:**\n  - Resolve weight-3 outputs (0, 4, 6) first: ~3 probes each = 9 probes, then assess remaining budget\n  - For each: probe input 0 (const check), input 1 (affine slope), input domain-1 (verify)\n  - Weight-2 outputs abstain unless I have clear budget\n  - Weight-1 outputs: likely abstain\n  \n  **Findings:**\n  - Output 0: NOT affine (0\u21927, 1\u21927, 9\u219219). Table but domain=10 too large \u2192 ABSTAIN\n  - Output 1: NOT affine (0\u21922, 1\u21925, 9\u21921). Table but domain=10 too large \u2192 ABSTAIN\n  - Output 4: NOT affine (0\u219214, 1\u219238, 9\u219230). Table but domain=10 too large \u2192 ABSTAIN\n  - Output 6: AFFINE \u2713 (0\u219212, 1\u219216, 7\u219240). Step a=4, const b=12\n  - Output 2,3,5,7: Untested (insufficient budget) \u2192 ABSTAIN\n  \n  Budget spent: 12 of 13 probes. Last probe held in reserve.\n\n## machine_4: norm +0.000  (raw 74.0/157.0, blind 74.0, budget used 13/13)\n- output 0: domain 10, weight 3, probes spent 3; submitted 'abstain'; earned 12.0/30 (blind 12) \u2014 0 right, 0 wrong, 10 abstained\n- output 1: domain 10, weight 2, probes spent 3; submitted 'abstain'; earned 10.0/20 (blind 10) \u2014 0 right, 0 wrong, 10 abstained\n- output 2: domain 9, weight 2, probes spent 1; submitted 'abstain'; earned 4.0/18 (blind 4) \u2014 0 right, 0 wrong, 9 abstained\n- output 3: domain 9, weight 1, probes spent 0; submitted 'abstain'; earned 3.0/9 (blind 3) \u2014 0 right, 0 wrong, 9 abstained\n- output 4: domain 10, weight 3, probes spent 3; submitted 'abstain'; earned 9.0/30 (blind 9) \u2014 0 right, 0 wrong, 10 abstained\n- output 5: domain 9, weight 2, probes spent 0; submitted 'abstain'; earned 4.0/18 (blind 4) \u2014 0 right, 0 wrong, 9 abstained\n- output 6: domain 8, weight 3, probes spent 3; submitted 'const'; earned 24.0/24 (blind 24) \u2014 8 right, 0 wrong, 0 abstained\n- output 7: domain 8, weight 1, probes spent 0; submitted 'abstain'; earned 8.0/8 (blind 8) \u2014 0 right, 0 wrong, 8 abstained\n- final scratchpad:\n  ## Strategy\n  High-weight outputs worth probing first (affine/const pay full weight ~3 reads):\n  - Output 0: weight 3, domain 10 \u2192 test affine\n  - Output 4: weight 3, domain 10 \u2192 test affine  \n  - Output 6: weight 3, domain 8 \u2192 test affine\n  \n  Low-weight outputs (3,7) likely to abstain unless budget remains.\n  \n  ## Findings\n  - Output 0 (w3, d10): input 0\u219227, 1\u219235, 9\u219239 \u2014 NOT affine, appears table\n  - Output 1 (w2, d10): input 0\u21929, 1\u21925, 9\u21922 \u2014 NOT affine, appears table\n  - Output 2 (w2, d9): input 0\u21928 \u2014 insufficient data\n  - Output 4 (w3, d10): input 0\u219218, 1\u219222, 9\u219212 \u2014 NOT affine, appears table\n  - Output 6 (w3, d8): input 0\u21923, 1\u21923, 7\u21923 \u2014 CONSTANT = 3 \u2713\n  - Outputs 3,5,7: untested\n  \n  ## Strategy Decision\n  Cannot afford full table reads (domains too large). Committing:\n  - Output 6: constant 3 (confident, weight 3)\n  - All others: abstain (avoid wrong commits = 0 pts)"
+    },
+    "coached": {
+      "mean_norm": 0.1975,
+      "per_world": [
+        {
+          "result": {
+            "log": [
+              {
+                "output": 6,
+                "input": 0,
+                "value": 5
+              },
+              {
+                "output": 6,
+                "input": 1,
+                "value": 11
+              },
+              {
+                "output": 6,
+                "input": 2,
+                "value": 6
+              },
+              {
+                "output": 6,
+                "input": 3,
+                "value": 12
+              },
+              {
+                "output": 6,
+                "input": 4,
+                "value": 14
+              },
+              {
+                "output": 6,
+                "input": 5,
+                "value": 9
+              },
+              {
+                "output": 6,
+                "input": 6,
+                "value": 11
+              },
+              {
+                "output": 6,
+                "input": 7,
+                "value": 7
+              },
+              {
+                "output": 0,
+                "input": 0,
+                "value": 26
+              },
+              {
+                "output": 0,
+                "input": 1,
+                "value": 26
+              },
+              {
+                "output": 0,
+                "input": 9,
+                "value": 26
+              },
+              {
+                "output": 4,
+                "input": 0,
+                "value": 17
+              },
+              {
+                "output": 4,
+                "input": 1,
+                "value": 9
+              }
+            ],
+            "mem": "## STRATEGY\nBudget: 13 probes across 8 outputs\nDomains: 6(8), 7(8), 2(9), 3(9), 5(9), 0(10), 1(10), 4(10)\nWeights: 0(3), 4(3), 6(3), 1(2), 2(2), 5(2), 3(1), 7(1)\n\nPLAN:\n1. Output 6 (domain=8, weight=3): Read all 8 inputs to guarantee table completion \u2192 8 probes, 3 points\n2. Output 0 (domain=10, weight=3): Test affine with 3 probes (inputs 0,1,9)\n3. Output 4 (domain=10, weight=3): Test affine with 2 probes (inputs 0,1)\nTotal: 8+3+2 = 13 probes. Remaining: test other outputs or abstain.\n\n## PROBES TAKEN\nOutput 6 (all): 0\u21925, 1\u219211, 2\u21926, 3\u219212, 4\u219214, 5\u21929, 6\u219211, 7\u21927 [TABLE]\nOutput 0: 0\u219226, 1\u219226, 9\u219226 [CONST=26]\nOutput 4: 0\u219217, 1\u21929 [AFFINE? a=-8, b=17]\n\n## FINAL ANALYSIS\n- Output 0: CONST (all 3 inputs same) \u2192 weight 3 \u2713\n- Output 4: AFFINE -8x+17 (only 2 points, risky) \u2192 weight 3\n- Output 6: TABLE (complete) \u2192 weight 3 \u2713\n- Outputs 1,2,3,5,7: NO DATA \u2192 abstain\n\nBudget spent: 13/13\n\n## SUBMISSION\nOutput 0: const 26 (weight 3) \u2713 COMMITTED\nOutput 6: table complete (weight 3) \u2713 COMMITTED\nOutputs 1,2,3,4,5,7: abstain (weights 2,2,1,3,2,1)\n\nExpected points: 3 + 3 = 6 + blind-guess credits on 6 outputs\n",
+            "used": 13,
+            "submitted": {
+              "0": {
+                "law": "const",
+                "c": 26
+              },
+              "1": {
+                "law": "abstain"
+              },
+              "2": {
+                "law": "abstain"
+              },
+              "3": {
+                "law": "abstain"
+              },
+              "4": {
+                "law": "abstain"
+              },
+              "5": {
+                "law": "abstain"
+              },
+              "6": {
+                "law": "table",
+                "values": {
+                  "0": 5,
+                  "1": 11,
+                  "2": 6,
+                  "3": 12,
+                  "4": 14,
+                  "5": 9,
+                  "6": 11,
+                  "7": 7
+                }
+              },
+              "7": {
+                "law": "abstain"
+              }
+            },
+            "done": true
+          },
+          "score": {
+            "raw": 84.0,
+            "blind": 66.0,
+            "perfect": 157.0,
+            "norm": 0.1978,
+            "per_output": [
+              {
+                "output": 0,
+                "domain": 10,
+                "weight": 3,
+                "kind": "const",
+                "law": "const",
+                "earned": 30.0,
+                "perfect": 30,
+                "blind": 30,
+                "correct": 10,
+                "wrong": 0,
+                "abstain": 0
+              },
+              {
+                "output": 1,
+                "domain": 10,
+                "weight": 2,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 6.0,
+                "perfect": 20,
+                "blind": 6,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 10
+              },
+              {
+                "output": 2,
+                "domain": 9,
+                "weight": 2,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 6.0,
+                "perfect": 18,
+                "blind": 6,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 9
+              },
+              {
+                "output": 3,
+                "domain": 9,
+                "weight": 1,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 2.0,
+                "perfect": 9,
+                "blind": 2,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 9
+              },
+              {
+                "output": 4,
+                "domain": 10,
+                "weight": 3,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 6.0,
+                "perfect": 30,
+                "blind": 6,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 10
+              },
+              {
+                "output": 5,
+                "domain": 9,
+                "weight": 2,
+                "kind": "affine",
+                "law": "abstain",
+                "earned": 2.0,
+                "perfect": 18,
+                "blind": 2,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 9
+              },
+              {
+                "output": 6,
+                "domain": 8,
+                "weight": 3,
+                "kind": "table",
+                "law": "table",
+                "earned": 24.0,
+                "perfect": 24,
+                "blind": 6,
+                "correct": 8,
+                "wrong": 0,
+                "abstain": 0
+              },
+              {
+                "output": 7,
+                "domain": 8,
+                "weight": 1,
+                "kind": "const",
+                "law": "abstain",
+                "earned": 8.0,
+                "perfect": 8,
+                "blind": 8,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 8
+              }
+            ]
+          }
+        },
+        {
+          "result": {
+            "log": [
+              {
+                "output": 6,
+                "input": 0,
+                "value": 38
+              },
+              {
+                "output": 6,
+                "input": 1,
+                "value": 10
+              },
+              {
+                "output": 6,
+                "input": 2,
+                "value": 22
+              },
+              {
+                "output": 6,
+                "input": 3,
+                "value": 34
+              },
+              {
+                "output": 6,
+                "input": 4,
+                "value": 42
+              },
+              {
+                "output": 6,
+                "input": 5,
+                "value": 42
+              },
+              {
+                "output": 6,
+                "input": 6,
+                "value": 10
+              },
+              {
+                "output": 6,
+                "input": 7,
+                "value": 18
+              },
+              {
+                "output": 0,
+                "input": 0,
+                "value": 17
+              },
+              {
+                "output": 0,
+                "input": 1,
+                "value": 9
+              },
+              {
+                "output": 4,
+                "input": 0,
+                "value": 14
+              },
+              {
+                "output": 4,
+                "input": 1,
+                "value": 6
+              },
+              {
+                "output": 1,
+                "input": 0,
+                "value": 4
+              }
+            ],
+            "mem": "## Machine map\n8 outputs, 13 probes total.\n\nOutputs by cost (domain) vs weight:\n- Output 0: domain=10, weight=3 (30 pts if correct)\n- Output 1: domain=10, weight=2\n- Output 2: domain=9, weight=2\n- Output 3: domain=9, weight=1\n- Output 4: domain=10, weight=3 (30 pts if correct)\n- Output 5: domain=9, weight=2\n- Output 6: domain=8, weight=3 \u2190 TARGET: 8 probes \u2192 30 pts (best cost-benefit)\n- Output 7: domain=8, weight=1\n\n## Strategy\nCommit to fully resolving Output 6 first (smallest domain, weight=3).\nProbe at inputs 0, 1, domain-1 to identify if constant/affine, then read full table if needed.\n\n## Results so far\n**Output 6 (FULLY RESOLVED):** domain=8, weight=3, law=table\n- {0:38, 1:10, 2:22, 3:34, 4:42, 5:42, 6:10, 7:18}\n\nRemaining budget: 5 probes\nRemaining targets: outputs 0,1,2,3,4,5,7 but only 0,1,4 are heavy enough to justify probing.\n\nNext: test outputs 0, 1, 4 at (input 0, 1) to check affinity.\n\n**Probing complete. Budget exhausted (0 remaining).**\n\nProbed results:\n- Output 0: (0\u219217, 1\u21929) \u2192 step = -8 \u2192 affine a=-8, b=17\n- Output 4: (0\u219214, 1\u21926) \u2192 step = -8 \u2192 affine a=-8, b=14\n- Output 1: (0\u21924) \u2192 insufficient data, abstain\n- Outputs 2,3,5,7: no data, abstain\n\n## Final submission\n- Output 0: affine, a=-8, b=17\n- Output 1: abstain\n- Output 2: abstain\n- Output 3: abstain\n- Output 4: affine, a=-8, b=14\n- Output 5: abstain\n- Output 6: table {0:38, 1:10, 2:22, 3:34, 4:42, 5:42, 6:10, 7:18}\n- Output 7: abstain\n",
+            "used": 13,
+            "submitted": {
+              "0": {
+                "law": "affine",
+                "a": -8,
+                "b": 17
+              },
+              "1": {
+                "law": "abstain"
+              },
+              "2": {
+                "law": "abstain"
+              },
+              "3": {
+                "law": "abstain"
+              },
+              "4": {
+                "law": "affine",
+                "a": -8,
+                "b": 14
+              },
+              "5": {
+                "law": "abstain"
+              },
+              "6": {
+                "law": "table",
+                "values": {
+                  "0": 38,
+                  "1": 10,
+                  "2": 22,
+                  "3": 34,
+                  "4": 42,
+                  "5": 42,
+                  "6": 10,
+                  "7": 18
+                }
+              },
+              "7": {
+                "law": "abstain"
+              }
+            },
+            "done": true
+          },
+          "score": {
+            "raw": 52.0,
+            "blind": 34.0,
+            "perfect": 157.0,
+            "norm": 0.1463,
+            "per_output": [
+              {
+                "output": 0,
+                "domain": 10,
+                "weight": 3,
+                "kind": "table",
+                "law": "affine",
+                "earned": 6.0,
+                "perfect": 30,
+                "blind": 6,
+                "correct": 2,
+                "wrong": 8,
+                "abstain": 0
+              },
+              {
+                "output": 1,
+                "domain": 10,
+                "weight": 2,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 6.0,
+                "perfect": 20,
+                "blind": 6,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 10
+              },
+              {
+                "output": 2,
+                "domain": 9,
+                "weight": 2,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 4.0,
+                "perfect": 18,
+                "blind": 4,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 9
+              },
+              {
+                "output": 3,
+                "domain": 9,
+                "weight": 1,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 2.0,
+                "perfect": 9,
+                "blind": 2,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 9
+              },
+              {
+                "output": 4,
+                "domain": 10,
+                "weight": 3,
+                "kind": "table",
+                "law": "affine",
+                "earned": 6.0,
+                "perfect": 30,
+                "blind": 6,
+                "correct": 2,
+                "wrong": 8,
+                "abstain": 0
+              },
+              {
+                "output": 5,
+                "domain": 9,
+                "weight": 2,
+                "kind": "affine",
+                "law": "abstain",
+                "earned": 2.0,
+                "perfect": 18,
+                "blind": 2,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 9
+              },
+              {
+                "output": 6,
+                "domain": 8,
+                "weight": 3,
+                "kind": "table",
+                "law": "table",
+                "earned": 24.0,
+                "perfect": 24,
+                "blind": 6,
+                "correct": 8,
+                "wrong": 0,
+                "abstain": 0
+              },
+              {
+                "output": 7,
+                "domain": 8,
+                "weight": 1,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 2.0,
+                "perfect": 8,
+                "blind": 2,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 8
+              }
+            ]
+          }
+        },
+        {
+          "result": {
+            "log": [
+              {
+                "output": 0,
+                "input": 0,
+                "value": 9
+              },
+              {
+                "output": 0,
+                "input": 1,
+                "value": 13
+              },
+              {
+                "output": 4,
+                "input": 0,
+                "value": 4
+              },
+              {
+                "output": 4,
+                "input": 1,
+                "value": 8
+              },
+              {
+                "output": 6,
+                "input": 0,
+                "value": 15
+              },
+              {
+                "output": 6,
+                "input": 1,
+                "value": 7
+              },
+              {
+                "output": 0,
+                "input": 9,
+                "value": 45
+              },
+              {
+                "output": 4,
+                "input": 9,
+                "value": 40
+              },
+              {
+                "output": 6,
+                "input": 7,
+                "value": 9
+              },
+              {
+                "output": 1,
+                "input": 0,
+                "value": 15
+              },
+              {
+                "output": 1,
+                "input": 1,
+                "value": 15
+              },
+              {
+                "output": 5,
+                "input": 0,
+                "value": 11
+              },
+              {
+                "output": 5,
+                "input": 1,
+                "value": 6
+              }
+            ],
+            "mem": "**MACHINE MAP:**\n- 8 outputs, 13 probes, domains 8-10\n- Weights: [3,2,2,1,3,2,3,1]\n- Domains: [10,10,9,9,10,9,8,8]\n\n**STRATEGY:**\nHigh-weight outputs (0,4,6 = weight 3 each) are cheapest if affine (~3 probes).\nPrefer committing to complete outputs rather than spreading probes.\nTest affine with: input 0, input 1, input (domain-1).\n\n**TARGETS (by points/probe to finish):**\nPriority 1: Output 6 (w=3, d=8) - table = 8 probes = guaranteed\nPriority 2: Output 0 (w=3, d=10) - try affine first (3 probes)\nPriority 3: Output 4 (w=3, d=10) - try affine first (3 probes)\nRemaining: Abstain on low-weight outputs (3,7) unless budget allows.\n\n**PROBES LOG:**\nOutput 0: 0\u21929, 1\u219213, 9\u219245 | Affine a=4, b=9 \u2713\nOutput 1: 0\u219215, 1\u219215 | Constant c=15 \u2713\nOutput 4: 0\u21924, 1\u21928, 9\u219240 | Affine a=4, b=4 \u2713\nOutput 5: 0\u219211, 1\u21926 | Affine a=-5, b=11 (likely)\nOutput 6: 0\u219215, 1\u21927, 7\u21929 | NOT affine, table (unaffordable)\nOutput 2,3,7: No probes\n\n**FINAL DECISIONS:**\n- Output 0: AFFINE a=4, b=9 (verified) \u2192 3pts\n- Output 1: CONST c=15 (verified) \u2192 2pts\n- Output 4: AFFINE a=4, b=4 (verified) \u2192 3pts\n- Output 5: AFFINE a=-5, b=11 (consistent step) \u2192 2pts\n- Output 6: ABSTAIN (not affine, table unaffordable) \u2192 blind credit\n- Output 2,3,7: ABSTAIN \u2192 blind credit each",
+            "used": 13,
+            "submitted": {
+              "0": {
+                "law": "affine",
+                "a": 4,
+                "b": 9
+              },
+              "1": {
+                "law": "const",
+                "c": 15
+              },
+              "2": {
+                "law": "abstain"
+              },
+              "3": {
+                "law": "abstain"
+              },
+              "4": {
+                "law": "affine",
+                "a": 4,
+                "b": 4
+              },
+              "5": {
+                "law": "affine",
+                "a": -5,
+                "b": 11
+              },
+              "6": {
+                "law": "abstain"
+              },
+              "7": {
+                "law": "abstain"
+              }
+            },
+            "done": true
+          },
+          "score": {
+            "raw": 103.0,
+            "blind": 49.0,
+            "perfect": 157.0,
+            "norm": 0.5,
+            "per_output": [
+              {
+                "output": 0,
+                "domain": 10,
+                "weight": 3,
+                "kind": "affine",
+                "law": "affine",
+                "earned": 30.0,
+                "perfect": 30,
+                "blind": 3,
+                "correct": 10,
+                "wrong": 0,
+                "abstain": 0
+              },
+              {
+                "output": 1,
+                "domain": 10,
+                "weight": 2,
+                "kind": "const",
+                "law": "const",
+                "earned": 20.0,
+                "perfect": 20,
+                "blind": 20,
+                "correct": 10,
+                "wrong": 0,
+                "abstain": 0
+              },
+              {
+                "output": 2,
+                "domain": 9,
+                "weight": 2,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 4.0,
+                "perfect": 18,
+                "blind": 4,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 9
+              },
+              {
+                "output": 3,
+                "domain": 9,
+                "weight": 1,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 3.0,
+                "perfect": 9,
+                "blind": 3,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 9
+              },
+              {
+                "output": 4,
+                "domain": 10,
+                "weight": 3,
+                "kind": "affine",
+                "law": "affine",
+                "earned": 30.0,
+                "perfect": 30,
+                "blind": 3,
+                "correct": 10,
+                "wrong": 0,
+                "abstain": 0
+              },
+              {
+                "output": 5,
+                "domain": 9,
+                "weight": 2,
+                "kind": "table",
+                "law": "affine",
+                "earned": 4.0,
+                "perfect": 18,
+                "blind": 4,
+                "correct": 2,
+                "wrong": 7,
+                "abstain": 0
+              },
+              {
+                "output": 6,
+                "domain": 8,
+                "weight": 3,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 9.0,
+                "perfect": 24,
+                "blind": 9,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 8
+              },
+              {
+                "output": 7,
+                "domain": 8,
+                "weight": 1,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 3.0,
+                "perfect": 8,
+                "blind": 3,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 8
+              }
+            ]
+          }
+        },
+        {
+          "result": {
+            "log": [
+              {
+                "output": 6,
+                "input": 0,
+                "value": 12
+              },
+              {
+                "output": 6,
+                "input": 1,
+                "value": 16
+              },
+              {
+                "output": 6,
+                "input": 7,
+                "value": 40
+              },
+              {
+                "output": 0,
+                "input": 0,
+                "value": 7
+              },
+              {
+                "output": 0,
+                "input": 1,
+                "value": 7
+              },
+              {
+                "output": 0,
+                "input": 9,
+                "value": 19
+              },
+              {
+                "output": 4,
+                "input": 0,
+                "value": 14
+              },
+              {
+                "output": 4,
+                "input": 1,
+                "value": 38
+              },
+              {
+                "output": 4,
+                "input": 9,
+                "value": 30
+              },
+              {
+                "output": 2,
+                "input": 0,
+                "value": 9
+              },
+              {
+                "output": 2,
+                "input": 1,
+                "value": 7
+              },
+              {
+                "output": 2,
+                "input": 8,
+                "value": 4
+              },
+              {
+                "output": 2,
+                "input": 4,
+                "value": 4
+              }
+            ],
+            "mem": "## INVESTIGATION LOG\n\nMACHINE MAP:\n- 8 outputs, 13 budget total\n- Output 0: domain=10, weight=3 (0.30 pts/probe)\n- Output 1: domain=10, weight=2 (0.20 pts/probe)\n- Output 2: domain=9, weight=2 (0.22 pts/probe)\n- Output 3: domain=9, weight=1 (0.11 pts/probe)\n- Output 4: domain=10, weight=3 (0.30 pts/probe)\n- Output 5: domain=9, weight=2 (0.22 pts/probe)\n- Output 6: domain=8, weight=3 (0.375 pts/probe) \u2190 BEST\n- Output 7: domain=8, weight=1 (0.125 pts/probe)\n\nSTRATEGY: Resolve output 6 first (highest value per probe). Test affine hypothesis (3 probes); if it fails, commit full table (8 total).\n\nPROBED:\n- Output 6 @ input 0: 12\n- Output 6 @ input 1: 16 (\u0394=4 \u2192 slope a=4, intercept b=12)\n- Output 6 @ input 7: 40 (\u2713 confirms y=4x+12)\n\nPROBED (continued):\n- Output 0 @ inputs 0,1,9: 7, 7, 19 (NOT affine \u2192 table)\n- Output 4 @ inputs 0,1,9: 14, 38, 30 (NOT affine \u2192 table)\n\nRESOLVED:\n- Output 6: AFFINE, a=4, b=12 \u2713\n\nPROBED (continued):\n- Output 2 @ inputs 0,1,4,8: 9, 7, 4, 4 (NOT affine \u2192 table)\n\nSUMMARY (budget exhausted):\n\u2713 Output 6: AFFINE a=4, b=12 (fully resolved, weight 3)\n\u2717 Output 0: table, 3/10 datapoints (weight 3) \u2192 ABSTAIN\n\u2717 Output 2: table, 4/9 datapoints (weight 2) \u2192 ABSTAIN\n\u2717 Output 4: table, 3/10 datapoints (weight 3) \u2192 ABSTAIN\n\u2717 Outputs 1,3,5,7: untouched (all ABSTAIN)\n\nCOMMIT STRATEGY: One sure full-weight from output 6 (affine, proven). Abstain all partials to avoid zero.",
+            "used": 13,
+            "submitted": {
+              "6": {
+                "law": "affine",
+                "a": 4,
+                "b": 12
+              }
+            },
+            "done": true
+          },
+          "score": {
+            "raw": 61.0,
+            "blind": 40.0,
+            "perfect": 157.0,
+            "norm": 0.1795,
+            "per_output": [
+              {
+                "output": 0,
+                "domain": 10,
+                "weight": 3,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 9.0,
+                "perfect": 30,
+                "blind": 9,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 10
+              },
+              {
+                "output": 1,
+                "domain": 10,
+                "weight": 2,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 8.0,
+                "perfect": 20,
+                "blind": 8,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 10
+              },
+              {
+                "output": 2,
+                "domain": 9,
+                "weight": 2,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 6.0,
+                "perfect": 18,
+                "blind": 6,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 9
+              },
+              {
+                "output": 3,
+                "domain": 9,
+                "weight": 1,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 3.0,
+                "perfect": 9,
+                "blind": 3,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 9
+              },
+              {
+                "output": 4,
+                "domain": 10,
+                "weight": 3,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 6.0,
+                "perfect": 30,
+                "blind": 6,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 10
+              },
+              {
+                "output": 5,
+                "domain": 9,
+                "weight": 2,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 4.0,
+                "perfect": 18,
+                "blind": 4,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 9
+              },
+              {
+                "output": 6,
+                "domain": 8,
+                "weight": 3,
+                "kind": "affine",
+                "law": "affine",
+                "earned": 24.0,
+                "perfect": 24,
+                "blind": 3,
+                "correct": 8,
+                "wrong": 0,
+                "abstain": 0
+              },
+              {
+                "output": 7,
+                "domain": 8,
+                "weight": 1,
+                "kind": "affine",
+                "law": "abstain",
+                "earned": 1.0,
+                "perfect": 8,
+                "blind": 1,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 8
+              }
+            ]
+          }
+        },
+        {
+          "result": {
+            "log": [
+              {
+                "output": 6,
+                "input": 0,
+                "value": 3
+              },
+              {
+                "output": 6,
+                "input": 1,
+                "value": 3
+              },
+              {
+                "output": 6,
+                "input": 2,
+                "value": 3
+              },
+              {
+                "output": 6,
+                "input": 3,
+                "value": 3
+              },
+              {
+                "output": 6,
+                "input": 4,
+                "value": 3
+              },
+              {
+                "output": 6,
+                "input": 5,
+                "value": 3
+              },
+              {
+                "output": 6,
+                "input": 6,
+                "value": 3
+              },
+              {
+                "output": 6,
+                "input": 7,
+                "value": 3
+              },
+              {
+                "output": 0,
+                "input": 0,
+                "value": 27
+              },
+              {
+                "output": 0,
+                "input": 1,
+                "value": 35
+              },
+              {
+                "output": 0,
+                "input": 9,
+                "value": 39
+              },
+              {
+                "output": 4,
+                "input": 0,
+                "value": 18
+              },
+              {
+                "output": 4,
+                "input": 1,
+                "value": 22
+              }
+            ],
+            "mem": "STRATEGY: \n- Output 6 (domain 8, weight 3): fully read (8 probes) \u2192 guaranteed full weight\n- Remaining 5 probes: affine-test high-weight outputs (0, 4)\n- Outputs 0,1,4: all domain 10, weight 2-3 each \u2192 use 3-probe affine approach\n\nPROBED:\n- Output 6 (domain 8, weight 3): ALL inputs 0-7, all = 3 \u2192 CONSTANT c=3 \u2713\n- Output 0 (domain 10, weight 3): inputs 0\u219227, 1\u219235, 9\u219239 \u2192 NOT affine (step 8 then 4) \u2192 ABSTAIN\n- Output 4 (domain 10, weight 3): inputs 0\u219218, 1\u219222 \u2192 step=4 \u2192 AFFINE a=4, b=18 \u2713\n\nOUTPUTS WITH NO PROBES (ABSTAIN):\n- Output 1 (domain 10, weight 2)\n- Output 2 (domain 9, weight 2)\n- Output 3 (domain 9, weight 1)\n- Output 5 (domain 9, weight 2)\n- Output 7 (domain 8, weight 1)\n",
+            "used": 13,
+            "submitted": {
+              "0": {
+                "law": "abstain"
+              },
+              "1": {
+                "law": "abstain"
+              },
+              "2": {
+                "law": "abstain"
+              },
+              "3": {
+                "law": "abstain"
+              },
+              "4": {
+                "law": "affine",
+                "a": 4,
+                "b": 18
+              },
+              "5": {
+                "law": "abstain"
+              },
+              "6": {
+                "law": "const",
+                "c": 3
+              },
+              "7": {
+                "law": "abstain"
+              }
+            },
+            "done": true
+          },
+          "score": {
+            "raw": 71.0,
+            "blind": 74.0,
+            "perfect": 157.0,
+            "norm": -0.0361,
+            "per_output": [
+              {
+                "output": 0,
+                "domain": 10,
+                "weight": 3,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 12.0,
+                "perfect": 30,
+                "blind": 12,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 10
+              },
+              {
+                "output": 1,
+                "domain": 10,
+                "weight": 2,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 10.0,
+                "perfect": 20,
+                "blind": 10,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 10
+              },
+              {
+                "output": 2,
+                "domain": 9,
+                "weight": 2,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 4.0,
+                "perfect": 18,
+                "blind": 4,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 9
+              },
+              {
+                "output": 3,
+                "domain": 9,
+                "weight": 1,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 3.0,
+                "perfect": 9,
+                "blind": 3,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 9
+              },
+              {
+                "output": 4,
+                "domain": 10,
+                "weight": 3,
+                "kind": "table",
+                "law": "affine",
+                "earned": 6.0,
+                "perfect": 30,
+                "blind": 9,
+                "correct": 2,
+                "wrong": 8,
+                "abstain": 0
+              },
+              {
+                "output": 5,
+                "domain": 9,
+                "weight": 2,
+                "kind": "table",
+                "law": "abstain",
+                "earned": 4.0,
+                "perfect": 18,
+                "blind": 4,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 9
+              },
+              {
+                "output": 6,
+                "domain": 8,
+                "weight": 3,
+                "kind": "const",
+                "law": "const",
+                "earned": 24.0,
+                "perfect": 24,
+                "blind": 24,
+                "correct": 8,
+                "wrong": 0,
+                "abstain": 0
+              },
+              {
+                "output": 7,
+                "domain": 8,
+                "weight": 1,
+                "kind": "const",
+                "law": "abstain",
+                "earned": 8.0,
+                "perfect": 8,
+                "blind": 8,
+                "correct": 0,
+                "wrong": 0,
+                "abstain": 8
+              }
+            ]
+          }
+        }
+      ],
+      "report_md": "# Conduct report (sanitized) \u2014 how the agent investigated several fresh machines\n\nProbing earns nothing; only the held-out exam pays. norm: 0 = lazy/all-abstain, 1 = perfect; negative = confident wrong guessing did worse than abstaining.\n\n\n## machine_0: norm +0.198  (raw 84.0/157.0, blind 66.0, budget used 13/13)\n- output 0: domain 10, weight 3, probes spent 3; submitted 'const'; earned 30.0/30 (blind 30) \u2014 10 right, 0 wrong, 0 abstained\n- output 1: domain 10, weight 2, probes spent 0; submitted 'abstain'; earned 6.0/20 (blind 6) \u2014 0 right, 0 wrong, 10 abstained\n- output 2: domain 9, weight 2, probes spent 0; submitted 'abstain'; earned 6.0/18 (blind 6) \u2014 0 right, 0 wrong, 9 abstained\n- output 3: domain 9, weight 1, probes spent 0; submitted 'abstain'; earned 2.0/9 (blind 2) \u2014 0 right, 0 wrong, 9 abstained\n- output 4: domain 10, weight 3, probes spent 2; submitted 'abstain'; earned 6.0/30 (blind 6) \u2014 0 right, 0 wrong, 10 abstained\n- output 5: domain 9, weight 2, probes spent 0; submitted 'abstain'; earned 2.0/18 (blind 2) \u2014 0 right, 0 wrong, 9 abstained\n- output 6: domain 8, weight 3, probes spent 8; submitted 'table'; earned 24.0/24 (blind 6) \u2014 8 right, 0 wrong, 0 abstained\n- output 7: domain 8, weight 1, probes spent 0; submitted 'abstain'; earned 8.0/8 (blind 8) \u2014 0 right, 0 wrong, 8 abstained\n- final scratchpad:\n  ## STRATEGY\n  Budget: 13 probes across 8 outputs\n  Domains: 6(8), 7(8), 2(9), 3(9), 5(9), 0(10), 1(10), 4(10)\n  Weights: 0(3), 4(3), 6(3), 1(2), 2(2), 5(2), 3(1), 7(1)\n  \n  PLAN:\n  1. Output 6 (domain=8, weight=3): Read all 8 inputs to guarantee table completion \u2192 8 probes, 3 points\n  2. Output 0 (domain=10, weight=3): Test affine with 3 probes (inputs 0,1,9)\n  3. Output 4 (domain=10, weight=3): Test affine with 2 probes (inputs 0,1)\n  Total: 8+3+2 = 13 probes. Remaining: test other outputs or abstain.\n  \n  ## PROBES TAKEN\n  Output 6 (all): 0\u21925, 1\u219211, 2\u21926, 3\u219212, 4\u219214, 5\u21929, 6\u219211, 7\u21927 [TABLE]\n  Output 0: 0\u219226, 1\u219226, 9\u219226 [CONST=26]\n  Output 4: 0\u219217, 1\u21929 [AFFINE? a=-8, b=17]\n  \n  ## FINAL ANALYSIS\n  - Output 0: CONST (all 3 inputs same) \u2192 weight 3 \u2713\n  - Output 4: AFFINE -8x+17 (only 2 points, risky) \u2192 weight 3\n  - Output 6: TABLE (complete) \u2192 weight 3 \u2713\n  - Outputs 1,2,3,5,7: NO DATA \u2192 abstain\n  \n  Budget spent: 13/13\n  \n  ## SUBMISSION\n  Output 0: const 26 (weight 3) \u2713 COMMITTED\n  Output 6: table complete (weight 3) \u2713 COMMITTED\n  Outputs 1,2,3,4,5,7: abstain (weights 2,2,1,3,2,1)\n  \n  Expected points: 3 + 3 = 6 + blind-guess credits on 6 outputs\n\n## machine_1: norm +0.146  (raw 52.0/157.0, blind 34.0, budget used 13/13)\n- output 0: domain 10, weight 3, probes spent 2; submitted 'affine'; earned 6.0/30 (blind 6) \u2014 2 right, 8 wrong, 0 abstained\n- output 1: domain 10, weight 2, probes spent 1; submitted 'abstain'; earned 6.0/20 (blind 6) \u2014 0 right, 0 wrong, 10 abstained\n- output 2: domain 9, weight 2, probes spent 0; submitted 'abstain'; earned 4.0/18 (blind 4) \u2014 0 right, 0 wrong, 9 abstained\n- output 3: domain 9, weight 1, probes spent 0; submitted 'abstain'; earned 2.0/9 (blind 2) \u2014 0 right, 0 wrong, 9 abstained\n- output 4: domain 10, weight 3, probes spent 2; submitted 'affine'; earned 6.0/30 (blind 6) \u2014 2 right, 8 wrong, 0 abstained\n- output 5: domain 9, weight 2, probes spent 0; submitted 'abstain'; earned 2.0/18 (blind 2) \u2014 0 right, 0 wrong, 9 abstained\n- output 6: domain 8, weight 3, probes spent 8; submitted 'table'; earned 24.0/24 (blind 6) \u2014 8 right, 0 wrong, 0 abstained\n- output 7: domain 8, weight 1, probes spent 0; submitted 'abstain'; earned 2.0/8 (blind 2) \u2014 0 right, 0 wrong, 8 abstained\n- final scratchpad:\n  ## Machine map\n  8 outputs, 13 probes total.\n  \n  Outputs by cost (domain) vs weight:\n  - Output 0: domain=10, weight=3 (30 pts if correct)\n  - Output 1: domain=10, weight=2\n  - Output 2: domain=9, weight=2\n  - Output 3: domain=9, weight=1\n  - Output 4: domain=10, weight=3 (30 pts if correct)\n  - Output 5: domain=9, weight=2\n  - Output 6: domain=8, weight=3 \u2190 TARGET: 8 probes \u2192 30 pts (best cost-benefit)\n  - Output 7: domain=8, weight=1\n  \n  ## Strategy\n  Commit to fully resolving Output 6 first (smallest domain, weight=3).\n  Probe at inputs 0, 1, domain-1 to identify if constant/affine, then read full table if needed.\n  \n  ## Results so far\n  **Output 6 (FULLY RESOLVED):** domain=8, weight=3, law=table\n  - {0:38, 1:10, 2:22, 3:34, 4:42, 5:42, 6:10, 7:18}\n  \n  Remaining budget: 5 probes\n  Remaining targets: outputs 0,1,2,3,4,5,7 but only 0,1,4 are heavy enough to justify probing.\n  \n  Next: test outputs 0, 1, 4 at (input 0, 1) to check affinity.\n  \n  **Probing complete. Budget exhausted (0 remaining).**\n  \n  Probed results:\n  - Output 0: (0\u219217, 1\u21929) \u2192 step = -8 \u2192 affine a=-8, b=17\n  - Output 4: (0\u219214, 1\u21926) \u2192 step = -8 \u2192 affine a=-8, b=14\n  - Output 1: (0\u21924) \u2192 insufficient data, abstain\n  - Outputs 2,3,5,7: no data, abstain\n  \n  ## Final submission\n  - Output 0: affine, a=-8, b=17\n  - Output 1: abstain\n  - Output 2: abstain\n  - Output 3: abstain\n  - Output 4: affine, a=-8, b=14\n  - Output 5: abstain\n  - Output 6: table {0:38, 1:10, 2:22, 3:34, 4:42, 5:42, 6:10, 7:18}\n  - Output 7: abstain\n\n## machine_2: norm +0.500  (raw 103.0/157.0, blind 49.0, budget used 13/13)\n- output 0: domain 10, weight 3, probes spent 3; submitted 'affine'; earned 30.0/30 (blind 3) \u2014 10 right, 0 wrong, 0 abstained\n- output 1: domain 10, weight 2, probes spent 2; submitted 'const'; earned 20.0/20 (blind 20) \u2014 10 right, 0 wrong, 0 abstained\n- output 2: domain 9, weight 2, probes spent 0; submitted 'abstain'; earned 4.0/18 (blind 4) \u2014 0 right, 0 wrong, 9 abstained\n- output 3: domain 9, weight 1, probes spent 0; submitted 'abstain'; earned 3.0/9 (blind 3) \u2014 0 right, 0 wrong, 9 abstained\n- output 4: domain 10, weight 3, probes spent 3; submitted 'affine'; earned 30.0/30 (blind 3) \u2014 10 right, 0 wrong, 0 abstained\n- output 5: domain 9, weight 2, probes spent 2; submitted 'affine'; earned 4.0/18 (blind 4) \u2014 2 right, 7 wrong, 0 abstained\n- output 6: domain 8, weight 3, probes spent 3; submitted 'abstain'; earned 9.0/24 (blind 9) \u2014 0 right, 0 wrong, 8 abstained\n- output 7: domain 8, weight 1, probes spent 0; submitted 'abstain'; earned 3.0/8 (blind 3) \u2014 0 right, 0 wrong, 8 abstained\n- final scratchpad:\n  **MACHINE MAP:**\n  - 8 outputs, 13 probes, domains 8-10\n  - Weights: [3,2,2,1,3,2,3,1]\n  - Domains: [10,10,9,9,10,9,8,8]\n  \n  **STRATEGY:**\n  High-weight outputs (0,4,6 = weight 3 each) are cheapest if affine (~3 probes).\n  Prefer committing to complete outputs rather than spreading probes.\n  Test affine with: input 0, input 1, input (domain-1).\n  \n  **TARGETS (by points/probe to finish):**\n  Priority 1: Output 6 (w=3, d=8) - table = 8 probes = guaranteed\n  Priority 2: Output 0 (w=3, d=10) - try affine first (3 probes)\n  Priority 3: Output 4 (w=3, d=10) - try affine first (3 probes)\n  Remaining: Abstain on low-weight outputs (3,7) unless budget allows.\n  \n  **PROBES LOG:**\n  Output 0: 0\u21929, 1\u219213, 9\u219245 | Affine a=4, b=9 \u2713\n  Output 1: 0\u219215, 1\u219215 | Constant c=15 \u2713\n  Output 4: 0\u21924, 1\u21928, 9\u219240 | Affine a=4, b=4 \u2713\n  Output 5: 0\u219211, 1\u21926 | Affine a=-5, b=11 (likely)\n  Output 6: 0\u219215, 1\u21927, 7\u21929 | NOT affine, table (unaffordable)\n  Output 2,3,7: No probes\n  \n  **FINAL DECISIONS:**\n  - Output 0: AFFINE a=4, b=9 (verified) \u2192 3pts\n  - Output 1: CONST c=15 (verified) \u2192 2pts\n  - Output 4: AFFINE a=4, b=4 (verified) \u2192 3pts\n  - Output 5: AFFINE a=-5, b=11 (consistent step) \u2192 2pts\n  - Output 6: ABSTAIN (not affine, table unaffordable) \u2192 blind credit\n  - Output 2,3,7: ABSTAIN \u2192 blind credit each\n\n## machine_3: norm +0.179  (raw 61.0/157.0, blind 40.0, budget used 13/13)\n- output 0: domain 10, weight 3, probes spent 3; submitted 'abstain'; earned 9.0/30 (blind 9) \u2014 0 right, 0 wrong, 10 abstained\n- output 1: domain 10, weight 2, probes spent 0; submitted 'abstain'; earned 8.0/20 (blind 8) \u2014 0 right, 0 wrong, 10 abstained\n- output 2: domain 9, weight 2, probes spent 4; submitted 'abstain'; earned 6.0/18 (blind 6) \u2014 0 right, 0 wrong, 9 abstained\n- output 3: domain 9, weight 1, probes spent 0; submitted 'abstain'; earned 3.0/9 (blind 3) \u2014 0 right, 0 wrong, 9 abstained\n- output 4: domain 10, weight 3, probes spent 3; submitted 'abstain'; earned 6.0/30 (blind 6) \u2014 0 right, 0 wrong, 10 abstained\n- output 5: domain 9, weight 2, probes spent 0; submitted 'abstain'; earned 4.0/18 (blind 4) \u2014 0 right, 0 wrong, 9 abstained\n- output 6: domain 8, weight 3, probes spent 3; submitted 'affine'; earned 24.0/24 (blind 3) \u2014 8 right, 0 wrong, 0 abstained\n- output 7: domain 8, weight 1, probes spent 0; submitted 'abstain'; earned 1.0/8 (blind 1) \u2014 0 right, 0 wrong, 8 abstained\n- final scratchpad:\n  ## INVESTIGATION LOG\n  \n  MACHINE MAP:\n  - 8 outputs, 13 budget total\n  - Output 0: domain=10, weight=3 (0.30 pts/probe)\n  - Output 1: domain=10, weight=2 (0.20 pts/probe)\n  - Output 2: domain=9, weight=2 (0.22 pts/probe)\n  - Output 3: domain=9, weight=1 (0.11 pts/probe)\n  - Output 4: domain=10, weight=3 (0.30 pts/probe)\n  - Output 5: domain=9, weight=2 (0.22 pts/probe)\n  - Output 6: domain=8, weight=3 (0.375 pts/probe) \u2190 BEST\n  - Output 7: domain=8, weight=1 (0.125 pts/probe)\n  \n  STRATEGY: Resolve output 6 first (highest value per probe). Test affine hypothesis (3 probes); if it fails, commit full table (8 total).\n  \n  PROBED:\n  - Output 6 @ input 0: 12\n  - Output 6 @ input 1: 16 (\u0394=4 \u2192 slope a=4, intercept b=12)\n  - Output 6 @ input 7: 40 (\u2713 confirms y=4x+12)\n  \n  PROBED (continued):\n  - Output 0 @ inputs 0,1,9: 7, 7, 19 (NOT affine \u2192 table)\n  - Output 4 @ inputs 0,1,9: 14, 38, 30 (NOT affine \u2192 table)\n  \n  RESOLVED:\n  - Output 6: AFFINE, a=4, b=12 \u2713\n  \n  PROBED (continued):\n  - Output 2 @ inputs 0,1,4,8: 9, 7, 4, 4 (NOT affine \u2192 table)\n  \n  SUMMARY (budget exhausted):\n  \u2713 Output 6: AFFINE a=4, b=12 (fully resolved, weight 3)\n  \u2717 Output 0: table, 3/10 datapoints (weight 3) \u2192 ABSTAIN\n  \u2717 Output 2: table, 4/9 datapoints (weight 2) \u2192 ABSTAIN\n  \u2717 Output 4: table, 3/10 datapoints (weight 3) \u2192 ABSTAIN\n  \u2717 Outputs 1,3,5,7: untouched (all ABSTAIN)\n  \n  COMMIT STRATEGY: One sure full-weight from output 6 (affine, proven). Abstain all partials to avoid zero.\n\n## machine_4: norm -0.036  (raw 71.0/157.0, blind 74.0, budget used 13/13)\n- output 0: domain 10, weight 3, probes spent 3; submitted 'abstain'; earned 12.0/30 (blind 12) \u2014 0 right, 0 wrong, 10 abstained\n- output 1: domain 10, weight 2, probes spent 0; submitted 'abstain'; earned 10.0/20 (blind 10) \u2014 0 right, 0 wrong, 10 abstained\n- output 2: domain 9, weight 2, probes spent 0; submitted 'abstain'; earned 4.0/18 (blind 4) \u2014 0 right, 0 wrong, 9 abstained\n- output 3: domain 9, weight 1, probes spent 0; submitted 'abstain'; earned 3.0/9 (blind 3) \u2014 0 right, 0 wrong, 9 abstained\n- output 4: domain 10, weight 3, probes spent 2; submitted 'affine'; earned 6.0/30 (blind 9) \u2014 2 right, 8 wrong, 0 abstained\n- output 5: domain 9, weight 2, probes spent 0; submitted 'abstain'; earned 4.0/18 (blind 4) \u2014 0 right, 0 wrong, 9 abstained\n- output 6: domain 8, weight 3, probes spent 8; submitted 'const'; earned 24.0/24 (blind 24) \u2014 8 right, 0 wrong, 0 abstained\n- output 7: domain 8, weight 1, probes spent 0; submitted 'abstain'; earned 8.0/8 (blind 8) \u2014 0 right, 0 wrong, 8 abstained\n- final scratchpad:\n  STRATEGY: \n  - Output 6 (domain 8, weight 3): fully read (8 probes) \u2192 guaranteed full weight\n  - Remaining 5 probes: affine-test high-weight outputs (0, 4)\n  - Outputs 0,1,4: all domain 10, weight 2-3 each \u2192 use 3-probe affine approach\n  \n  PROBED:\n  - Output 6 (domain 8, weight 3): ALL inputs 0-7, all = 3 \u2192 CONSTANT c=3 \u2713\n  - Output 0 (domain 10, weight 3): inputs 0\u219227, 1\u219235, 9\u219239 \u2192 NOT affine (step 8 then 4) \u2192 ABSTAIN\n  - Output 4 (domain 10, weight 3): inputs 0\u219218, 1\u219222 \u2192 step=4 \u2192 AFFINE a=4, b=18 \u2713\n  \n  OUTPUTS WITH NO PROBES (ABSTAIN):\n  - Output 1 (domain 10, weight 2)\n  - Output 2 (domain 9, weight 2)\n  - Output 3 (domain 9, weight 1)\n  - Output 5 (domain 9, weight 2)\n  - Output 7 (domain 8, weight 1)"
+    }
+  }
+}

@@ -24,12 +24,17 @@ world plus a meta agent that rewrites the task agent — specialized so that:
 > mechanically. Model-free proven; the **live closed-loop demo** is the next step
 > (`run_worldsmith.py --backend real`; `RESET_DESIGN.md` → "Next actions" 5).
 
-> **Update 2026-06-13 — the design moved on.** Current design: `PASS3_REDO.md` (entry point
-> `NEXT.md`). Taste is now defined — *choosing your next move well by evaluating your position* —
-> the world is defined by the rules any world must meet, and the anchor/world-smith world is
-> **one instance**, not the world. The code and chapter described below are a **regression
-> fixture**; the next step is the proof of principle (build instance 0). This README body gets
-> its full rewrite later.
+> **Update 2026-06-13 — the design moved on, and instance 0 is built.** Current design:
+> `PASS3_REDO.md` (entry point `NEXT.md`). Taste is now defined — *choosing your next move well by
+> evaluating your position* — the world is defined by the rules any world must meet, and the
+> anchor/world-smith world is **one instance**, not the world. The **proof of principle is built and
+> ran**: the new **machine world** (kit v1, `hta/ch2/machine*.py`, `run_instance0.py`) — a hidden
+> machine of const/affine/lookup parts where **only the exam pays** (probing earns nothing; you
+> submit a model per output and are graded on held-out inputs, abstain = blind-guess credit). The
+> live inner loop showed **coached > day-one on fresh machines** in two runs (`runs/instance0/`); the
+> coach grew a real taste habit unprompted (*finish a high-value table instead of surveying*) and it
+> transferred. The anchor/world-smith code and the chapter described below are now a **regression
+> fixture**. This README body gets its full rewrite later.
 
 **The three docs:** `RESET_DESIGN.md` is the current chapter's design (the locked decisions, the
 harness spec, the anchor world). `ROADMAP.md` is the North Star — the two-loop model, the

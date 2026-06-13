@@ -51,12 +51,25 @@ questions — match the depth and tone of a genuine research-design conversation
 
 ## Run & test
 
+> **Update 2026-06-13 (later) — instance 0 is BUILT and the proof of principle holds.** The new
+> world is the **machine world** (kit v1, `hta/ch2/machine*.py`, `run_instance0.py`): a hidden
+> machine assembled from a small kit (const / affine / lookup), where **only the exam pays** —
+> probing earns nothing, and you are graded on held-out inputs you never probed (you submit a
+> *model* per output; abstain = blind-guess credit; a wrong commit = 0). Build-screen passes
+> (scripted floor ~0.18, tasteful reference ~0.32; gate 1, free). The **live inner loop ran twice**
+> (`runs/instance0/`, ~$2.5 each): **coached > day-one on fresh machines both times** (+0.025 then
+> +0.082). The coach rediscovered a real taste habit unprompted — *"budget to FINISH, not to
+> survey; a fully read table is guaranteed weight"* — and it transferred (held-out world: −0.016 →
+> +0.146 by fully enumerating a high-value table). Modest and noisy (small n, weak Haiku, occasional
+> `claude -p` episode failures), coaching still the weak link — but the core bet clears its bar. The
+> anchor/trail world (`anchor.py`, `worlds.py`, `world_smith.py`, `episode_state.py`,
+> `probe_server.py`, `loop.py`, and the old `run_*.py`) is now a **regression fixture**, not the live
+> edit surface. The "Where we are" block below is the anchor-chapter history.
+
 > **Update 2026-06-13 — the "Where we are" block below is history.** The Pass-3 redo settled the
 > taste definition, the rules of the game, and our anchor/probe world as *one instance* (see
-> `PASS3_REDO.md`). Next action: **build instance 0** — the proof of principle. The anchor +
-> world-smith code (`anchor.py`, `worlds.py`, `world_smith.py`, `run_anchor.py`, `run_probe.py`,
-> `run_worldsmith.py`, and the "Files you'll edit" list below) are now **regression fixtures**,
-> not the live edit surface. The `bash` commands still run and the two invariants still hold.
+> `PASS3_REDO.md`). The anchor + world-smith code is now a regression fixture; the two invariants
+> still hold and the `bash` commands still run.
 
 **Where we are:** the Chapter-2 **reset** is locked (`RESET_DESIGN.md`), the **denoise is done**, and
 the **reseed is built** — the repo is the loop spine (archive, MDL prior, meta-agent, sandbox airgap,
@@ -137,7 +150,10 @@ The world gate is two halves — **build-screen** model-free for the oracle≫he
 new world ships.
 
 ```bash
-python run_anchor.py                              # Ch2 build gate: free, model-free, deterministic
+python run_instance0.py                           # instance 0 (machine world) build-screen: free, model-free
+python run_instance0.py --backend mock            # + inner-loop plumbing (deterministic, free)
+python run_instance0.py --backend real            # + the LIVE inner loop (bare/day-one/coached; a few dollars)
+python run_anchor.py                              # Ch2 build gate (anchor fixture): free, model-free, deterministic
 pip install pytest && python -m pytest tests/ -q  # tests (pytest is not preinstalled)
 python run_loop.py --iterations 1 --backend mock  # the loop, offline (deterministic floor-player)
 python run_loop.py --iterations 1 --backend real  # the loop, live (cents/Haiku episode, ~$1/Opus edit)
@@ -152,7 +168,15 @@ dependency.
 
 ## Files you'll edit vs. leave alone
 
-Edit now: `hta/config.py` (knobs), `hta/ch2/anchor.py` (the anchor world + oracle + build-screen — now
+**The live edit surface now (instance 0, the machine world):** `hta/ch2/machine.py` (the kit + builder
++ exam scorer — the dumb deterministic referee), `hta/ch2/machine_qa.py` (scripted QA + the tasteful
+headroom check — gate 1), `hta/ch2/machine_state.py` + `hta/ch2/machine_server.py` (the confined
+episode body + its stdio-MCP airgap), `hta/ch2/machine_loop.py` (author day-one / coach / three-way
+eval), `run_instance0.py` (the driver), `tests/test_machine.py`. The day-one and coached playbooks are
+written live by Opus (not a checked-in seed file). Curated runs: `runs/instance0/`.
+
+**The anchor-chapter files are now regression fixtures** (leave alone unless deliberately reworking
+the fixture): `hta/config.py` (knobs), `hta/ch2/anchor.py` (the anchor world + oracle + build-screen — now
 generic over a spec *protocol* so the oracle/screen re-derive mechanically for any world shape),
 `hta/ch2/worlds.py` (the world-smith's structural family — `ForkedTrailSpec` with the adaptive gate
 ladder `gate_hops`; the forked/decoy/ladder worlds), `hta/ch2/world_smith.py` (the second loop —

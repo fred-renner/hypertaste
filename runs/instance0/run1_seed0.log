@@ -1,0 +1,65 @@
+============================================================================================
+1. SCREEN (model-free) — is the world too easy, and is there a real taste gap?
+============================================================================================
+  blueprint 'inst0': 8 outputs (domain,weight)=[(10, 3), (10, 2), (9, 2), (9, 1), (10, 3), (9, 2), (8, 3), (8, 1)]
+  budget 13, p_affine 0.2, p_const 0.15; exam = full input domain of every output (sum 73 ≫ budget)
+
+  scripted  random_poke      +0.177n   [ok]
+  scripted  sweep_fit        +0.101n   [ok]
+  scripted  enumerate_even   +0.177n   [ok]
+  --------
+  reference_tasteful        +0.316n
+  scripted floor            +0.177n
+  taste gap (tasteful-floor) +0.139n
+
+  GATE: scripted floor <= 0.25 and gap >= 0.08  ->  PASS
+  (reference_tasteful is a model-free headroom check, NOT a runtime baseline — only the
+   live student answers whether the world is in its ZPD; that is the inner loop below.)
+
+============================================================================================
+2. INNER LOOP (LIVE) — bare vs day-one vs coached on fresh held-out machines
+============================================================================================
+
+[author the day-one playbook (smart-spec null)]
+  day-one playbook authored (302 words)
+
+[coach: run day-one on train draws, then rewrite from its conduct]
+  coaching round 1: evaluating current playbook on 3 train draws
+    episode produced no result file (Expecting value: line 1 column 1 (char 0)); scoring as empty
+    train world_0: norm=+0.000 (raw 48.0/157.0, blind 48.0, used 12/13)
+    train world_1: norm=+0.000 (raw 42.0/157.0, blind 42.0, used 12/13)
+    train world_2: norm=+0.000 (raw 44.0/157.0, blind 44.0, used 0/13)
+  playbook coached (304 words)
+
+[held-out eval on 5 fresh draws — paired, three players]
+  bare student (no playbook):
+    episode produced no result file (Expecting value: line 1 column 1 (char 0)); scoring as empty
+    bare world_0: norm=+0.206 (raw 84.75/157.0, blind 66.0, used 13/13)
+    bare world_1: norm=+0.000 (raw 34.0/157.0, blind 34.0, used 0/13)
+    bare world_2: norm=+0.500 (raw 103.0/157.0, blind 49.0, used 13/13)
+    bare world_3: norm=+0.086 (raw 50.0/157.0, blind 40.0, used 13/13)
+    bare world_4: norm=-0.072 (raw 68.0/157.0, blind 74.0, used 13/13)
+  day-one playbook:
+    dayone world_0: norm=+0.198 (raw 84.0/157.0, blind 66.0, used 13/13)
+    dayone world_1: norm=-0.016 (raw 32.0/157.0, blind 34.0, used 13/13)
+    dayone world_2: norm=+0.500 (raw 103.0/157.0, blind 49.0, used 12/13)
+    dayone world_3: norm=+0.179 (raw 61.0/157.0, blind 40.0, used 12/13)
+    dayone world_4: norm=+0.000 (raw 74.0/157.0, blind 74.0, used 13/13)
+  coached playbook:
+    coached world_0: norm=+0.198 (raw 84.0/157.0, blind 66.0, used 13/13)
+    coached world_1: norm=+0.146 (raw 52.0/157.0, blind 34.0, used 13/13)
+    coached world_2: norm=+0.500 (raw 103.0/157.0, blind 49.0, used 13/13)
+    coached world_3: norm=+0.179 (raw 61.0/157.0, blind 40.0, used 13/13)
+    coached world_4: norm=-0.036 (raw 71.0/157.0, blind 74.0, used 13/13)
+
+============================================================================================
+RESULT — held-out mean band score (norm: 0 = lazy/all-abstain, 1 = perfect)
+============================================================================================
+  bare student   : +0.144n
+  day-one (null) : +0.172n
+  coached        : +0.198n
+  ------
+  coached - day-one : +0.025n  <- the signal (positive = the grown playbook beats the best day-one playbook)
+
+  artifacts written to outputs/instance0/instance0.json
+  cost: 20 claude -p calls, $2.0858  by_role={'author': 1, 'task_episode': 18, 'coach': 1}

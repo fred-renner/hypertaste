@@ -1,0 +1,70 @@
+============================================================================================
+1. SCREEN (model-free) — is the world too easy, and is there a real taste gap?
+============================================================================================
+  blueprint 'inst0': 8 outputs (domain,weight)=[(10, 3), (10, 2), (9, 2), (9, 1), (10, 3), (9, 2), (8, 3), (8, 1)]
+  budget 13, p_affine 0.2, p_const 0.15; exam = full input domain of every output (sum 73 ≫ budget)
+
+  scripted  random_poke      +0.177n   [ok]
+  scripted  sweep_fit        +0.101n   [ok]
+  scripted  enumerate_even   +0.177n   [ok]
+  --------
+  reference_tasteful        +0.316n
+  scripted floor            +0.177n
+  taste gap (tasteful-floor) +0.139n
+
+  GATE: scripted floor <= 0.25 and gap >= 0.08  ->  PASS
+  (reference_tasteful is a model-free headroom check, NOT a runtime baseline — only the
+   live student answers whether the world is in its ZPD; that is the inner loop below.)
+
+============================================================================================
+2. INNER LOOP (LIVE) — bare vs day-one vs coached on fresh held-out machines
+============================================================================================
+
+[author the day-one playbook (smart-spec null)]
+  day-one playbook authored (304 words)
+
+[coach: run day-one on train draws, then rewrite from its conduct]
+  coaching round 1: evaluating current playbook on 3 train draws
+    train world_0: norm=+0.233 (raw 88.0/157.0, blind 67.0, used 13/13)
+    train world_1: norm=+0.000 (raw 81.0/157.0, blind 81.0, used 13/13)
+    train world_2: norm=-0.025 (raw 36.0/157.0, blind 39.0, used 13/13)
+  playbook coached (309 words)
+
+[held-out eval on 6 fresh draws — paired, three players]
+  bare student (no playbook):
+    bare world_0: norm=+0.139 (raw 58.0/157.0, blind 42.0, used 13/13)
+    bare world_1: norm=+0.591 (raw 110.0/157.0, blind 42.0, used 13/13)
+    bare world_2: norm=+0.267 (raw 83.0/157.0, blind 56.0, used 13/13)
+    bare world_3: norm=+0.204 (raw 87.0/157.0, blind 69.0, used 13/13)
+    bare world_4: norm=+0.441 (raw 86.0/157.0, blind 30.0, used 13/13)
+    bare world_5: norm=-0.025 (raw 33.0/157.0, blind 36.0, used 13/13)
+  day-one playbook:
+    episode attempt 1 produced no submission (Expecting value: line 1 column 1 (char 0)); retrying
+    episode attempt 1 produced no submission (Expecting value: line 1 column 1 (char 0)); retrying
+    episode attempt 1 produced no submission (Expecting value: line 1 column 1 (char 0)); retrying
+    episode produced no submission after 2 attempts (Expecting value: line 1 column 1 (char 0)); scoring as empty
+    dayone world_0: norm=+0.157 (raw 60.0/157.0, blind 42.0, used 13/13)
+    dayone world_1: norm=+0.607 (raw 111.75/157.0, blind 42.0, used 13/13)
+    dayone world_2: norm=+0.267 (raw 83.0/157.0, blind 56.0, used 13/13)
+    dayone world_3: norm=+0.307 (raw 96.0/157.0, blind 69.0, used 13/13)
+    dayone world_4: norm=+0.000 (raw 30.0/157.0, blind 30.0, used 0/13)
+    dayone world_5: norm=+0.124 (raw 51.0/157.0, blind 36.0, used 13/13)
+  coached playbook:
+    coached world_0: norm=+0.157 (raw 60.0/157.0, blind 42.0, used 13/13)
+    coached world_1: norm=+0.626 (raw 114.0/157.0, blind 42.0, used 13/13)
+    coached world_2: norm=+0.267 (raw 83.0/157.0, blind 56.0, used 13/13)
+    coached world_3: norm=+0.307 (raw 96.0/157.0, blind 69.0, used 13/13)
+    coached world_4: norm=+0.465 (raw 89.0/157.0, blind 30.0, used 13/13)
+    coached world_5: norm=+0.132 (raw 52.0/157.0, blind 36.0, used 13/13)
+
+============================================================================================
+RESULT — held-out mean band score (norm: 0 = lazy/all-abstain, 1 = perfect)
+============================================================================================
+  bare student   : +0.270n
+  day-one (null) : +0.243n
+  coached        : +0.326n
+  ------
+  coached - day-one : +0.082n  <- the signal (positive = the grown playbook beats the best day-one playbook)
+
+  artifacts written to outputs/instance0_run2/instance0.json
+  cost: 26 claude -p calls, $2.4900  by_role={'author': 1, 'task_episode': 24, 'coach': 1}
