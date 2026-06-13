@@ -13,12 +13,8 @@
 
 > **Taste is choosing your next move well by evaluating your position.**
 
-That's the whole thing. We tried adding "the part of good judgment that more capability
-doesn't buy" and **cut it**: three independent cold reads all called it circular — it sounds
-meaningful but adds no rule you can test. It only means something once you say "keep the same
-model, change only the playbook," and that is *how we run the experiment* (the port check), not
-part of what taste is. So the capability-vs-taste contrast lives in how we **measure**, never
-in the definition.
+That's the whole thing. (The "situational trigger, not the capability" line is the *thesis* —
+why it's worth growing and why it should port to a weak model — not part of the definition.)
 
 ## 2 — The rules of the game (what any world must have) — validated, still a starting point
 
