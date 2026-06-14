@@ -147,5 +147,12 @@ Order of magnitude: a Haiku task call/episode is a few cents; an Opus meta-agent
 ## Finalizing — land on `main`
 
 Done = merged to `main` and pushed, not a dangling feature branch. As the final step, with
-standing permission (no confirmation): green `pytest` (skip for docs-only) → merge the
-working branch (fast-forward when possible) → `git push origin main`.
+standing permission (no confirmation): green `pytest` (skip for docs-only) → **`git fetch origin`
+first** → merge the working branch (fast-forward when possible) → `git push origin main`.
+
+> **Gotcha (why "land on main" keeps jamming):** the container can boot with a **stale
+> `origin/main`** — it points at a *superseded, unrelated-history* line (the pre-reset
+> "first commit" / world-design era) from before `main` was reset to the current line. Until you
+> `git fetch`, `main` looks like an unrelated history that can't merge, when in fact your branch is
+> a clean fast-forward of the *real* `main`. Always fetch before reasoning about `main`; never
+> force-replace it on the strength of the stale local ref.
