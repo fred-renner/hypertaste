@@ -10,7 +10,7 @@ evaluating your position*. (The thesis: taste is the situational trigger, not th
 the moves are the model's; which one fires from the position read is the grown procedure, so it
 should port onto even a weak model.)
 
-- **The design — read first:** `DESIGN.md` (the settled taste definition, the rules any world
+- **The design — read first:** `DESIGN.md` (the current taste definition, the rules any world
   must meet, and the machinery).
 - Vision: `ROADMAP.md` → "The gym and its chains".
 - How to run the current code (the anchor reference chapter): `README.md`.
@@ -52,7 +52,7 @@ questions — match the depth and tone of a genuine research-design conversation
 
 ## Run & test
 
-**Where we are (2026-06-14):** the repo was just cleaned up. The settled design is `DESIGN.md`;
+**Where we are (2026-06-14):** the repo was just cleaned up. The current design is `DESIGN.md`;
 the **spine** (the world-agnostic orchestration — the `claude -p` seam, the sandbox airgap, the
 archive, the MDL prior, config) is kept; the **anchor chapter** is frozen as the one worked
 reference of the airgapped body + mechanical oracle; the instance-0 machine world and the

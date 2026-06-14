@@ -1,6 +1,6 @@
 # Roadmap — growing portable research taste, hands-off
 
-The North Star and the staged path to it. `DESIGN.md` is the settled design (the taste
+The North Star and the staged path to it. `DESIGN.md` is the current design (the taste
 definition, the rules any world must meet, the machinery); this file is where the whole thing is
 going and why the staging is the way it is. Read this for direction, `DESIGN.md` for the design,
 and `history/` for the superseded chapters (`RESET_DESIGN.md` mechanics, `NOTEBOOK.md` lab log).

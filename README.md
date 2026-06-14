@@ -11,7 +11,7 @@ world plus a meta agent that rewrites the task agent — specialized so that:
 - the world (hidden state + scorer) is **airgapped** from the agent's editable surface — the
   anti-leak wall and the scientific-validity wall at once.
 
-> **Status (2026-06-14).** The settled design is **`DESIGN.md`** (read it first) — taste defined,
+> **Status (2026-06-14).** The current design is **`DESIGN.md`** (read it first) — taste defined,
 > the rules any world must meet, and the machinery. The repo was just cleaned up: the
 > **spine** (the world-agnostic orchestration) is kept, the **anchor chapter** is frozen as the
 > one worked reference of the airgapped body + mechanical oracle, and the first proof-of-principle

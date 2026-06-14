@@ -1,20 +1,16 @@
-# DESIGN — what hypertaste is building (the settled taste design)
+# DESIGN — what hypertaste is building
 
-> **Status: this is the live design doc — the single source of truth for direction.** The taste
-> definition (§1) is settled. The rules of the game (§2) are validated but provisional (a later
-> session may sharpen them). The machinery (§3–§7) is stable. The earlier design records that fed
-> this are kept as history, not current: the anchor/trail chapter (`history/RESET_DESIGN.md`), the
-> staged-pass plan + design record v2 (`history/PLAN.md`), the rewind proposals
-> (`history/REPLAN.md`), the original entry-point question (`history/NEXT.md`), and the Chapter-2
-> lab log (`history/NOTEBOOK.md`). Vision: `ROADMAP.md`. Last post-mortem:
+> **Status: this is where the design is now — the live working doc.** Not locked, not final: it's
+> the current best statement of what hypertaste is building, and a later session may sharpen any of
+> it. The earlier design records that fed it are kept as history, not current: the anchor/trail
+> chapter (`history/RESET_DESIGN.md`), the staged-pass plan + design record v2 (`history/PLAN.md`),
+> the rewind proposals (`history/REPLAN.md`), the original entry-point question (`history/NEXT.md`),
+> and the Chapter-2 lab log (`history/NOTEBOOK.md`). Vision: `ROADMAP.md`. Last post-mortem:
 > `findings/2026-06-14-instance0-machine-world.md`.
->
-> **One open lock:** the PI has not formally ratified §2 + the machinery as final, so this is kept
-> honest rather than stamped "locked" — flip on explicit sign-off.
 
 ---
 
-## 1 — The definition (settled this session)
+## 1 — The definition
 
 > **Taste is choosing your next move well by evaluating your position.**
 
@@ -105,7 +101,7 @@ thing to settle was the *grammar*. A finished world is too tight (it rereads and
 spec forever); bare principles are too loose (it games the gates or writes nonsense). The
 language is the missing middle. Each world it writes is **one instance**, disposable.
 
-**The cold reads settled the thing we kept tripping on.** Hidden structure found by costly
+**The cold reads resolved the thing we kept tripping on.** Hidden structure found by costly
 probing — our whole world — is **one way** to meet the rules in §2, not the only way and not
 required. A fully-visible game (chess-like) meets the same rules. So our world is **one valid
 instance**, and the smith could build other kinds. Naming it as one instance is the cure for
@@ -149,7 +145,7 @@ parts-list in the language so it's the smith's worked example, not a throwaway.
 
 ## 8 — Naming
 
-**In use:** the **definition** (§1, settled) · the **rules of the game** (§2, what a world must
+**In use:** the **definition** (§1) · the **rules of the game** (§2, what a world must
 have) · **"Don't prove it, price it"** (§3) · the **taste catalogue** (habits, not "rows") · the
 **world language** (instances are disposable) · the **learning gradient** (the give-back dial).
 
@@ -166,7 +162,7 @@ as the *thesis* (taste is the situational trigger, not the capability) and the m
    first slice), and the implementation details still owed (part formats, the exam-drawing, the
    probe interface, calibration constants).
 
-## 10 — Settled — don't reopen (carried from the closing sessions)
+## 10 — Standing decisions — don't reopen casually (carried from the closing sessions)
 
 - **Only the exam pays; probing earns nothing.** Zero = the strongest lazy constant strategy
   (arithmetic, per machine) — distinct from the smart-spec, which is a live baseline rival.
