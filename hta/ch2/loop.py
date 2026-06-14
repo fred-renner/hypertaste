@@ -77,13 +77,8 @@ over surface wording. Make the edit now in `playbook.md`. Do not ask questions."
 # ---------------------------------------------------------------------------
 # Worlds: fresh hidden draws of one build-screened spec. Parent and child see the SAME draws
 # (a fair comparison); each iteration reseeds so a playbook cannot memorize a specific instance.
-# The anchor stays the default canary; `cfg.world_kind == "hidden"` runs the Pass-3 hidden-map
-# world, where every draw is a different SHAPE (held-out generality by construction).
 # ---------------------------------------------------------------------------
 def world_spec(cfg: Config):
-    if getattr(cfg, "world_kind", "anchor") == "hidden":
-        from .hidden_map import canonical_spec as hidden_canonical
-        return hidden_canonical()
     return canonical_spec()
 
 
@@ -140,9 +135,9 @@ def _mock_floor_player(spec: anchor.TrailSpec, hstar) -> dict:
 
 def _real_episode(playbook: str, spec: anchor.TrailSpec, hstar, cfg: Config, log=print,
                   extra_env=None, kickoff: str = KICKOFF, budget=None) -> dict:
-    """One live confined episode. `extra_env`/`kickoff`/`budget` are the situation seam
-    (hta/ch2/situations.py): a constructed mid-state rides to the probe server in env, the
-    kickoff says "resume", and the budget covers prefix + remaining."""
+    """One live confined episode. `extra_env`/`kickoff`/`budget` are the situation seam: a
+    constructed mid-state can ride to the probe server in env, the kickoff says "resume", and the
+    budget covers prefix + remaining."""
     fd, result_path = tempfile.mkstemp(prefix="hta_top_", suffix=".json")
     os.close(fd)
     env = state_to_env(spec, hstar, spec.budget if budget is None else budget)

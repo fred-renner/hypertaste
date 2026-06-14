@@ -26,8 +26,6 @@ def main():
     ap = argparse.ArgumentParser(description="Chapter-2 model-orchestrated loop (anchor trail world)")
     ap.add_argument("--iterations", type=int, default=1)
     ap.add_argument("--backend", choices=["mock", "real"], default="mock")
-    ap.add_argument("--world", choices=["anchor", "hidden"], default="anchor",
-                    help="anchor = the canary trail; hidden = the Pass-3 hidden-map family")
     ap.add_argument("--n-train", type=int, default=2, help="train draws per iteration")
     ap.add_argument("--n-transfer", type=int, default=1, help="held-out draws per iteration")
     ap.add_argument("--eval-repeats", type=int, default=1, help="episodes per world (damps variance)")
@@ -40,7 +38,6 @@ def main():
 
     cfg = Config()
     cfg.backend = args.backend
-    cfg.world_kind = args.world
     cfg.out_dir = args.out_dir
     cfg.n_train_worlds = args.n_train
     cfg.n_transfer_worlds = args.n_transfer
