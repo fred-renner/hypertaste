@@ -17,22 +17,20 @@ weak student (Haiku), same body? (PLAN.md → record v2, "The proof of principle
 
 Held-out mean band score (0 = lazy/all-abstain, 1 = perfect). Cost ~$2–2.5 per run.
 
-The mechanism is legible. The day-one player kept *diagnosing* outputs (spending probes) and then
-**abstaining** — scoring exactly the blind floor. The coach read that conduct and grew the habit in
-its own words: *"budget to FINISH, not to survey … a fully read table is GUARANTEED full weight …
-pick your targets so at least ONE output gets fully resolved."* On held-out `run1` world_1 the grown
-playbook then spent 8 probes to **fully enumerate** a weight-3 table (24/24, guaranteed) — turning
-−0.016 into +0.146. Nobody wrote that habit for it; the loop discovered it by watching the student
-fail, and it transferred to unseen machines.
+The coach read the day-one player's conduct (it kept *diagnosing* outputs then abstaining, scoring
+the blind floor) and grew: *"budget to FINISH, not to survey … a fully read table is GUARANTEED full
+weight."* On held-out `run1` world_1 the grown playbook then spent 8 probes to fully enumerate a
+weight-3 table (24/24), turning −0.016 into +0.146.
 
-## Honest caveats
+## Honest reading — read `findings/2026-06-14-instance0-machine-world.md` first
 
-- **Modest and noisy.** n is small and Haiku is a stochastic, weak student. `run2`'s day-one < bare
-  is an artifact of one day-one episode that failed to return a result (a transient `claude -p`
-  non-JSON, persisting through the retry) and scored 0; without it day-one ≈ 0.32.
-- **Coaching is the weak link** (consistent with the earlier anchor finding): the grown playbook
-  still over-commits affines on some tables, and neither player found the lone real affine output.
-  Net-positive on fresh worlds is the bar it clears, not perfection.
+This is **a tactic, not taste.** "Budget to finish, not to survey" is general; "a fully read table is
+guaranteed weight" is a scoring-rubric trick that dies on randomness. The world is a flat
+budget-allocation puzzle with no structure to *read*, so allocation is the only habit it can grow.
+And this did **not** run the real DGM-H loop (`hta/ch2/loop.py`'s archive + sandboxed agentic
+meta-edit): the "coach" was a single text rewrite, and the driver duplicates the existing loop. The
+numbers are also noisy (small n, weak Haiku; `run2`'s day-one < bare is one failed episode scored 0).
+Kept as a useful record, not a success.
 
 ## Reproduce
 

@@ -51,20 +51,21 @@ questions — match the depth and tone of a genuine research-design conversation
 
 ## Run & test
 
-> **Update 2026-06-13 (later) — instance 0 is BUILT and the proof of principle holds.** The new
-> world is the **machine world** (kit v1, `hta/ch2/machine*.py`, `run_instance0.py`): a hidden
-> machine assembled from a small kit (const / affine / lookup), where **only the exam pays** —
-> probing earns nothing, and you are graded on held-out inputs you never probed (you submit a
-> *model* per output; abstain = blind-guess credit; a wrong commit = 0). Build-screen passes
-> (scripted floor ~0.18, tasteful reference ~0.32; gate 1, free). The **live inner loop ran twice**
-> (`runs/instance0/`, ~$2.5 each): **coached > day-one on fresh machines both times** (+0.025 then
-> +0.082). The coach rediscovered a real taste habit unprompted — *"budget to FINISH, not to
-> survey; a fully read table is guaranteed weight"* — and it transferred (held-out world: −0.016 →
-> +0.146 by fully enumerating a high-value table). Modest and noisy (small n, weak Haiku, occasional
-> `claude -p` episode failures), coaching still the weak link — but the core bet clears its bar. The
-> anchor/trail world (`anchor.py`, `worlds.py`, `world_smith.py`, `episode_state.py`,
-> `probe_server.py`, `loop.py`, and the old `run_*.py`) is now a **regression fixture**, not the live
-> edit surface. The "Where we are" block below is the anchor-chapter history.
+> **Update 2026-06-14 — instance 0 was built and run; the honest read is a tactic, not taste (see
+> `findings/2026-06-14-instance0-machine-world.md`).** The new world (kit v1, `hta/ch2/machine*.py`,
+> `run_instance0.py`) is an *explorer-style* world where **only the exam pays** — probing earns
+> nothing; you submit a model per output and are graded on held-out inputs (abstain = blind credit,
+> wrong = 0). Build-screen passes; the live driver ran twice (`runs/instance0/`, ~$2.5 each) and
+> coached edged day-one (+0.025, +0.082). **But:** the grown "habit" was half-general at best
+> ("budget to finish" transfers; "a fully read table is guaranteed weight" is a scoring-rubric trick
+> that dies on randomness), because the world is a flat **budget-allocation** puzzle with no structure
+> to *read* — the habit you grow mirrors the structure you plant, and we planted allocation (inherited
+> from the anchor chapter via contaminated docs). We also did **not** run the real DGM-H loop
+> (`loop.py`'s archive + sandboxed agentic meta-edit); the "coach" was a single text rewrite, and the
+> driver duplicates `loop.py`. The scaffolding (dumb scorer, text artifact, only-exam-pays, the
+> confined body) is sound and kept. **Next session = repo cleanup**, then a structured world (the
+> smith's job). The anchor/trail code is a regression fixture. The "Where we are" block below is
+> anchor-chapter history.
 
 > **Update 2026-06-13 — the "Where we are" block below is history.** The Pass-3 redo settled the
 > taste definition, the rules of the game, and our anchor/probe world as *one instance* (see
