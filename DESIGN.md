@@ -1,11 +1,16 @@
-# PASS3_REDO — the converging picture (working capture, 2026-06-13)
+# DESIGN — what hypertaste is building (the settled taste design)
 
-> **Status: the definition is settled; the rest is stable but not locked.** Live answer to
-> `NEXT.md`'s question (what a world is, and the rule for making worlds). The taste definition
-> (§1) is settled. The rules-of-the-game list (§2) is validated but provisional — a starting
-> point a later session may sharpen. The machinery (§3–§7) is stable. **Not yet locked:** on
-> explicit PI sign-off this folds into `PLAN.md`'s record v2 §1, a cold-reader subagent reads
-> the rewrite, and only then do the draft banners come off the other docs.
+> **Status: this is the live design doc — the single source of truth for direction.** The taste
+> definition (§1) is settled. The rules of the game (§2) are validated but provisional (a later
+> session may sharpen them). The machinery (§3–§7) is stable. The earlier design records that fed
+> this are kept as history, not current: the anchor/trail chapter (`history/RESET_DESIGN.md`), the
+> staged-pass plan + design record v2 (`history/PLAN.md`), the rewind proposals
+> (`history/REPLAN.md`), the original entry-point question (`history/NEXT.md`), and the Chapter-2
+> lab log (`history/NOTEBOOK.md`). Vision: `ROADMAP.md`. Last post-mortem:
+> `findings/2026-06-14-instance0-machine-world.md`.
+>
+> **One open lock:** the PI has not formally ratified §2 + the machinery as final, so this is kept
+> honest rather than stamped "locked" — flip on explicit sign-off.
 
 ---
 
@@ -158,12 +163,29 @@ as the *thesis* (taste is the situational trigger, not the capability) and the m
 1. **The rules-of-the-game list (§2)** is validated but provisional — possibly its own short
    session to sharpen.
 2. **How much of the world language to build first** for the proof of principle (the kit's
-   first slice), and the implementation details record v2 §2–§7 still owe (part formats, the
-   exam-drawing, the probe interface, calibration constants).
+   first slice), and the implementation details still owed (part formats, the exam-drawing, the
+   probe interface, calibration constants).
 
-## 10 — Process / next move
+## 10 — Settled — don't reopen (carried from the closing sessions)
 
-Not locked. Existing draft banners stay on (`PLAN.md` record v2, `ROADMAP.md`). On PI sign-off
-this folds into record v2 §1 as definition-plus-rules-plus-one-instance, a cold-reader subagent
-reads the rewrite, and the banners come off. Then the implementation milestone (the world
-language's first slice + instance 0 + the inner-loop proof of principle) as record v2 describes.
+- **Only the exam pays; probing earns nothing.** Zero = the strongest lazy constant strategy
+  (arithmetic, per machine) — distinct from the smart-spec, which is a live baseline rival.
+- **Abstain earns the blind-guess credit** — honesty beats bluffing; confabulation is priced,
+  not policed. Exact-match grading; all the mercy lives in how the exam is composed.
+- **Worlds may be open-ended;** fairness = the budget buys real ground.
+- **Goal-tracking is agent-side, for the loop to invent** — the score only ever sees earned weight.
+- **Mechanisms live on a shelf** until their failure actually appears (don't pre-install).
+- **The lab obeys its own thesis: unlock, don't install** — shape what the player is up against;
+  never write the response.
+
+## 11 — Where this stands after instance 0
+
+The first proof-of-principle build (`findings/2026-06-14-instance0-machine-world.md`) read
+honestly as a **tactic, not taste**: a flat budget-allocation world grew a half-general allocation
+habit, and it never exercised the real DGM-H loop. The lessons it bought: the world must have a
+**position worth reading** (connected, compounding access, dead ends, instruments) — and producing
+that structure is the **smith's / calibration's** job, not hand-design; and judge success by
+**reading taste off the playbook in plain English** (position → move, portable) on the real meta +
+task loop, not a score bump on noisy draws. This cleanup clears the repo contamination that pulled
+instance 0 back toward allocation. Next build: a structured world behind the existing airgapped
+body, run against the real loop.

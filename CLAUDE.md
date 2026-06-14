@@ -10,13 +10,14 @@ evaluating your position*. (The thesis: taste is the situational trigger, not th
 the moves are the model's; which one fires from the position read is the grown procedure, so it
 should port onto even a weak model.)
 
-- **Current design frontier — read first:** `PASS3_REDO.md` (the settled taste definition, the
-  rules any world must meet, and the machinery). `NEXT.md` is the one-line entry point.
-- Machinery detail (draft): `PLAN.md` → "Pass-3 design record v2". Vision: `ROADMAP.md` → "The
-  gym and its chains".
-- How to run the code (the current fixture chapter, for now): `README.md`.
-- History — kept, not current: `RESET_DESIGN.md` (the anchor-trail chapter, now one instance),
-  `NOTEBOOK.md` (the tape slices + the trap-tetra "harness writes the oracle" finding).
+- **The design — read first:** `DESIGN.md` (the settled taste definition, the rules any world
+  must meet, and the machinery).
+- Vision: `ROADMAP.md` → "The gym and its chains".
+- How to run the current code (the anchor reference chapter): `README.md`.
+- Last lab note: `findings/2026-06-14-instance0-machine-world.md` (instance 0 read as a tactic,
+  not taste — the why behind this cleanup).
+- History — kept, not current: everything under `history/` (`RESET_DESIGN.md` the anchor-trail
+  chapter, `PLAN.md` / `REPLAN.md` / `NEXT.md` the superseded plans, `NOTEBOOK.md` the lab log).
 
 This file plus `README.md` are the orientation — open only the files you're about to change
 rather than re-reading the whole tree.
@@ -51,116 +52,21 @@ questions — match the depth and tone of a genuine research-design conversation
 
 ## Run & test
 
-> **Update 2026-06-14 — instance 0 was built and run; the honest read is a tactic, not taste (see
-> `findings/2026-06-14-instance0-machine-world.md`).** The new world (kit v1, `hta/ch2/machine*.py`,
-> `run_instance0.py`) is an *explorer-style* world where **only the exam pays** — probing earns
-> nothing; you submit a model per output and are graded on held-out inputs (abstain = blind credit,
-> wrong = 0). Build-screen passes; the live driver ran twice (`runs/instance0/`, ~$2.5 each) and
-> coached edged day-one (+0.025, +0.082). **But:** the grown "habit" was half-general at best
-> ("budget to finish" transfers; "a fully read table is guaranteed weight" is a scoring-rubric trick
-> that dies on randomness), because the world is a flat **budget-allocation** puzzle with no structure
-> to *read* — the habit you grow mirrors the structure you plant, and we planted allocation (inherited
-> from the anchor chapter via contaminated docs). We also did **not** run the real DGM-H loop
-> (`loop.py`'s archive + sandboxed agentic meta-edit); the "coach" was a single text rewrite, and the
-> driver duplicates `loop.py`. The scaffolding (dumb scorer, text artifact, only-exam-pays, the
-> confined body) is sound and kept. **Next session = repo cleanup**, then a structured world (the
-> smith's job). The anchor/trail code is a regression fixture. The "Where we are" block below is
-> anchor-chapter history.
-
-> **Update 2026-06-13 — the "Where we are" block below is history.** The Pass-3 redo settled the
-> taste definition, the rules of the game, and our anchor/probe world as *one instance* (see
-> `PASS3_REDO.md`). The anchor + world-smith code is now a regression fixture; the two invariants
-> still hold and the `bash` commands still run.
-
-**Where we are:** the Chapter-2 **reset** is locked (`RESET_DESIGN.md`), the **denoise is done**, and
-the **reseed is built** — the repo is the loop spine (archive, MDL prior, meta-agent, sandbox airgap,
-llm, config), the **anchor trail world** (`hta/ch2/anchor.py`, build-screened by `run_anchor.py`),
-and the **option-B substrate**: `hta/ch2/episode_state.py` (world-state machine + band judge),
-`hta/ch2/probe_server.py` (confined stdio-MCP, the seven primitives + `spawn`), `hta/ch2/loop.py`
-(the model-orchestrated DGM-H loop), `hta/ch2/seed/playbook.md` (the only evolvable node), and
-`run_loop.py`. Offline-green (66 tests), **calibrated live**, the **agent loop is validated** (seed →
-gen_0001, the coach *discovered* the withheld allocation note on its own, held-out **0.50 → 1.00**),
-and the **world-smith (the second loop) is built and validated live** (`hta/ch2/worlds.py`,
-`hta/ch2/world_smith.py`, `run_worldsmith.py`) — the machinery **runs and extends**, but the live run
-surfaced a finding (below) that reframes the next step.
-
-**Where the world-smith stands.** A stage-1 probe (`run_probe.py`) showed no *scalar* crank of the
-anchor re-opens a gap — "list every chain, commit to the deepest" survives every dial, so the gradient
-lives in the world's **structure**. So the world-smith authors a structurally harder world — the
-**forked trail** (`worlds.decoy_spec`): two candidate chains and a **gate** whose hidden value says
-which is live, so committing to a chain without the cheap gate scout pins **zero** valley, whichever
-chain it is. The new taste it demands is **scout feasibility, then commit**. The integrity wall is
-lifted intact: the inventor proposes only **structure** (a validated spec as *data* — safe-eval
-lifted, never the score), and the harness re-derives the oracle + coverage **mechanically** (the
-unchanged `anchor.py` machinery) and ships a world only if **hard** (oracle ≫ every generic planner) ∧
-**solvable** (a reachable *method* reaches the oracle) ∧ in the **ZPD** (the champion's method *fails*
-while the new one *succeeds* — the only legal coupling is the objective gap on the non-movable scorer,
-never the agent's internals). **Model-free proven** (`run_worldsmith.py`, free, deterministic): the
-decoy **ships** (gap 0.71n, champion 0.00n, fix 1.00n) and its **second move extends the family** — the
-adaptive **gate ladder** (`worlds.ladder_spec`, `gate_hops`): the live chain is chosen by a *ladder* of
-gates, so the decoy's own fix ("scout *the* gate") now fails and only "scout *adaptively*, then commit"
-ships (gap 0.83n, champion 0.00n, fix 1.00n). A `CURRICULUM` runs the moves in sequence, each graduate
-the next champion. A no-fork control correctly *holds* — the SAME method, broken precisely by each move.
-
-**Live run (2026-06-09, $2.47): machinery runs + extends, gap did NOT close — the finding for the next
-session.** Both moves shipped, the ladder was authored and slotted into the curriculum, and the
-two-iteration two-loop ran live end-to-end with each graduate carried forward (iter 1 decoy 0.00n→0.00n;
-iter 2 ladder 0.33n→0.00n). The extensibility was the deliverable and it holds; the **gap-closing did
-not**, and *why* is a research-taste finding: **the model-free proxy is not faithful to the live
-student.** The proxies model an *allocation/scout* failure, but live Haiku **already scouts** (gate and
-ladder, off `world_map`); it fails on the **pointer-chase reconstruction** the score rewards (follow
-`head → hop[value] → landmark`, submit the valley off the *true* landmark — it mis-resolves ~half the
-time, `determined=9` but `raw=0`). And **coaching regressed the player**: Opus diagnosed the pointer bug
-precisely but kept a "bank what's certain" hedge that, against an *all-or-nothing valley*, trades the
-valley for the floor (`coached_1` solved 2/4; the hedge dropped its graduate to 0). The integrity wall
-did its job — surfacing, honestly, that *the proxy we can compute ≠ the constraint that binds the live
-student*.
-
-> **Update 2026-06-10 — the paragraph below is history.** The general-state brainstorm happened; its
-> outcome is `PLAN.md` (the redesign lock + staged passes). PLAN.md's Pass-3 record (the hidden-map
-> world) was then **superseded by `REPLAN.md`** — the world fell below the threshold gate (public
-> lattice → articulable optimal policy) and is demoted to an offline fixture. Sequencing lives in
-> PLAN.md; **the next session is the Pass-3 redo brainstorm (a PI session) off `REPLAN.md`** — design
-> only, no implementation.
-
-> **Update 2026-06-12 — the redo ran (two PI sessions).** Outcome: `PLAN.md` → **"Pass-3 design
-> record v2"** (draft: the machinery principles are stable; the world in its §1 is one concrete
-> instance, not the settled abstraction) and `ROADMAP.md` → "The gym and its chains" (the vision;
-> preserve through cleanups). `REPLAN.md` is ratified pending lock. **The next session is a PI
-> design brainstorm off `NEXT.md`** — the single entry point: one question (the world abstraction
-> and the generative principle for worlds), design only, no implementation until it settles.
-
-**Next action (historical — superseded by `NEXT.md` via the updates above; kept as the record of the
-2026-06-09 forks) — GENERAL-STATE BRAINSTORM, then proceed.** Not more live runs yet. The
-open question: make the model-free ship-gate **faithful to the live student** so "champion fails" means
-the *same thing* live — the precondition for the loop's closure to mean anything. Live-discussed forks
-(your call next session): (a) **fix the coach** — kill the hedge, foreground that the valley is
-all-or-nothing, allow multi-round coaching (cheapest test; `coached_1`'s 2/4 suggests a non-hedging
-playbook gets ~halfway); (b) **realign the world** — partial credit for partial pointer-chains, or
-harden reconstruction (K>2 so mis-resolution self-detects) so the modeled gap *is* the live gap; (c)
-**step back to the student's floor** — harden pointer-chase reconstruction on the single anchor first,
-then re-run the curriculum. Keep both invariants below; **budget co-evolves but stays tight** (probes,
-not turns, bind).
-
-**Settled — don't reopen** (`RESET_DESIGN.md` → "Locked decisions"): the evolved unit is
-**English, never code** (that is the sieve that keeps the tacit residue and makes model-generality
-the test); **the model orchestrates** (option B), not Python; **Opus** runs self-improvement +
-world/oracle reasoning, **Haiku** does all exploration; the judge is the objective coverage band.
-The world gate is two halves — **build-screen** model-free for the oracle≫heuristic gap
-(`run_anchor.py`), then **calibrate** live so the student lands in-band — re-run both before any
-new world ships.
+**Where we are (2026-06-14):** the repo was just cleaned up. The settled design is `DESIGN.md`;
+the **spine** (the world-agnostic orchestration — the `claude -p` seam, the sandbox airgap, the
+archive, the MDL prior, config) is kept; the **anchor chapter** is frozen as the one worked
+reference of the airgapped body + mechanical oracle; the instance-0 machine world and the
+superseded hidden-map pass were deleted (see `findings/`). The next build is a **structured world**
+behind the existing airgapped body, run against the real loop — not yet started.
 
 ```bash
-python run_instance0.py                           # instance 0 (machine world) build-screen: free, model-free
-python run_instance0.py --backend mock            # + inner-loop plumbing (deterministic, free)
-python run_instance0.py --backend real            # + the LIVE inner loop (bare/day-one/coached; a few dollars)
-python run_anchor.py                              # Ch2 build gate (anchor fixture): free, model-free, deterministic
+python run_anchor.py                              # anchor build gate: free, model-free, deterministic
 pip install pytest && python -m pytest tests/ -q  # tests (pytest is not preinstalled)
 python run_loop.py --iterations 1 --backend mock  # the loop, offline (deterministic floor-player)
 python run_loop.py --iterations 1 --backend real  # the loop, live (cents/Haiku episode, ~$1/Opus edit)
 python run_probe.py --backend real                # stage-1: champion vs a scalar-harder world (cents)
-python run_worldsmith.py                          # ship-gate both curriculum moves: free, model-free (slow: the ladder oracle is 4096 hyps)
-python run_worldsmith.py --backend real           # + the LIVE two-iteration two-loop (~$1/Opus coaching round; ~$2.5 total)
+python run_worldsmith.py                          # ship-gate both curriculum moves: free, model-free (slow)
+python run_worldsmith.py --backend real           # + the LIVE two-iteration two-loop (~$2.5 total)
 ```
 
 The `claude` CLI is installed and authenticated here, so the `real` backend works without an API
@@ -169,32 +75,23 @@ dependency.
 
 ## Files you'll edit vs. leave alone
 
-**The live edit surface now (instance 0, the machine world):** `hta/ch2/machine.py` (the kit + builder
-+ exam scorer — the dumb deterministic referee), `hta/ch2/machine_qa.py` (scripted QA + the tasteful
-headroom check — gate 1), `hta/ch2/machine_state.py` + `hta/ch2/machine_server.py` (the confined
-episode body + its stdio-MCP airgap), `hta/ch2/machine_loop.py` (author day-one / coach / three-way
-eval), `run_instance0.py` (the driver), `tests/test_machine.py`. The day-one and coached playbooks are
-written live by Opus (not a checked-in seed file). Curated runs: `runs/instance0/`.
+**The spine — keep, it's the reusable orchestration (world-agnostic):** `hta/config.py` (knobs),
+`hta/llm.py` (the `claude -p` seam — `complete` / `episode` / `agentic` adapters + mock + accounting),
+`hta/taste.py` (the MDL / program-length prior), `hta/archive.py` (archive + open-ended selection),
+`hta/sandbox.py` (the meta-agent airgap: Direct | Docker). This is what survives every chapter.
 
-**The anchor-chapter files are now regression fixtures** (leave alone unless deliberately reworking
-the fixture): `hta/config.py` (knobs), `hta/ch2/anchor.py` (the anchor world + oracle + build-screen — now
-generic over a spec *protocol* so the oracle/screen re-derive mechanically for any world shape),
-`hta/ch2/worlds.py` (the world-smith's structural family — `ForkedTrailSpec` with the adaptive gate
-ladder `gate_hops`; the forked/decoy/ladder worlds), `hta/ch2/world_smith.py` (the second loop —
-ship-gate, the scout/ladder methods, inventor scaffold + the `CURRICULUM` two-iteration demo),
-`run_anchor.py` (the build gate), `run_probe.py` (stage-1 scalar-harder probe), `run_worldsmith.py`
-(the world-smith demo), and the **evolvable node `hta/ch2/seed/playbook.md`** (the loop rewrites
-*this*; for calibration you may hand-edit the seed). The reseed built the **frozen substrate** —
-`hta/ch2/episode_state.py` (world-state machine + band judge), `hta/ch2/probe_server.py` (confined
-probe-MCP + the seven primitives), `hta/ch2/loop.py` (the model-orchestrated loop), `run_loop.py` —
-leave it alone unless deliberately changing the harness (the world-smith touched it *minimally*:
-`world_map`/report/serialization now delegate to the spec so a richer world rides the same airgap; the
-coverage judge and the text artifact are untouched — both invariants intact).
+**The anchor chapter — a frozen reference fixture** (leave alone unless deliberately reworking it;
+its design write-up is `history/RESET_DESIGN.md`): `hta/ch2/anchor.py` (the anchor world + oracle +
+build-screen, generic over a spec protocol), `hta/ch2/worlds.py` (the world-smith's structural
+family), `hta/ch2/world_smith.py` (the second loop — ship-gate + inventor scaffold + curriculum
+demo), `hta/ch2/episode_state.py` (world-state machine + band judge), `hta/ch2/probe_server.py`
+(confined stdio-MCP + the seven primitives), `hta/ch2/loop.py` (the model-orchestrated DGM-H loop +
+the Opus `meta_edit`), the `run_*.py` drivers, and `hta/ch2/seed/playbook.md` + `champion/playbook.md`.
+Keep the two invariants below if you touch it.
 
-Leave alone unless deliberately changing them (and then keep the two invariants below): the loop
-spine — `hta/archive.py` (archive + selection), `hta/taste.py` (MDL prior), `hta/ch2/loop.py`
-`meta_edit` + `hta/sandbox.py` (Opus self-modify + the meta-agent airgap), `hta/llm.py` (the
-`claude -p` seam).
+**The next build** authors a new structured world (the smith's / calibration's job, per `DESIGN.md`)
+behind the existing airgapped body and runs it against the real loop — reusing the spine and the
+anchor chapter as the worked example, not re-cloning the loop.
 
 ## The two invariants (the integrity floor — they survive every chapter)
 

@@ -1,9 +1,9 @@
 # Roadmap — growing portable research taste, hands-off
 
-The North Star and the staged path to it. `RESET_DESIGN.md` is the technical detail of
-*today's* world (Chapter 2, post-reset); this file is where the whole thing is going and why the
-staging is the way it is. Read this for direction, `RESET_DESIGN.md` for the current mechanics,
-`NOTEBOOK.md` for the Chapter-2 lab history.
+The North Star and the staged path to it. `DESIGN.md` is the settled design (the taste
+definition, the rules any world must meet, the machinery); this file is where the whole thing is
+going and why the staging is the way it is. Read this for direction, `DESIGN.md` for the design,
+and `history/` for the superseded chapters (`RESET_DESIGN.md` mechanics, `NOTEBOOK.md` lab log).
 
 ## Where we are — Chapter 1 ran, and it told us the world is the wrong shape
 
@@ -125,7 +125,7 @@ makes a **new research virtue** necessary to win:
 | Chapter | World kind | Judge (objective principle) | Virtue it forces | Status |
 |---|---|---|---|---|
 | **1** | deterministic hidden rule `f(x,y,z)→bool` | **exact equivalence** — your rule behaves identically to mine on a fixed battery | falsification, hypothesis decomposition, Occam | done — pivoted (binary oracle → flat signal) |
-| **2** | hidden world discovered by probing (one instance of the rules any world must meet) | **coverage** — how much of the structure you uncovered under a scarce budget | budget allocation, value-of-information, reading global structure, predict-the-unseen | **current — redesigned; see `PASS3_REDO.md`: taste defined, the world defined by the rules of the game, the probe-world is one instance; next is the proof of principle (build instance 0)** |
+| **2** | hidden world discovered by probing (one instance of the rules any world must meet) | **coverage** — how much of the structure you uncovered under a scarce budget | budget allocation, value-of-information, reading global structure, predict-the-unseen | **current — redesigned; see `DESIGN.md`: taste defined, the world defined by the rules of the game, the probe-world is one instance; instance 0 built + retired as a tactic (`findings/`), next is a structured world** |
 | **3** | no exact rule — an uncertain/noisy process | **calibration** — how much probability you put on what actually happened | weighing evidence, quantifying uncertainty, knowing what you don't know | future |
 | **4+** | worlds you must act on, not just observe | **intervention quality** — the soundness of the experiment you designed | experimental design, controlling confounds, causal reasoning | future |
 
