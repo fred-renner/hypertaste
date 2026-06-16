@@ -28,13 +28,13 @@ same way the §2 cold reads are: agreement is the signal.
 `Value(X) ≈ learning-progress(X) · transfer(X → goal)`, per unit cost, biased toward uncertainty
 — the **generative principle the catalogue was flagged as still missing** (`PLAN.md` §5: *"name
 the higher generative principle the catalog falls out of"*). Nearly every catalogue habit is one
-face of a single move: *spend your next step where it buys the most learning that will carry, for
+facet of a single move: *spend your next step where it buys the most learning that will carry, for
 what it costs.* Folded into:
 
 - **`DESIGN.md` §1** — named beneath the one-liner as the *reading* of "evaluating your position"
   (the missing middle: definition → principle → habits → worlds). The one-liner is untouched;
   the principle is our reading, never a script for the player (§10, "plant the condition").
-- **`DESIGN.md` §4** — the habits reframed as faces of the principle; added the one missing face,
+- **`DESIGN.md` §4** — the habits reframed as facets of the principle; added the one missing facet,
   **probe where you're least sure** (the exploration term; guards the self-confirming blind spot).
 - **`DESIGN.md` §9** — the allocator's *dynamics* (how goals form, how fast attention switches)
   logged as open: grown under selection, not specified.

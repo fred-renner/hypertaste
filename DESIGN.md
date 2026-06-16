@@ -23,7 +23,7 @@ learning that will carry to other problems, for what the step costs — and lean
 you're least sure of.* Reading your position means seeing how much each option still has to
 teach you and how far that lesson would travel; the good move is the one that pays best by that
 measure. Chase the steep give-back, quit the flat vein, probe your blind spot, prefer the lesson
-that ports — each is a face of this. It's the missing middle layer the catalogue was flagged as
+that ports — each is a facet of this. It's the missing middle layer the catalogue was flagged as
 needing: definition → this principle → the habits (§4) → worlds.
 
 Two guards. The goal is **fixed and outside the agent** (the dumb scorer, §2); only the
@@ -87,10 +87,10 @@ It answers the standing worries with one move:
 
 - The **taste catalogue** = our private wishlist of tasteful habits. Each is one habit we want
   — not a "row", just one item in the set.
-- **The habits are faces of the §1 principle, not a flat list.** Each is the same move turned to
+- **The habits are facets of the §1 principle, not a flat list.** Each is the same move turned to
   a different situation: hunt the case that *falsifies* you (not the one that confirms); break a
   tangled question into parts you can test; **probe where you're least sure** — your blind spot,
-  the exploration face, the guard against quietly confirming yourself; design the step that
+  the exploration facet, the guard against quietly confirming yourself; design the step that
   isolates one variable; follow the steep give-back and drop the flat vein; and prefer the lesson
   that **ports** to other problems (the highest-transfer habit). The fuller catalogue is recorded
   in `history/PLAN.md` (record v2); these are named here to show they fall out of §1.
