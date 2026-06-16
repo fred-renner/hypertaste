@@ -219,3 +219,15 @@ that structure is the **smith's / calibration's** job, not hand-design; and judg
 task loop, not a score bump on noisy draws. This cleanup clears the repo contamination that pulled
 instance 0 back toward allocation. Next build: a structured world behind the existing airgapped
 body, run against the real loop.
+
+## 12 — Where this stands after the fresh-lab build (2026-06-16)
+
+The §9.2 "first slice" is built (`findings/2026-06-16-fresh-lab-world-language.md`): the **world
+language** (a part-box — clearing / chain / fork — composed into a `WorldSpec`, validated and
+expanded to a mechanical scorer + belief-MDP oracle), with **instance 0** authored as a parts-list —
+a *position worth reading* (a gated fork: scout which chain is live before committing), build-screened
+above threshold (floor 4 → oracle 11). It runs through **one world-agnostic loop** (the post-mortem's
+fix) and a world-smith whose ship-gate re-derives the score from structure alone. What is shown is
+model-free and mock; what is **not yet** shown is the live result — the grown playbook read as
+*position → move* on the real Haiku + Opus loop. That is the next thing to run, not build
+(`run_lab.py loop --backend real`).
