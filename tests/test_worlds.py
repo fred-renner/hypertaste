@@ -1,4 +1,4 @@
-"""Forked-trail world tests — the world-smith's structural family (`hta/ch2/worlds.py`).
+"""Forked-trail world tests — the world-smith's structural family (`hta/_trail/worlds.py`).
 Deterministic, pure compute, no API cost.
 
 The load-bearing claims (the structural lift of `test_anchor.py`):
@@ -20,8 +20,8 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from hta.ch2 import anchor  # noqa: E402
-from hta.ch2.worlds import (Chain, ForkedTrailSpec, decoy_spec, ladder_spec,  # noqa: E402
+from hta._trail import anchor  # noqa: E402
+from hta._trail.worlds import (Chain, ForkedTrailSpec, decoy_spec, ladder_spec,  # noqa: E402
                             single_chain_spec, validate)
 
 # A small forked world (256 hypotheses) for the structural tests: two depth-2 chains + a gate.

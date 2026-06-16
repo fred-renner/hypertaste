@@ -27,7 +27,7 @@ hidden in the seed, learnable only by playing this instance.
 Run: python run_anchor.py
 """
 
-from hta.ch2.anchor import TrailSpec, screen
+from hta._trail.anchor import TrailSpec, screen
 
 MARGIN = 0.15      # gap_norm a world must clear to be "above threshold" (tacit room to matter)
 CLIFF = 0.55       # max single-step ramp jump (bet 2, anti-cliff). The trail payoff is convex, so

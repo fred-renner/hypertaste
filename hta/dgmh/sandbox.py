@@ -27,10 +27,10 @@ import tempfile
 import uuid
 from typing import List, Optional
 
-from . import llm
-from .config import Config
+from .. import llm
+from ..config import Config
 
-_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # hta/dgmh/sandbox.py -> repo root
 _DOCKERFILE = os.path.join(_REPO_ROOT, "docker", "Dockerfile.agent")
 _DOCKER_CONTEXT = os.path.join(_REPO_ROOT, "docker")
 _WORKSPACE = "/workspace"

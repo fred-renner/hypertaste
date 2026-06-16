@@ -1,4 +1,4 @@
-"""Tests for the frozen episode-state machine + the band judge (hta/ch2/episode_state.py) — the
+"""Tests for the frozen episode-state machine + the band judge (hta/_trail/episode_state.py) — the
 substrate the model-orchestrated harness confines the player to. Pure, deterministic, no API cost:
 this is where the airgap (values only through probe), the cost-budget accounting, the spawn
 carve-out, and the ungameable coverage judge are proven without a live claude.
@@ -10,8 +10,8 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from hta.ch2 import anchor  # noqa: E402
-from hta.ch2.episode_state import EpisodeState, normalize  # noqa: E402
+from hta._trail import anchor  # noqa: E402
+from hta._trail.episode_state import EpisodeState, normalize  # noqa: E402
 
 # A small, fast trail (matches tests/test_anchor.py's TRAIL): 256 hypotheses, budget 3.
 SPEC = anchor.TrailSpec("trail-small", R=8, K=2, Ld=2, Lv=9, trailhead=0,

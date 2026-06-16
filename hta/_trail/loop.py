@@ -2,13 +2,13 @@
 
 This is the reseed's loop: it searches **playbook-space** for the English disposition that makes a
 fixed weak student (Haiku) tasteful on the anchor trail world. It reuses the DGM-H spine wholesale
-— the archive (`hta.archive`), open-ended parent selection, the Opus self-modify airgap
-(`hta.sandbox`) — and swaps the evolved unit and the judge from Chapter 1's:
+— the archive (`hta.dgmh.archive`), open-ended parent selection, the Opus self-modify airgap
+(`hta.dgmh.sandbox`) — and swaps the evolved unit and the judge from Chapter 1's:
 
   * evolved node = **`playbook.md` only** — non-executable English, the player's SYSTEM prompt. The
     meta agent (Opus) rewrites *this*, nothing else (no solver.py; safe-eval lifted). A Haiku TOP
     session natively probes / spawns workers / keeps a scratchpad / submits, confined by the
-    probe-MCP airgap (`hta/ch2/probe_server.py`).
+    probe-MCP airgap (`hta/_trail/probe_server.py`).
   * judge = band-normalized **coverage** (`EpisodeState.score`): the cells the agent's own probes
     pin and it submits correctly, normalized into the model-free floor->oracle band. Outcome-only,
     agent-inaccessible, deterministic — the integrity floor, lifted to coverage.
@@ -31,8 +31,9 @@ import tempfile
 from concurrent.futures import ThreadPoolExecutor
 from typing import List, Optional, Tuple
 
-from .. import llm, sandbox
-from ..archive import Archive
+from .. import llm
+from ..dgmh import sandbox
+from ..dgmh.archive import Archive
 from ..config import Config
 from . import anchor
 from .episode_state import (EpisodeState, canonical_spec, draw_hstar, normalize, state_to_env)
@@ -146,7 +147,7 @@ def _real_episode(playbook: str, spec: anchor.TrailSpec, hstar, cfg: Config, log
     env.update(extra_env or {})
     try:
         res = llm.episode(prompt=kickoff, model=cfg.task_model,
-                          mcp_server_argv=[__import__("sys").executable, "-m", "hta.ch2.probe_server"],
+                          mcp_server_argv=[__import__("sys").executable, "-m", "hta._trail.probe_server"],
                           server_env=env, cwd=_REPO_ROOT,
                           allowed_tools=cfg.top_allowed_tools, max_turns=cfg.top_max_turns,
                           role="task_episode", cfg=cfg, append_system=playbook)

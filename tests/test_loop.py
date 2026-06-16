@@ -1,4 +1,4 @@
-"""Tests for the Chapter-2 model-orchestrated loop (hta/ch2/loop.py) on the MOCK backend — the
+"""Tests for the Chapter-2 model-orchestrated loop (hta/_trail/loop.py) on the MOCK backend — the
 offline plumbing path. The real path runs a live Haiku TOP session per episode (cents) + an Opus
 playbook rewrite (~$1); none of that runs here. We prove: the iteration wiring (seed -> select ->
 eval parent -> rewrite playbook -> eval child -> archive), the band judge replays a finished episode
@@ -13,8 +13,8 @@ import tempfile
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from hta.config import Config  # noqa: E402
-from hta.ch2 import anchor, loop as ch2_loop  # noqa: E402
-from hta.ch2.episode_state import EpisodeState, canonical_spec  # noqa: E402
+from hta._trail import anchor, loop as ch2_loop  # noqa: E402
+from hta._trail.episode_state import EpisodeState, canonical_spec  # noqa: E402
 
 
 def _mock_cfg(tmp):
@@ -34,7 +34,7 @@ def test_iteration_seeds_evaluates_and_archives():
         # the mock floor-player scores at the floor of the band
         assert rep["child_norm"] == (0.0, 0.0)
         # the archive grew: seed + child, both with the English node and no solver.py
-        from hta.archive import Archive
+        from hta.dgmh.archive import Archive
         arc = Archive(cfg.archive_dir)
         assert arc.genids() == [0, 1]
         assert os.path.exists(os.path.join(arc.node_dir(1), "playbook.md"))

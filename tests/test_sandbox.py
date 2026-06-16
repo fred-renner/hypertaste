@@ -1,7 +1,7 @@
 """Sandbox / containerized-airgap tests (TODO 3).
 
 The Docker path is exercised WITHOUT a running daemon: every docker invocation goes
-through the `hta.sandbox._run` seam, which these tests monkeypatch. So we verify the
+through the `hta.dgmh.sandbox._run` seam, which these tests monkeypatch. So we verify the
 orchestration (create -> cp in -> start -> cp out -> rm), the diff/apply ("extract"),
 the isolation flags, and the fail-closed preflight, all offline and for free.
 """
@@ -14,7 +14,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import pytest  # noqa: E402
 
-from hta import llm, sandbox  # noqa: E402
+from hta import llm  # noqa: E402
+from hta.dgmh import sandbox  # noqa: E402
 from hta.config import Config  # noqa: E402
 
 

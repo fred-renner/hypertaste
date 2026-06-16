@@ -143,7 +143,7 @@ def _real_complete(prompt: str, model: str, role: str, cfg: Config) -> str:
 # AGENTIC editing (meta agent). Real backend only; mock is handled by the caller.
 # The argv and result-parsing are factored out so the meta agent can run through the
 # SAME airgap flags whether it executes in-process (DirectSandbox) or inside a
-# container (DockerSandbox). See hta/sandbox.py.
+# container (DockerSandbox). See hta/dgmh/sandbox.py.
 # ---------------------------------------------------------------------------
 def agentic_argv(instruction: str, model: str,
                  allowed_tools: Tuple[str, ...], max_turns: int) -> List[str]:

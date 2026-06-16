@@ -1,4 +1,4 @@
-# Agent-plane image for the self-modifying meta agent (hta/sandbox.py: DockerSandbox).
+# Agent-plane image for the self-modifying meta agent (hta/dgmh/sandbox.py: DockerSandbox).
 # Minimal on purpose: Node + the Claude Code CLI and nothing else. No project code, no
 # .env, no world source -- the child workspace is copied to /workspace at run time and
 # the edited result copied back out.

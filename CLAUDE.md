@@ -52,12 +52,13 @@ questions — match the depth and tone of a genuine research-design conversation
 
 ## Run & test
 
-**Where we are (2026-06-14):** the repo was just cleaned up. The current design is `DESIGN.md`;
-the **spine** (the world-agnostic orchestration — the `claude -p` seam, the sandbox airgap, the
-archive, the MDL prior, config) is kept; the **anchor chapter** is frozen as the one worked
-reference of the airgapped body + mechanical oracle; the instance-0 machine world and the
-superseded hidden-map pass were deleted (see `findings/`). The next build is a **structured world**
-behind the existing airgapped body, run against the real loop — not yet started.
+**Where we are (2026-06-16):** the repo was re-cut around the system's loops (see `DESIGN.md`).
+Shared plumbing sits at the top (`hta/llm.py`, `hta/config.py`); `hta/dgmh/` is LOOP 1 (grow the
+agent — the archive, the program-length prior, the meta-agent airgap), `hta/gym/` is LOOP 2 (grow
+the world — the world-smith), and `hta/world/` is the agent-inaccessible world. The retired trail
+puzzle is **quarantined** in `hta/_trail/` as a temporary test world — it still runs and backs the
+tests. The fresh lab inside `world/`, `dgmh/episode/`, `dgmh/loop.py`, and `gym/` is **skeleton-
+stubbed**, built in the next pass against the contract designed from `DESIGN.md`.
 
 ```bash
 python run_anchor.py                              # anchor build gate: free, model-free, deterministic
@@ -75,39 +76,41 @@ dependency.
 
 ## Files you'll edit vs. leave alone
 
-**The spine — keep, it's the reusable orchestration (world-agnostic):** `hta/config.py` (knobs),
-`hta/llm.py` (the `claude -p` seam — `complete` / `episode` / `agentic` adapters + mock + accounting),
-`hta/taste.py` (the MDL / program-length prior), `hta/archive.py` (archive + open-ended selection),
-`hta/sandbox.py` (the meta-agent airgap: Direct | Docker). This is what survives every chapter.
+**Shared plumbing + the machinery — keep, it's world-agnostic and reusable:** `hta/llm.py` (the
+`claude -p` seam — `complete` / `episode` / `agentic` adapters + mock + accounting) and
+`hta/config.py` (knobs) at the top; `hta/dgmh/archive.py` (archive + open-ended selection, with the
+program-length prior folded in) and `hta/dgmh/sandbox.py` (the meta-agent airgap: Direct | Docker).
+This is what survives every chapter.
 
-**The anchor chapter — a frozen reference fixture** (leave alone unless deliberately reworking it;
-its design write-up is `history/RESET_DESIGN.md`): `hta/ch2/anchor.py` (the anchor world + oracle +
-build-screen, generic over a spec protocol), `hta/ch2/worlds.py` (the world-smith's structural
-family), `hta/ch2/world_smith.py` (the second loop — ship-gate + inventor scaffold + curriculum
-demo), `hta/ch2/episode_state.py` (world-state machine + band judge), `hta/ch2/probe_server.py`
-(confined stdio-MCP + the seven primitives), `hta/ch2/loop.py` (the model-orchestrated DGM-H loop +
-the Opus `meta_edit`), the `run_*.py` drivers, and `hta/ch2/seed/playbook.md` + `champion/playbook.md`.
-Keep the two invariants below if you touch it.
+**The quarantined trail — a frozen reference fixture in `hta/_trail/`** (leave alone unless
+deliberately reworking it; design write-up `history/RESET_DESIGN.md`): `anchor.py` (the trail world
++ oracle + build-screen, generic over a spec protocol), `worlds.py` (the world-smith's structural
+family), `world_smith.py` (the second loop — ship-gate + inventor scaffold + curriculum demo),
+`episode_state.py` (world-state machine + band judge), `probe_server.py` (confined stdio-MCP + the
+seven primitives), `loop.py` (the model-orchestrated DGM-H loop + the Opus `meta_edit`), and
+`seed/playbook.md` + `champion/playbook.md`. The `run_*.py` drivers still point here. It is the one
+worked example; it is deleted once the fresh lab carries its own tests.
 
-**The next build** authors a new structured world (the smith's / calibration's job, per `DESIGN.md`)
-behind the existing airgapped body and runs it against the real loop — reusing the spine and the
-anchor chapter as the worked example, not re-cloning the loop.
+**The fresh lab — skeleton-stubbed, built in the next pass:** `hta/world/` (the contract + the dumb
+scorer/band), `hta/dgmh/episode/` (the play + the airgap), `hta/dgmh/loop.py`, and `hta/gym/` (the
+world-smith). Built from `DESIGN.md`'s principles — reusing the machinery and the trail as the
+worked example, not re-cloning the loop.
 
 ## The two invariants (the integrity floor — they survive every chapter)
 
 - **Objective, agent-inaccessible scoring** — worlds are scored by a **dumb deterministic
   function**, never an LLM judge (the agent is optimized *against* the score, so a movable
-  score is reward-hacking). *Ch2:* information-weighted **coverage** = cells logically pinned by
+  score is reward-hacking). *The trail:* information-weighted **coverage** = cells logically pinned by
   the consistent hypothesis set, normalized into a model-free **floor→oracle band**; the oracle
   is the exact adaptive belief-MDP policy, **by simulation** over the world family
-  (`hta/ch2/anchor.py`). The world stays **deterministic** so the oracle is computable.
+  (`hta/_trail/anchor.py`). The world stays **deterministic** so the oracle is computable.
   *Lifted to the second loop (the world-smith):* the same wall holds one level up — **the inventor
   proposes only the world's *structure*, never the score.** The referee (coverage) and the
   perfect-play benchmark (oracle) are **re-derived mechanically** from that structure, and a world
   ships only if it is still **hard** (oracle ≫ greedy) **and solvable** within budget. An inventor
   that could also move the score would just mint worlds that *look* solved — the exact trap that
   forced the reset.
-- **Safe-eval, lifted** — model output never executes. *Ch2:* the evolved artifact is **text**
+- **Safe-eval, lifted** — model output never executes. *The trail:* the evolved artifact is **text**
   (`playbook.md`), read by the harness as context only — never imported or run. (Worlds are
   realized from a **validated declarative spec** by a deterministic expander — same principle.)
 

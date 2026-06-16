@@ -1,12 +1,14 @@
 """hypertaste: a self-improving research-taste harness (DGM-H pipeline).
 
-Three hard-separated planes (Chapter 2, post-reset -- see RESET_DESIGN.md):
-  * WORLD plane  (hta.ch2)               -- the anchor world + coverage oracle. Agent-inaccessible.
-  * AGENT plane  (hta.ch2.loop.meta_edit + hta.sandbox / hta.archive) -- DGM-H self-improvement
-                                            of the playbook node (Opus self-modify, airgapped).
-  * TASTE plane  (hta.taste)             -- the MDL / program-length generality prior.
+The tree is cut around the system's loops (see DESIGN.md):
+  * hta.world  -- what a world IS: the agent-inaccessible scorer + hidden state + oracle.
+  * hta.dgmh   -- LOOP 1, grow the AGENT: the episode (the play), the archive + the
+                  program-length prior, the meta-agent airgap (sandbox), the loop.
+  * hta.gym    -- LOOP 2, grow the WORLD: the world-smith (propose + gate the curriculum).
+  * hta._trail -- the retired trail puzzle, quarantined as a temporary test world.
 
-All foundation-model calls funnel through hta.llm (claude -p only).
+Shared plumbing sits at the top: hta.llm (the claude -p seam; all model calls funnel here)
+and hta.config (model assignment, budgets, paths).
 """
 
 __version__ = "0.1.0"

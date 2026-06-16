@@ -2,7 +2,7 @@
 """Run the Chapter-2 **model-orchestrated** loop (option B) on the anchor trail world.
 
 The reseed's loop (RESET_DESIGN.md -> "Next actions" 3-4): the seed is the floor playbook
-(`hta/ch2/seed/playbook.md`) and the loop searches playbook-space — Opus rewrites the agent's
+(`hta/_trail/seed/playbook.md`) and the loop searches playbook-space — Opus rewrites the agent's
 English *playbook*, a Haiku TOP session runs every episode through the confined probe-MCP airgap
 (probe / spawn / mem / submit), and the judge is band-normalized coverage on the anchor family.
 
@@ -19,7 +19,7 @@ import argparse
 
 from hta import llm
 from hta.config import Config
-from hta.ch2 import loop as ch2_loop
+from hta._trail import loop as ch2_loop
 
 
 def main():

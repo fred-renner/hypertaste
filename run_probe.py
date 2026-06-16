@@ -20,8 +20,8 @@ import argparse
 
 from hta import llm
 from hta.config import Config
-from hta.ch2 import anchor, loop
-from hta.ch2.episode_state import canonical_spec, draw_hstar
+from hta._trail import anchor, loop
+from hta._trail.episode_state import canonical_spec, draw_hstar
 
 CHAMPION = "outputs/ch2b/archive/gen_0001"   # the playbook the agent loop just produced
 

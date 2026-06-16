@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build the agent-plane image used by DockerSandbox (hta/sandbox.py). Build context is
+# Build the agent-plane image used by DockerSandbox (hta/dgmh/sandbox.py). Build context is
 # docker/ only, so no project code, .env, or world source is sent to the daemon.
 set -euo pipefail
 

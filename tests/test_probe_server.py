@@ -1,4 +1,4 @@
-"""Tests for the stdio-MCP probe server (hta/ch2/probe_server.py) — the frozen wrapper. We drive
+"""Tests for the stdio-MCP probe server (hta/_trail/probe_server.py) — the frozen wrapper. We drive
 its JSON-RPC framing loop over in-memory streams with an injected spawn runner, so the protocol, the
 role airgap (which toolset each role is offered), and the spawn carve-out are all exercised offline
 with no live `claude -p`. The heavy logic lives in EpisodeState (tested separately); here we prove
@@ -13,9 +13,9 @@ import tempfile
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from hta.ch2 import anchor  # noqa: E402
-from hta.ch2.episode_state import EpisodeState  # noqa: E402
-from hta.ch2 import probe_server as ps  # noqa: E402
+from hta._trail import anchor  # noqa: E402
+from hta._trail.episode_state import EpisodeState  # noqa: E402
+from hta._trail import probe_server as ps  # noqa: E402
 
 SPEC = anchor.TrailSpec("trail-small", R=8, K=2, Ld=2, Lv=9, trailhead=0,
                         waypoints=(1, 2), landmarks=((3, 4), (3, 4)), budget=3)

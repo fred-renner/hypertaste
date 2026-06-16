@@ -17,7 +17,7 @@ The judge (`score`) is the integrity floor, lifted to coverage: it is a dumb det
 function of the probe LOG and the submitted map — never an LLM, never the player's word for it.
 Coverage credit is **capped to cells the agent's own probes logically pin** (so guessing un-probed
 cells under a small K cannot farm the band), then normalized into the model-free floor->oracle band
-(`hta/ch2/anchor.py`). Allocation is the whole game: which probes you spend decide which cells your
+(`hta/_trail/anchor.py`). Allocation is the whole game: which probes you spend decide which cells your
 evidence pins, and that is what the band measures.
 """
 
@@ -245,7 +245,7 @@ class EpisodeState:
 
     def score(self) -> dict:
         """Band-normalized coverage: raw earned cells mapped into the model-free floor->oracle band
-        (spec-constant references by simulation, `hta/ch2/anchor.py`). norm in [0,1]: 0 == the
+        (spec-constant references by simulation, `hta/_trail/anchor.py`). norm in [0,1]: 0 == the
         no-inference floor, 1 == the optimal adaptive oracle."""
         raw = self.coverage_raw()
         floor = anchor.floor_value(self.spec)

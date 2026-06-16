@@ -35,11 +35,11 @@ import os
 
 from hta import llm
 from hta.config import Config
-from hta.ch2 import world_smith as ws
-from hta.ch2 import worlds
+from hta._trail import world_smith as ws
+from hta._trail import worlds
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
-CHAMPION_DIR = os.path.join(_HERE, "hta", "ch2", "champion")  # the recorded gen_0001 disposition
+CHAMPION_DIR = os.path.join(_HERE, "hta", "_trail", "champion")  # the recorded gen_0001 disposition
 
 
 def print_gate(g: dict, champ_label: str = "commit-deepest", fix_label: str = "scout-then-commit") -> None:

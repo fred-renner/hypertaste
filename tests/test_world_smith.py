@@ -1,4 +1,4 @@
-"""World-smith tests — the second loop's ship-gate + inventor scaffold (`hta/ch2/world_smith.py`).
+"""World-smith tests — the second loop's ship-gate + inventor scaffold (`hta/_trail/world_smith.py`).
 Deterministic, pure compute, no API cost.
 
 The load-bearing claims:
@@ -18,8 +18,8 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from hta.ch2 import world_smith as ws  # noqa: E402
-from hta.ch2.worlds import Chain, ForkedTrailSpec, decoy_spec, single_chain_spec  # noqa: E402
+from hta._trail import world_smith as ws  # noqa: E402
+from hta._trail.worlds import Chain, ForkedTrailSpec, decoy_spec, single_chain_spec  # noqa: E402
 
 # A small HARD fork (512 hypotheses, budget 3): two depth-2 chains + a gate, enough clearings (regs
 # 6/7/8) that the gap holds — fast enough for the suite while still shipping.

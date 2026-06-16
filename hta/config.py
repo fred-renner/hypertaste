@@ -28,7 +28,7 @@ class Config:
     meta_model: str = field(default_factory=lambda: _env("HTA_META_MODEL", "opus"))
     world_model: str = field(default_factory=lambda: _env("HTA_WORLD_MODEL", "opus"))
 
-    # ---- Chapter-2 option-B harness (the model-orchestrated player) ----
+    # ---- the model-orchestrated player harness ----
     # The confined toolsets (the airgap): the playbook-driven TOP gets the full orchestration
     # allowlist; a spawned WORKER is confined to probe/remaining and sees only its task + budget.
     # No Bash/Read/Edit/Write/Web ever (episode() also denies them belt-and-suspenders).
@@ -61,15 +61,14 @@ class Config:
     # world-score, not a hard cap): among comparable fitness, prefer the shorter program --
     # the generality prior (a shorter program explaining more worlds captured a real
     # regularity, not the curriculum). Held-out fitness guards against winning by deleting
-    # capability. 0 disables it. See hta/archive.py and taste.program_description_length.
+    # capability. 0 disables it. See hta/dgmh/archive.py (program_description_length).
     mdl_lambda: float = 0.05
 
     # ---- meta agent (airgap: NO Bash tool, edits code only) ----
     meta_allowed_tools: Tuple[str, ...] = ("Edit", "Read", "Write")
-    # The Read -> diagnose -> Edit loop (often across solver.py + meta_strategy.md +
-    # episode_prompt.md) does not fit in a tight budget: the TODO-1 run hit the cap
-    # (turns=13 at budget 12) every iteration and edits were cut off mid-revision. 40
-    # gives the agent room to finish a multi-file edit cleanly.
+    # The Read -> diagnose -> rewrite loop on the playbook does not fit in a tight budget:
+    # the TODO-1 run hit the cap (turns=13 at budget 12) every iteration and edits were cut
+    # off mid-revision. 40 gives the agent room to finish a clean revision.
     meta_max_turns: int = 40
 
     # ---- parent selection (open-ended search over the archive) ----

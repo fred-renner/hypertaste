@@ -22,7 +22,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from hta.ch2.anchor import (  # noqa: E402
+from hta._trail.anchor import (  # noqa: E402
     TrailSpec, build_tableau, determined, lookahead_value, oracle_value, ramp_curve, screen,
 )
 

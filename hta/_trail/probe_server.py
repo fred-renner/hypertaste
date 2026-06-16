@@ -1,6 +1,6 @@
 """Stdio MCP server exposing ONE Chapter-2 episode as the confined orchestration tools — the
 frozen substrate of the model-orchestrated harness (option B, RESET_DESIGN.md -> "The harness
-spec"). It is a thin wrapper: every tool delegates to an `EpisodeState` (hta/ch2/episode_state.py),
+spec"). It is a thin wrapper: every tool delegates to an `EpisodeState` (hta/_trail/episode_state.py),
 which holds the hidden world (passed in-memory via the server-only env `HTA_WORLD`/`HTA_HSTAR`) and
 all the load-bearing logic. The player speaks only JSON-RPC over stdio with no filesystem tools, so
 it can never read this process's env (the seed) — it learns the world solely by probing. That tool
@@ -32,7 +32,7 @@ try:
     from .episode_state import EpisodeState, state_from_env, state_to_env
 except ImportError:  # pragma: no cover - direct path execution
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-    from hta.ch2.episode_state import EpisodeState, state_from_env, state_to_env
+    from hta._trail.episode_state import EpisodeState, state_from_env, state_to_env
 
 PROTOCOL_VERSION = "2024-11-05"
 
@@ -108,7 +108,7 @@ def run_worker(task: str, budget: int, world_env: dict, log_path=None) -> dict:
                 "HTA_RESULT_PATH": result_path})
     prompt = WORKER_WRAPPER.format(task=task, budget=int(budget))
     res = llm.episode(prompt=prompt, model=cfg.task_model,
-                      mcp_server_argv=[sys.executable, "-m", "hta.ch2.probe_server"],
+                      mcp_server_argv=[sys.executable, "-m", "hta._trail.probe_server"],
                       server_env=env, cwd=repo_root,
                       allowed_tools=("mcp__probe__probe", "mcp__probe__remaining"),
                       max_turns=int(budget) * 2 + 6, role="worker", cfg=cfg)

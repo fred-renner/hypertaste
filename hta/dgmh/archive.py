@@ -1,16 +1,17 @@
-"""Archive of hyperagents: the open-ended store of stepping stones.
+"""Archive: the open-ended store of stepping stones, plus the program-length prior.
 
-Each node is a directory holding the editable program (solver.py + meta_strategy.md)
-and a node.json with its evaluation summary. Parent selection keeps the search open
-(it does not always greedily pick the current best) so the archive can branch from
-non-greedy stepping stones. The default policy is HyperAgents' score_child_prop shape:
-sample a parent with probability proportional to quality (a sigmoid of fitness) times
-novelty (an inverse child-count penalty). That biases toward good, under-explored
-children so lineage compounds across iterations -- the TODO-1 run's pure-random policy
-re-selected the seed all three times and improvements never accumulated. A "random"
-policy (uniform over valid parents) is retained for reproducibility.
+Each node is a directory holding the editable artifact (`playbook.md` -- non-executable
+English) and a node.json with its evaluation summary. Parent selection keeps the search
+open (HyperAgents' score_child_prop shape: quality x novelty -- a sigmoid of fitness times
+an inverse child-count penalty), so lineage compounds toward good, under-explored children
+instead of always re-branching the current best. A "random" policy (uniform over valid
+parents) is retained for reproducibility.
+
+`program_description_length` (folded in here) is the Solomonoff/MDL prior on the agent
+program -- a SELECTION-time tiebreaker, never a term in the world-score.
 """
 
+import ast
 import json
 import math
 import os
@@ -18,7 +19,24 @@ import random
 import shutil
 from typing import Dict, List, Optional
 
-from . import taste
+
+def program_description_length(source: str) -> Optional[int]:
+    """A dumb, robust description-length proxy for the agent program -- the Solomonoff/MDL
+    prior, measured so it stays ungameable: AST nodes + the character length of string
+    literals (logic hidden in a long prompt is not free), ignoring comments and whitespace.
+    None if the source doesn't parse. The only place 'Occam' enters the system, and it
+    enters as a prior on the *program* at SELECTION time -- never a term in the world-score
+    the agent is optimized against."""
+    try:
+        tree = ast.parse(source)
+    except SyntaxError:
+        return None
+    size = 0
+    for node in ast.walk(tree):
+        size += 1
+        if isinstance(node, ast.Constant) and isinstance(node.value, str):
+            size += len(node.value)
+    return size
 
 
 def _read_json(path, default=None):
@@ -98,7 +116,7 @@ class Archive:
 
     # ---- Solomonoff/MDL prior on the agent program ----
     def _program_size(self, genid: int) -> Optional[int]:
-        """Description length of this node's agent program (taste.program_description_length
+        """Description length of this node's agent program (program_description_length
         on its solver.py). Prefers the value persisted in node.json (auditable), else
         computes it lazily; None if there is no parseable solver.py."""
         m = self._meta(genid)
@@ -106,7 +124,7 @@ class Archive:
             return m["program_size"]
         try:
             with open(os.path.join(self.node_dir(genid), "solver.py")) as f:
-                return taste.program_description_length(f.read())
+                return program_description_length(f.read())
         except OSError:
             return None
 
