@@ -349,3 +349,11 @@ versus a reset (everything collapses).
 
 It is **one continuous run at the agent level** — the lineage is never discarded. What
 changes over time is not the student restarting but the human climbing out of the loop.
+
+## Once it works — the far-horizon telos
+
+The point of a system that grows portable taste is not a better game-player. It is a
+**prosthetic for human curiosity**: a partner that, dropped onto a real problem, helps a person
+see which question to ask next, what to ignore, when to check and when to quit — the judgment
+layer, extended onto every better engine that ships. That is the "once it works" use, named here
+so the near-term plumbing keeps pointing at it. Everything above is how we earn the right to it.

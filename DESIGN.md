@@ -17,6 +17,22 @@
 That's the whole thing. (The "situational trigger, not the capability" line is the *thesis* —
 why it's worth growing and why it should port to a weak model — not part of the definition.)
 
+**The generative principle — how to read "evaluating your position."** The habits in §4 aren't a
+hand-list; they fall out of one move. *Spend your next step where it buys the most — the most
+learning that will carry to other problems, for what the step costs — and lean toward what
+you're least sure of.* Reading your position means seeing how much each option still has to
+teach you and how far that lesson would travel; the good move is the one that pays best by that
+measure. Chase the steep give-back, quit the flat vein, probe your blind spot, prefer the lesson
+that ports — each is a face of this. It's the missing middle layer the catalogue was flagged as
+needing: definition → this principle → the habits (§4) → worlds.
+
+Two guards. The goal is **fixed and outside the agent** (the dumb scorer, §2); only the
+*weighting toward it* — which goals form, how fast attention shifts — is the agent's to grow
+(§10, "goal-tracking is agent-side"). And this is our **reading**, never a script for the
+player: we build worlds where moving this way wins and let selection write the habit in its own
+words (§4, "plant the condition, never the response"). How the allocator actually works inside
+the agent is grown, not specified — §9.
+
 ## 2 — The rules of the game (what any world must have) — validated, still a starting point
 
 The conditions a world must meet to measure taste. We checked them the honest way: three fresh
@@ -71,6 +87,13 @@ It answers the standing worries with one move:
 
 - The **taste catalogue** = our private wishlist of tasteful habits. Each is one habit we want
   — not a "row", just one item in the set.
+- **The habits are faces of the §1 principle, not a flat list.** Each is the same move turned to
+  a different situation: hunt the case that *falsifies* you (not the one that confirms); break a
+  tangled question into parts you can test; **probe where you're least sure** — your blind spot,
+  the exploration face, the guard against quietly confirming yourself; design the step that
+  isolates one variable; follow the steep give-back and drop the flat vein; and prefer the lesson
+  that **ports** to other problems (the highest-transfer habit). The fuller catalogue is recorded
+  in `history/PLAN.md` (record v2); these are named here to show they fall out of §1.
 - A **habit** = one of those once selection has written it into the playbook.
 - **Plant the condition, never the response.** We build the world that makes a habit the
   winning move (the dead-end vein); we never write "leave when bored" anywhere. We never reward
@@ -107,8 +130,14 @@ required. A fully-visible game (chess-like) meets the same rules. So our world i
 instance**, and the smith could build other kinds. Naming it as one instance is the cure for
 what kept locking us in: we'd been treating a choice as a law.
 
-- New part types are code, so they arrive **through us** — deliberately, surfaced by the wish
-  channel and the exhaustion signal when the box is the bottleneck.
+- New part types are code, so they arrive **through us** — deliberately, surfaced by the **wish
+  channel** and the exhaustion signal when the box is the bottleneck. The wish channel is the one
+  path for the smith to ask for more: a **wish is inert text** — surfaced in the lineage report
+  for a human to ratify, **never read back by the loop or any agent**. So the smith can *propose*
+  (new parts, and from day one new catalogue habits to grow) but never *self-ratify*; the human is
+  the gate. That keeps it inside the integrity floor — proposing structure can't move the score,
+  and an inert wish can't leak back to bias rediscovery. (Human-gated proposal is distinct from
+  the smith growing its *own* taste un-gated — that stays a later chapter, §6.)
 - **Smith diet:** each call it reads the rules of the game, the parts box, the catalogue, and
   where the champion is losing points — never the previous world's full wiring. Anchoring comes
   from what's in front of it, so don't put the old world in front of it.
@@ -161,6 +190,11 @@ as the *thesis* (taste is the situational trigger, not the capability) and the m
 2. **How much of the world language to build first** for the proof of principle (the kit's
    first slice), and the implementation details still owed (part formats, the exam-drawing, the
    probe interface, calibration constants).
+3. **The allocator's dynamics are grown, not specified.** The principle (§1) says *what* a
+   tasteful move optimizes; it deliberately does not say how the agent forms goals, sets the
+   weighting toward them, or how fast it switches attention. That mechanism is the agent's to
+   invent under selection — the world plants the demand, the loop grows the response. Named here
+   so it stays an open, watched question, never a spec we backfill into the player.
 
 ## 10 — Standing decisions — don't reopen casually (carried from the closing sessions)
 
