@@ -64,6 +64,14 @@ class Config:
     # capability. 0 disables it. See hta/dgmh/archive.py (program_description_length).
     mdl_lambda: float = 0.05
 
+    # ---- world grading (the lab's grade_world; LOOP 2's ship-gate reads these) ----
+    # Calibration constants, a starting point (DESIGN open question, sec.2/sec.9): a world is
+    # worth shipping only if the best-vs-lazy gap is wide (skill matters) AND the top is
+    # reachable in budget (the budget buys real ground). The grader only measures; the gym
+    # gates on these. Surfaced here, never baked into the scorer.
+    world_gap_min: float = 1.0    # oracle - floor must clear this (in coverage cells) to be "hard"
+    world_reach_min: float = 0.5  # oracle / scorable-cells must clear this to be "solvable"
+
     # ---- meta agent (airgap: NO Bash tool, edits code only) ----
     meta_allowed_tools: Tuple[str, ...] = ("Edit", "Read", "Write")
     # The Read -> diagnose -> rewrite loop on the playbook does not fit in a tight budget:

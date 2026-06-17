@@ -7,9 +7,11 @@ seam: data in, world out, never code -- a spec is never imported or executed, on
 the expander.
 
 `build` returns something implementing `hta.lab.scoring.World` (the questions the grader
-asks). The spec/part vocabulary is family-specific and lives here in `world/`; the grader
-that rides the World shape is generic and lives in `lab/`. That split is deliberate: a
-richer part box changes this file, not the grader.
+asks: the hidden-answer set, the positions, their cost, the value law `observe`, and which
+positions are probeable / scored). The spec/part vocabulary is family-specific and lives here
+in `world/`; the grader that rides the World shape is generic and lives in `lab/`. That split
+is deliberate -- and the value law lives in `observe` here, never in the grader -- so a richer
+part box changes this file, not the grader.
 
 Stub: the part types and the expander land when the seed world is authored (informed by the
 worked example in hta/_trail/worlds.py). This module is model-free -- it must never import
@@ -34,7 +36,8 @@ def validate(spec: Mapping) -> None:
 def build(spec: Mapping, *, seed: int) -> World:
     """Expand a validated spec into a playable world, drawing its hidden answer from `seed`.
 
-    The returned world answers the grader's questions (positions / cost / value). The hidden
-    answer it carries is held only harness-side; it never reaches a player's tool surface.
+    The returned world answers the grader's questions (hypotheses / positions / cost / observe /
+    probeable / scored). The hidden answer it carries is held only harness-side; it never reaches
+    a player's tool surface.
     """
     raise NotImplementedError("the deterministic expander lands with the seed world")
