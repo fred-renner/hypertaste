@@ -12,13 +12,16 @@ world plus a meta agent that rewrites the task agent — specialized so that:
   anti-leak wall and the scientific-validity wall at once.
 
 > **Status (2026-06-16).** The current design is **`DESIGN.md`** (read it first) — taste defined,
-> the rules any world must meet, and the machinery. The repo is now **cut around the system's
-> loops**: shared plumbing at the top (`hta/llm.py`, `hta/config.py`), `hta/dgmh/` (grow the agent),
-> `hta/gym/` (grow the world), and `hta/world/` (the agent-inaccessible world). The retired trail
-> puzzle is **quarantined** in `hta/_trail/` as a temporary test world — it still runs and backs the
-> tests. The fresh lab inside `world/`, `dgmh/episode/`, `dgmh/loop.py`, and `gym/` is **skeleton-
-> stubbed**, built in the next pass from `DESIGN.md`'s principles. The trail is the one worked
-> reference (design write-up `history/RESET_DESIGN.md`); the instance-0 world was retired as a
+> the rules any world must meet, and the machinery. The repo is **cut around the system's loops**:
+> shared plumbing at the top (`hta/llm.py`, `hta/config.py`), `hta/dgmh/` (grow the agent),
+> `hta/gym/` (grow the world), and `hta/world/` (the agent-inaccessible world). The **fresh lab is
+> built** (the last pass, `findings/2026-06-16-fresh-lab-world-language.md`): `hta/world/` is the
+> **world *language*** (a part-box → `WorldSpec` → a mechanical scorer/oracle), instance 0 is authored
+> as a parts-list in it, `hta/dgmh/episode/` + `hta/dgmh/loop.py` are the world-agnostic play + loop,
+> and `hta/gym/smith.py` is the world-smith. Run it with `run_lab.py` (screen / loop / smith). The
+> retired trail puzzle is still **quarantined** in `hta/_trail/` as the frozen worked reference
+> (design write-up `history/RESET_DESIGN.md`) — the fresh lab now carries its own tests, so the trail
+> can be deleted in a follow-up. The instance-0 *flat* world was retired earlier as a
 > tactic-not-taste result (`findings/2026-06-14-instance0-machine-world.md`).
 
 **The docs:** `DESIGN.md` is the design (definition + rules + machinery). `ROADMAP.md` is the
@@ -70,9 +73,10 @@ hypothesis space to a buried landmark, while fat "clearing" claims pay you immed
 the wrong way. It is pure **allocation** under a scarce probe budget — every cell is a lookup, so
 it cannot compile into a solver. The build-screen (`run_anchor.py`) shows the
 belief-MDP **oracle 9.0 ≫ best articulable heuristic 6.0** (gap 0.50 of the floor→oracle band,
-controls 0.00) — above the line. It is **quarantined** in `hta/_trail/` as the one worked example of
-the airgapped body and the mechanical oracle, and backs the tests until the fresh lab carries its
-own; its full design write-up is `history/RESET_DESIGN.md`.
+controls 0.00) — above the line. It is **quarantined** in `hta/_trail/` as a frozen worked example of
+the airgapped body and the mechanical oracle. The fresh lab (`hta/world/` + `hta/dgmh/` + `hta/gym/`)
+now carries its own tests and worked instance, so the trail is redundant and can be deleted in a
+follow-up; its full design write-up is `history/RESET_DESIGN.md`.
 
 ## Quick start
 
@@ -80,10 +84,11 @@ No runtime dependencies beyond the standard library (Python 3.11). The `real` ba
 the `claude` CLI installed and authenticated with your subscription.
 
 ```bash
-python run_anchor.py                              # anchor build gate: free, model-free, deterministic
-pip install pytest && python -m pytest tests/ -q  # tests (offline; pytest not preinstalled)
-python run_loop.py --iterations 1 --backend mock  # the loop, offline (deterministic floor-player)
-python run_loop.py --iterations 1 --backend real  # the loop, live (cents/Haiku episode, ~$1/Opus edit)
+python run_lab.py screen                              # build-screen the worked worlds: free, model-free
+pip install pytest && python -m pytest tests/ -q      # tests (offline; pytest not preinstalled)
+python run_lab.py loop --iterations 1 --backend mock  # LOOP 1, offline (deterministic floor-player)
+python run_lab.py loop --iterations 1 --backend real  # LOOP 1, live (cents/Haiku episode, ~$1/Opus edit)
+python run_lab.py smith                               # LOOP 2 ship-gate (free); + --backend real for the demo
 ```
 
 Every run persists its artifacts under `--out-dir`: the archive lineage, a per-iteration
@@ -109,15 +114,23 @@ curated runs are committed under `runs/` — see `runs/sample-mock/`.
 hta/
   llm.py               claude -p adapters (complete/episode/agentic) + mock backend + accounting [shared]
   config.py            model assignment, knobs, paths [shared]
-  world/               LOOP target — what a world IS (agent-inaccessible); STUB, built next pass
-    contract.py        the World interface (placeholder; designed from DESIGN.md next pass)
+  world/               LOOP target — what a world IS (agent-inaccessible): the WORLD LANGUAGE
+    language.py        the part-box (Clearing/Chain/Fork) + WorldSpec + validate + the expander
+    grade.py           the world-agnostic engine: dumb coverage scorer, no-inference floor, belief-MDP
+                       oracle, the model-free build-screen (the integrity-floor math)
+    contract.py        the World interface the engine consumes + the band/score/realize facade
+    instances.py       named worlds as parts-lists (instance0 is the worked example) + draw_hstar
   dgmh/                LOOP 1 — grow the AGENT (self-improvement)
     archive.py         archive of hyperagents + open-ended parent selection + the MDL prior
     sandbox.py         meta-agent airgap: Direct (Bash-denied) | Docker (container)
-    episode/           the task agent's play + the airgap; STUB, built next pass
-    (loop.py, prompts) the iteration loop + co-located prompts; built next pass
-  gym/                 LOOP 2 — grow the WORLD (the curriculum); STUB, world_smith.py lands here
-  _trail/              the retired trail puzzle, QUARANTINED as a temporary test world (deleted later):
+    episode/           the task agent's play + the airgap (generic over a WorldSpec)
+      state.py         the world-state machine (the primitives) + the band judge
+      server.py        confined stdio-MCP probe server: probe/spawn/submit_map/world_map/remaining/mem_*
+    loop.py            the world-agnostic model-orchestrated DGM-H loop + the Opus meta_edit
+    seed/playbook.md   the seed evolvable node (non-executable English; Opus rewrites this)
+  gym/                 LOOP 2 — grow the WORLD (the curriculum)
+    smith.py           the world-smith: ship-gate (hard ∧ solvable ∧ ZPD) + inventor realizer + curriculum
+  _trail/              the retired trail puzzle, QUARANTINED as the frozen worked reference (deleted later):
     anchor.py          the trail world + oracle-by-simulation + the build-screen (generic over a spec
                        protocol, so the oracle/screen re-derive for any world shape)
     worlds.py          the world-smith's structural family: ForkedTrailSpec + the forked/decoy worlds
@@ -129,17 +142,19 @@ hta/
     champion/playbook.md  the recorded gen_0001 disposition (the closed-loop demo's champion)
 docker/Dockerfile.agent       agent-plane image (Node + claude CLI; no project code/world/secrets)
 scripts/build_agent_image.sh  build the agent-plane image (context = docker/ only)
-run_anchor.py          build-screen the trail family (oracle ≫ heuristic gate + difficulty sweep)
-run_loop.py            the model-orchestrated loop (trail test world; mock or real backend)
-run_probe.py           stage-1: the champion vs a scalar-harder world (no gap re-opens)
-run_worldsmith.py      the world-smith: ship-gate (free) + the live closed-loop demonstration
-tests/test_anchor.py        trail world / oracle / build-screen tests
-tests/test_worlds.py        forked-trail structure: the gate-gated lookup + the spec protocol
-tests/test_world_smith.py   the ship-gate (ZPD coupling) + the inventor scaffold
-tests/test_episode_state.py episode-state machine + band judge (airgap, accounting, spawn carve-out)
-tests/test_probe_server.py  probe-MCP framing + role airgap + spawn (offline; injected worker)
-tests/test_loop.py          the loop wiring + judge replay + report sanitization (mock)
-tests/test_sandbox.py       meta-agent sandbox routing + Docker isolation flags (offline; no daemon)
+run_lab.py             THE fresh lab: screen (build-screen instances) | loop (LOOP 1) | smith (LOOP 2)
+run_anchor.py          [frozen trail ref] build-screen the trail family (oracle ≫ heuristic gate)
+run_loop.py            [frozen trail ref] the model-orchestrated loop on the trail test world
+run_probe.py           [frozen trail ref] stage-1: the champion vs a scalar-harder world
+run_worldsmith.py      [frozen trail ref] the trail world-smith: ship-gate + the live demonstration
+tests/test_world_language.py  the part-box, validator, deterministic expander (composition, the law)
+tests/test_world_grade.py     references ordering, above-threshold gate, the ungameable scorer
+tests/test_episode.py         episode-state machine + band judge (airgap, accounting, spawn carve-out)
+tests/test_episode_server.py  probe-MCP framing + role airgap + spawn (offline; injected worker)
+tests/test_dgmh_loop.py       the loop wiring + judge replay + report sanitization (mock)
+tests/test_gym_smith.py       the ship-gate (ZPD coupling) + the safe-eval inventor realizer
+tests/test_sandbox.py         meta-agent sandbox routing + Docker isolation flags (offline; no daemon)
+tests/test_{anchor,worlds,world_smith,episode_state,probe_server,loop}.py  [frozen trail ref] suite
 ```
 
 We did not fork [HyperAgents](https://github.com/facebookresearch/Hyperagents)

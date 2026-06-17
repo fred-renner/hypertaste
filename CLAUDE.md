@@ -52,22 +52,23 @@ questions — match the depth and tone of a genuine research-design conversation
 
 ## Run & test
 
-**Where we are (2026-06-16):** the repo was re-cut around the system's loops (see `DESIGN.md`).
-Shared plumbing sits at the top (`hta/llm.py`, `hta/config.py`); `hta/dgmh/` is LOOP 1 (grow the
-agent — the archive, the program-length prior, the meta-agent airgap), `hta/gym/` is LOOP 2 (grow
-the world — the world-smith), and `hta/world/` is the agent-inaccessible world. The retired trail
-puzzle is **quarantined** in `hta/_trail/` as a temporary test world — it still runs and backs the
-tests. The fresh lab inside `world/`, `dgmh/episode/`, `dgmh/loop.py`, and `gym/` is **skeleton-
-stubbed**, built in the next pass against the contract designed from `DESIGN.md`.
+**Where we are (2026-06-16):** the repo is cut around the system's loops (see `DESIGN.md`), and the
+**fresh lab is built** (`findings/2026-06-16-fresh-lab-world-language.md`). Shared plumbing sits at
+the top (`hta/llm.py`, `hta/config.py`); `hta/world/` is the **world language** (a part-box →
+`WorldSpec` → a mechanical scorer/oracle, with instance 0 authored as a parts-list); `hta/dgmh/` is
+LOOP 1 (grow the agent — the world-agnostic loop `loop.py`, the episode play + airgap in `episode/`,
+the archive, the meta-agent airgap); `hta/gym/` is LOOP 2 (grow the world — `smith.py`). The retired
+trail puzzle is **quarantined** in `hta/_trail/` as the frozen worked reference — it still runs and
+backs its own tests; the fresh lab now carries its own, so the trail can be deleted in a follow-up.
 
 ```bash
-python run_anchor.py                              # anchor build gate: free, model-free, deterministic
-pip install pytest && python -m pytest tests/ -q  # tests (pytest is not preinstalled)
-python run_loop.py --iterations 1 --backend mock  # the loop, offline (deterministic floor-player)
-python run_loop.py --iterations 1 --backend real  # the loop, live (cents/Haiku episode, ~$1/Opus edit)
-python run_probe.py --backend real                # stage-1: champion vs a scalar-harder world (cents)
-python run_worldsmith.py                          # ship-gate both curriculum moves: free, model-free (slow)
-python run_worldsmith.py --backend real           # + the LIVE two-iteration two-loop (~$2.5 total)
+python run_lab.py screen                              # build-screen the worked worlds: free, model-free
+pip install pytest && python -m pytest tests/ -q      # tests (pytest is not preinstalled)
+python run_lab.py loop --iterations 1 --backend mock  # LOOP 1, offline (deterministic floor-player)
+python run_lab.py loop --iterations 1 --backend real  # LOOP 1, live (cents/Haiku episode, ~$1/Opus edit)
+python run_lab.py smith                               # LOOP 2 ship-gate both moves: free, model-free (slow)
+python run_lab.py smith --backend real                # + the LIVE closed-loop demonstration (~$2.5)
+# the frozen trail reference still has its own drivers: run_anchor.py / run_loop.py / run_worldsmith.py
 ```
 
 The `claude` CLI is installed and authenticated here, so the `real` backend works without an API
@@ -83,18 +84,21 @@ program-length prior folded in) and `hta/dgmh/sandbox.py` (the meta-agent airgap
 This is what survives every chapter.
 
 **The quarantined trail — a frozen reference fixture in `hta/_trail/`** (leave alone unless
-deliberately reworking it; design write-up `history/RESET_DESIGN.md`): `anchor.py` (the trail world
-+ oracle + build-screen, generic over a spec protocol), `worlds.py` (the world-smith's structural
-family), `world_smith.py` (the second loop — ship-gate + inventor scaffold + curriculum demo),
-`episode_state.py` (world-state machine + band judge), `probe_server.py` (confined stdio-MCP + the
-seven primitives), `loop.py` (the model-orchestrated DGM-H loop + the Opus `meta_edit`), and
-`seed/playbook.md` + `champion/playbook.md`. The `run_*.py` drivers still point here. It is the one
-worked example; it is deleted once the fresh lab carries its own tests.
+deliberately reworking it; design write-up `history/RESET_DESIGN.md`): `anchor.py` / `worlds.py` /
+`world_smith.py` / `episode_state.py` / `probe_server.py` / `loop.py` + `seed`/`champion` playbooks,
+driven by `run_anchor.py` / `run_loop.py` / `run_probe.py` / `run_worldsmith.py`. The fresh lab now
+carries its own tests and worked instance, so the trail is redundant — delete it in a follow-up once
+the live loop has been exercised once on the fresh lab.
 
-**The fresh lab — skeleton-stubbed, built in the next pass:** `hta/world/` (the contract + the dumb
-scorer/band), `hta/dgmh/episode/` (the play + the airgap), `hta/dgmh/loop.py`, and `hta/gym/` (the
-world-smith). Built from `DESIGN.md`'s principles — reusing the machinery and the trail as the
-worked example, not re-cloning the loop.
+**The fresh lab — built, the live system:** `hta/world/` is the **world language** — `language.py`
+(the part-box `Clearing`/`Chain`/`Fork` + `WorldSpec` + `validate` + the deterministic expander),
+`grade.py` (the world-agnostic engine: the dumb coverage scorer, the no-inference floor, the
+belief-MDP oracle, the build-screen), `contract.py` (the `World` interface + band/score/realize),
+`instances.py` (instance 0 + named worlds as parts-lists). `hta/dgmh/episode/` is the play + airgap
+(`state.py` machine + judge, `server.py` probe-MCP); `hta/dgmh/loop.py` is the world-agnostic DGM-H
+loop (the world is a `WorldSpec` argument); `hta/gym/smith.py` is the world-smith (ship-gate +
+inventor realizer + curriculum). Driven by `run_lab.py`. The integrity-floor math is reused from the
+trail (re-derived, not imported — the new lab must not depend on `_trail`).
 
 ## The two invariants (the integrity floor — they survive every chapter)
 
