@@ -1,0 +1,75 @@
+{
+  "args": {
+    "cmd": "loop",
+    "iterations": 3,
+    "backend": "real",
+    "n_train": 2,
+    "n_transfer": 1,
+    "eval_repeats": 2,
+    "task_model": null,
+    "sandbox": null,
+    "out_dir": "outputs/run-3iter"
+  },
+  "history": [
+    {
+      "parent": 0,
+      "child": 1,
+      "parent_fitness": 0.5893,
+      "child_fitness": 0.5,
+      "improved": false,
+      "parent_norm": [
+        0.3214,
+        0.8571
+      ],
+      "child_norm": [
+        0.5,
+        0.5
+      ],
+      "valid_child": true
+    },
+    {
+      "parent": 0,
+      "child": 2,
+      "parent_fitness": 0.1071,
+      "child_fitness": 0.3215,
+      "improved": true,
+      "parent_norm": [
+        0.0714,
+        0.1429
+      ],
+      "child_norm": [
+        0.1429,
+        0.5
+      ],
+      "valid_child": true
+    },
+    {
+      "parent": 2,
+      "child": 3,
+      "parent_fitness": 0.4821,
+      "child_fitness": 0.4643,
+      "improved": false,
+      "parent_norm": [
+        0.4643,
+        0.5
+      ],
+      "child_norm": [
+        0.2143,
+        0.7143
+      ],
+      "valid_child": true
+    }
+  ],
+  "accounting": {
+    "calls": 39,
+    "cost_usd": 4.1469,
+    "by_role": {
+      "task_episode": 36,
+      "meta": 3
+    },
+    "by_model": {
+      "haiku": 36,
+      "opus": 3
+    }
+  }
+}

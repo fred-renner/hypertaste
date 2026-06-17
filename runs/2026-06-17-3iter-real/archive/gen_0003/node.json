@@ -1,0 +1,12 @@
+{
+  "genid": 3,
+  "parent": 2,
+  "valid": true,
+  "fitness": 0.4643,
+  "train_fitness": 0.2143,
+  "transfer_fitness": 0.7143,
+  "solved_train": 0,
+  "solved_transfer": 0,
+  "spec": "instance0",
+  "program_size": null
+}

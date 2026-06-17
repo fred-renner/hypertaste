@@ -1,0 +1,552 @@
+{
+  "iteration": 1,
+  "spec": {
+    "name": "instance0",
+    "R": 10,
+    "K": 2,
+    "budget": 4
+  },
+  "worlds": {
+    "train": [
+      [
+        1,
+        1,
+        1,
+        1,
+        0,
+        0,
+        0,
+        1,
+        1,
+        1
+      ],
+      [
+        1,
+        1,
+        1,
+        1,
+        0,
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    ],
+    "transfer": [
+      [
+        1,
+        1,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  "summary": {
+    "parent": 0,
+    "child": 2,
+    "parent_fitness": 0.1071,
+    "child_fitness": 0.3215,
+    "improved": true,
+    "parent_norm": [
+      0.0714,
+      0.1429
+    ],
+    "child_norm": [
+      0.1429,
+      0.5
+    ],
+    "valid_child": true
+  },
+  "parent_eval": {
+    "train": {
+      "mean_raw": 4.5,
+      "mean_norm": 0.0714,
+      "solved": 0,
+      "n_worlds": 2,
+      "per_world": [
+        {
+          "result": {
+            "log": [
+              {
+                "col": 0,
+                "value": 1,
+                "cost": 1,
+                "via": "self"
+              },
+              {
+                "col": 6,
+                "value": 0,
+                "cost": 1,
+                "via": "self"
+              },
+              {
+                "col": 7,
+                "value": 1,
+                "cost": 1,
+                "via": "self"
+              },
+              {
+                "col": 9,
+                "value": 1,
+                "cost": 1,
+                "via": "self"
+              }
+            ],
+            "spawns": [],
+            "mem": "=== WORLD STRUCTURE ===\nBudget: 4 (SCARCE - each probe costs 1)\nK = 2, R = 10 variables\n\nREGIONS:\n- Region 0 (FORK): gate=var0, chains: [1\u21922\u21923] or [4\u21925\u21926], selects by var0 mod 2\n- Regions 1-3 (CLEARINGs): var7 (length 2), var8 (length 2), var9 (length 2)\n\nCOVERAGE CELLS (what we score on):\n- Cols 7-12: vars 7,8,9 in clearings (PROBEABLE)\n- Cols 13-21: fork region (NOT probeable - must reconstruct via chain walking)\n\nSTRATEGY:\nWith budget 4, I must:\n1. Probe var0 (gate) - determines which chain is live\n2. Follow that chain's path to determine the target variable\n3. Reconstruct fork cells based on target variable's value\n\nPROBES TAKEN:\n1. var0 = 1 (cost 1) \u2192 selects chain[1]: var4\u2192var5\u2192var6\n2. var6 = 0 (cost 1) \u2192 target value\n\nRECONSTRUCTED (fork cells, cols 13-21):\nvar6=0, so each cell = (0 + pos) mod 2\n- Alternating pattern: 0,1,0,1,0,1,0,1,0\n\nFINAL PROBES:\n3. var7 = 1 (cost 1) \u2192 cols 7-8: (1+0)%2=1, (1+1)%2=0\n4. var8 = 1 (cost 1) \u2192 cols 9-10: (1+0)%2=1, (1+1)%2=0\n\nBUDGET EXHAUSTED: remaining = 0\n\nCOVERAGE CELLS (certain):\n- col 7: 1 (var7=1, pos=0)\n- col 8: 0 (var7=1, pos=1)\n- col 9: 1 (var8=1, pos=0)\n- col 10: 0 (var8=1, pos=1)\n- cols 13-21: 0,1,0,1,0,1,0,1,0 (var6=0 chain)\n\nUNCERTAIN (must guess):\n- col 11-12: var9 unknown (0 or 1)",
+            "submitted": {
+              "7": 1,
+              "8": 0,
+              "9": 1,
+              "10": 0,
+              "11": 1,
+              "12": 0,
+              "13": 0,
+              "14": 1,
+              "15": 0,
+              "16": 1,
+              "17": 0,
+              "18": 1,
+              "19": 0,
+              "20": 1,
+              "21": 0
+            },
+            "used": 4,
+            "done": true,
+            "observations": [
+              [
+                0,
+                1
+              ],
+              [
+                6,
+                0
+              ],
+              [
+                7,
+                1
+              ],
+              [
+                9,
+                1
+              ]
+            ]
+          },
+          "score": {
+            "raw": 5.0,
+            "floor": 4.0,
+            "oracle": 11.0,
+            "norm": 0.1429,
+            "determined": 4,
+            "used": 4,
+            "budget": 4
+          }
+        },
+        {
+          "result": {
+            "log": [
+              {
+                "col": 0,
+                "value": 1,
+                "cost": 1,
+                "via": "self"
+              },
+              {
+                "col": 6,
+                "value": 1,
+                "cost": 1,
+                "via": "self"
+              },
+              {
+                "col": 9,
+                "value": 1,
+                "cost": 1,
+                "via": "self"
+              },
+              {
+                "col": 11,
+                "value": 1,
+                "cost": 1,
+                "via": "self"
+              }
+            ],
+            "spawns": [],
+            "mem": "## Investigation Log\n\n**World Structure:**\n- Budget: 4 probes\n- Coverage cells: cols 7-21 (vars 7, 8, 9 + fork region)\n- Fork gate at var 0; chains select which target variable to mirror\n- Chain 0: regions 1\u21922\u21923, target likely var 9\n- Chain 1: regions 4\u21925\u21926, target unknown\n\n**Strategy:**\n1. Probe gate (col 0) to determine live chain\n2. Based on chain, determine target variable\n3. Probe target variable + vars 8,9 to cover all coverage cells\n4. Reconstruct fork cells from target value\n\n**Probes:**\n1. Col 0 (var 0, pos 0): value=1 \u2192 var_0_hidden = 1\n2. Col 6 (var 6, pos 0): value=1 \u2192 var_6_hidden = 1\n3. Col 9 (var 8, pos 0): value=1 \u2192 var_8_hidden = 1\n4. Col 11 (var 9, pos 0): value=1 \u2192 var_9_hidden = 1\n\n**Reconstructed Values:**\n- Gate (var 0): value 1 \u2192 Chain 1 is LIVE\n- Target var (var 6): hidden=1\n- Var 8: hidden=1\n- Var 9: hidden=1\n\n**Coverage cells reconstructed:**\n- Col 0: (1+0) mod 2 = 1 \u2713\n- Col 6: (1+0) mod 2 = 1 \u2713\n- Col 9: (1+0) mod 2 = 1 \u2713\n- Col 10: (1+1) mod 2 = 0\n- Col 11: (1+0) mod 2 = 1 \u2713\n- Col 12: (1+1) mod 2 = 0\n- Cols 13-21 (fork, mirror var 6):\n  - Col 13-21: alternating 1,0,1,0,1,0,1,0,1\n  \n**Missing:** Var 7 (cols 7-8) - no budget remaining**",
+            "submitted": {
+              "0": 1,
+              "6": 1,
+              "9": 1,
+              "10": 0,
+              "11": 1,
+              "12": 0,
+              "13": 1,
+              "14": 0,
+              "15": 1,
+              "16": 0,
+              "17": 1,
+              "18": 0,
+              "19": 1,
+              "20": 0,
+              "21": 1
+            },
+            "used": 4,
+            "done": true,
+            "observations": [
+              [
+                0,
+                1
+              ],
+              [
+                6,
+                1
+              ],
+              [
+                9,
+                1
+              ],
+              [
+                11,
+                1
+              ]
+            ]
+          },
+          "score": {
+            "raw": 4.0,
+            "floor": 4.0,
+            "oracle": 11.0,
+            "norm": 0.0,
+            "determined": 4,
+            "used": 4,
+            "budget": 4
+          }
+        }
+      ],
+      "report_md": "# Coverage evaluation report (sanitized)\n\nThe world: a world over 10 variables (values 0..1 hidden): a fork (2 chains, gate 0) whose live chain drives a deep 9-cell valley; a clearing (var 7) paying 2 cells immediately; a clearing (var 8) paying 2 cells immediately; a clearing (var 9) paying 2 cells immediately. Reading a signpost/gate pays ZERO coverage; clearings pay immediately; a valley pays only once its gate(s) are scouted and its live chain is walked end to end (variable values 0..1 are the only hidden information). Probe budget per world: 4 (cost-weighted). Coverage band (raw cells): floor 4.00 -> oracle 11.00.\nYou are NOT given the variable values or the true values of un-probed cells; reason only about the agent's CONDUCT.\n\n\n## world_0\n- coverage: 0.14 of the floor->oracle band (raw 5.0 cells, 4 logically determined), budget used 4/4\n- probes by the top (in order): col0->1(c1), col6->0(c1), col7->1(c1), col9->1(c1)\n- final scratchpad:\n  === WORLD STRUCTURE ===\n  Budget: 4 (SCARCE - each probe costs 1)\n  K = 2, R = 10 variables\n  \n  REGIONS:\n  - Region 0 (FORK): gate=var0, chains: [1\u21922\u21923] or [4\u21925\u21926], selects by var0 mod 2\n  - Regions 1-3 (CLEARINGs): var7 (length 2), var8 (length 2), var9 (length 2)\n  \n  COVERAGE CELLS (what we score on):\n  - Cols 7-12: vars 7,8,9 in clearings (PROBEABLE)\n  - Cols 13-21: fork region (NOT probeable - must reconstruct via chain walking)\n  \n  STRATEGY:\n  With budget 4, I must:\n  1. Probe var0 (gate) - determines which chain is live\n  2. Follow that chain's path to determine the target variable\n  3. Reconstruct fork cells based on target variable's value\n  \n  PROBES TAKEN:\n  1. var0 = 1 (cost 1) \u2192 selects chain[1]: var4\u2192var5\u2192var6\n  2. var6 = 0 (cost 1) \u2192 target value\n  \n  RECONSTRUCTED (fork cells, cols 13-21):\n  var6=0, so each cell = (0 + pos) mod 2\n  - Alternating pattern: 0,1,0,1,0,1,0,1,0\n  \n  FINAL PROBES:\n  3. var7 = 1 (cost 1) \u2192 cols 7-8: (1+0)%2=1, (1+1)%2=0\n  4. var8 = 1 (cost 1) \u2192 cols 9-10: (1+0)%2=1, (1+1)%2=0\n  \n  BUDGET EXHAUSTED: remaining = 0\n  \n  COVERAGE CELLS (certain):\n  - col 7: 1 (var7=1, pos=0)\n  - col 8: 0 (var7=1, pos=1)\n  - col 9: 1 (var8=1, pos=0)\n  - col 10: 0 (var8=1, pos=1)\n  - cols 13-21: 0,1,0,1,0,1,0,1,0 (var6=0 chain)\n  \n  UNCERTAIN (must guess):\n  - col 11-12: var9 unknown (0 or 1)\n- reconstruction submitted: 15 cells\n\n## world_1\n- coverage: 0.00 of the floor->oracle band (raw 4.0 cells, 4 logically determined), budget used 4/4\n- probes by the top (in order): col0->1(c1), col6->1(c1), col9->1(c1), col11->1(c1)\n- final scratchpad:\n  ## Investigation Log\n  \n  **World Structure:**\n  - Budget: 4 probes\n  - Coverage cells: cols 7-21 (vars 7, 8, 9 + fork region)\n  - Fork gate at var 0; chains select which target variable to mirror\n  - Chain 0: regions 1\u21922\u21923, target likely var 9\n  - Chain 1: regions 4\u21925\u21926, target unknown\n  \n  **Strategy:**\n  1. Probe gate (col 0) to determine live chain\n  2. Based on chain, determine target variable\n  3. Probe target variable + vars 8,9 to cover all coverage cells\n  4. Reconstruct fork cells from target value\n  \n  **Probes:**\n  1. Col 0 (var 0, pos 0): value=1 \u2192 var_0_hidden = 1\n  2. Col 6 (var 6, pos 0): value=1 \u2192 var_6_hidden = 1\n  3. Col 9 (var 8, pos 0): value=1 \u2192 var_8_hidden = 1\n  4. Col 11 (var 9, pos 0): value=1 \u2192 var_9_hidden = 1\n  \n  **Reconstructed Values:**\n  - Gate (var 0): value 1 \u2192 Chain 1 is LIVE\n  - Target var (var 6): hidden=1\n  - Var 8: hidden=1\n  - Var 9: hidden=1\n  \n  **Coverage cells reconstructed:**\n  - Col 0: (1+0) mod 2 = 1 \u2713\n  - Col 6: (1+0) mod 2 = 1 \u2713\n  - Col 9: (1+0) mod 2 = 1 \u2713\n  - Col 10: (1+1) mod 2 = 0\n  - Col 11: (1+0) mod 2 = 1 \u2713\n  - Col 12: (1+1) mod 2 = 0\n  - Cols 13-21 (fork, mirror var 6):\n    - Col 13-21: alternating 1,0,1,0,1,0,1,0,1\n    \n  **Missing:** Var 7 (cols 7-8) - no budget remaining**\n- reconstruction submitted: 15 cells"
+    },
+    "transfer": {
+      "mean_raw": 5.0,
+      "mean_norm": 0.1429,
+      "solved": 0,
+      "n_worlds": 1,
+      "per_world": [
+        {
+          "result": {
+            "log": [
+              {
+                "col": 7,
+                "value": 0,
+                "cost": 1,
+                "via": "self"
+              },
+              {
+                "col": 9,
+                "value": 0,
+                "cost": 1,
+                "via": "self"
+              },
+              {
+                "col": 11,
+                "value": 0,
+                "cost": 1,
+                "via": "self"
+              },
+              {
+                "col": 0,
+                "value": 1,
+                "cost": 1,
+                "via": "self"
+              }
+            ],
+            "spawns": [],
+            "mem": "## WORLD MAP\nBudget: 4 probes (each cell costs 1)\nK=2 (values mod 2), R=10 regions\n\nSTRUCTURE:\n- Cells 0-6: Gate ladder (vars 0-6) - gate for fork\n- Cells 7-8: Clearing var 7 (coverage)\n- Cells 9-10: Clearing var 8 (coverage)\n- Cells 11-12: Clearing var 9 (coverage)\n- Cells 13-21: Fork mirror cells (coverage) - depend on chain selection\n\nFORK LOGIC (Region 0):\n- Gate: var 0 (no hops), selects chain: chains[var0 % 2]\n- Chain 0: var1 \u2192 var2 \u2192 var3 (target)\n- Chain 1: var4 \u2192 var5 \u2192 var6 (target)\n- Fork cells 13-21 mirror the target variable's values\n\nVALUE RULE: cell_value = (hidden_var_value + pos) mod 2\n- Knowing one cell of a var determines all cells of that var\n\nCOVERAGE CELLS: 13 total (7-12 clearings + 13-21 fork)\n\n## STRATEGY\n1. Probe cells 7, 9, 11 (one per clearing) \u2192 get vars 7, 8, 9 \u2192 reconstruct 6 clearing cells\n2. Probe cell 0 \u2192 get var 0 \u2192 determine which chain is live\n3. Cannot reconstruct fork cells (13-21) without probing target var)\n4. Max expected coverage: 6/13\n\n## PROBES LOG\nProbe 1: Cell 7 (var 7, pos 0) \u2192 value 0 \u2192 var_7 = 0\nProbe 2: Cell 9 (var 8, pos 0) \u2192 value 0 \u2192 var_8 = 0\nProbe 3: Cell 11 (var 9, pos 0) \u2192 value 0 \u2192 var_9 = 0\nProbe 4: Cell 0 (var 0, pos 0) \u2192 value 1 \u2192 var_0 = 1\n\nANALYSIS:\n- var_0 = 1 (odd) \u2192 chain 1 is live \u2192 target is var_6\n- Cannot determine var_6 without additional probes (budget exhausted)\n- Can fully reconstruct clearing cells 7-12 from vars 7, 8, 9\n- Cannot reconstruct fork cells 13-21 without knowing var_6\n\n## RECONSTRUCTED VALUES\nFrom var_7 = 0:\n- Cell 7: (0 + 0) mod 2 = 0\n- Cell 8: (0 + 1) mod 2 = 1\n\nFrom var_8 = 0:\n- Cell 9: (0 + 0) mod 2 = 0\n- Cell 10: (0 + 1) mod 2 = 1\n\nFrom var_9 = 0:\n- Cell 11: (0 + 0) mod 2 = 0\n- Cell 12: (0 + 1) mod 2 = 1\n\nCoverage: 6/13 cells reconstructed",
+            "submitted": {
+              "7": 0,
+              "8": 1,
+              "9": 0,
+              "10": 1,
+              "11": 0,
+              "12": 1
+            },
+            "used": 4,
+            "done": true,
+            "observations": [
+              [
+                7,
+                0
+              ],
+              [
+                9,
+                0
+              ],
+              [
+                11,
+                0
+              ],
+              [
+                0,
+                1
+              ]
+            ]
+          },
+          "score": {
+            "raw": 5.0,
+            "floor": 4.0,
+            "oracle": 11.0,
+            "norm": 0.1429,
+            "determined": 6,
+            "used": 4,
+            "budget": 4
+          }
+        }
+      ],
+      "report_md": "# Coverage evaluation report (sanitized)\n\nThe world: a world over 10 variables (values 0..1 hidden): a fork (2 chains, gate 0) whose live chain drives a deep 9-cell valley; a clearing (var 7) paying 2 cells immediately; a clearing (var 8) paying 2 cells immediately; a clearing (var 9) paying 2 cells immediately. Reading a signpost/gate pays ZERO coverage; clearings pay immediately; a valley pays only once its gate(s) are scouted and its live chain is walked end to end (variable values 0..1 are the only hidden information). Probe budget per world: 4 (cost-weighted). Coverage band (raw cells): floor 4.00 -> oracle 11.00.\nYou are NOT given the variable values or the true values of un-probed cells; reason only about the agent's CONDUCT.\n\n\n## world_0\n- coverage: 0.14 of the floor->oracle band (raw 5.0 cells, 6 logically determined), budget used 4/4\n- probes by the top (in order): col7->0(c1), col9->0(c1), col11->0(c1), col0->1(c1)\n- final scratchpad:\n  ## WORLD MAP\n  Budget: 4 probes (each cell costs 1)\n  K=2 (values mod 2), R=10 regions\n  \n  STRUCTURE:\n  - Cells 0-6: Gate ladder (vars 0-6) - gate for fork\n  - Cells 7-8: Clearing var 7 (coverage)\n  - Cells 9-10: Clearing var 8 (coverage)\n  - Cells 11-12: Clearing var 9 (coverage)\n  - Cells 13-21: Fork mirror cells (coverage) - depend on chain selection\n  \n  FORK LOGIC (Region 0):\n  - Gate: var 0 (no hops), selects chain: chains[var0 % 2]\n  - Chain 0: var1 \u2192 var2 \u2192 var3 (target)\n  - Chain 1: var4 \u2192 var5 \u2192 var6 (target)\n  - Fork cells 13-21 mirror the target variable's values\n  \n  VALUE RULE: cell_value = (hidden_var_value + pos) mod 2\n  - Knowing one cell of a var determines all cells of that var\n  \n  COVERAGE CELLS: 13 total (7-12 clearings + 13-21 fork)\n  \n  ## STRATEGY\n  1. Probe cells 7, 9, 11 (one per clearing) \u2192 get vars 7, 8, 9 \u2192 reconstruct 6 clearing cells\n  2. Probe cell 0 \u2192 get var 0 \u2192 determine which chain is live\n  3. Cannot reconstruct fork cells (13-21) without probing target var)\n  4. Max expected coverage: 6/13\n  \n  ## PROBES LOG\n  Probe 1: Cell 7 (var 7, pos 0) \u2192 value 0 \u2192 var_7 = 0\n  Probe 2: Cell 9 (var 8, pos 0) \u2192 value 0 \u2192 var_8 = 0\n  Probe 3: Cell 11 (var 9, pos 0) \u2192 value 0 \u2192 var_9 = 0\n  Probe 4: Cell 0 (var 0, pos 0) \u2192 value 1 \u2192 var_0 = 1\n  \n  ANALYSIS:\n  - var_0 = 1 (odd) \u2192 chain 1 is live \u2192 target is var_6\n  - Cannot determine var_6 without additional probes (budget exhausted)\n  - Can fully reconstruct clearing cells 7-12 from vars 7, 8, 9\n  - Cannot reconstruct fork cells 13-21 without knowing var_6\n  \n  ## RECONSTRUCTED VALUES\n  From var_7 = 0:\n  - Cell 7: (0 + 0) mod 2 = 0\n  - Cell 8: (0 + 1) mod 2 = 1\n  \n  From var_8 = 0:\n  - Cell 9: (0 + 0) mod 2 = 0\n  - Cell 10: (0 + 1) mod 2 = 1\n  \n  From var_9 = 0:\n  - Cell 11: (0 + 0) mod 2 = 0\n  - Cell 12: (0 + 1) mod 2 = 1\n  \n  Coverage: 6/13 cells reconstructed\n- reconstruction submitted: 6 cells"
+    },
+    "combined_fitness": 0.1071
+  },
+  "child_eval": {
+    "train": {
+      "mean_raw": 5.0,
+      "mean_norm": 0.1429,
+      "solved": 0,
+      "n_worlds": 2,
+      "per_world": [
+        {
+          "result": {
+            "log": [
+              {
+                "col": 0,
+                "value": 1,
+                "cost": 1,
+                "via": "self"
+              },
+              {
+                "col": 6,
+                "value": 0,
+                "cost": 1,
+                "via": "self"
+              },
+              {
+                "col": 7,
+                "value": 1,
+                "cost": 1,
+                "via": "self"
+              },
+              {
+                "col": 9,
+                "value": 1,
+                "cost": 1,
+                "via": "self"
+              }
+            ],
+            "spawns": [],
+            "mem": "## World Analysis\n\n**Budget:** 4 probes, K=2\n\n**Immediate-pay regions (coverage cells):**\n- Cells 7-8 (var 7): coverage=true, probeable=true, cost 1 each\n- Cells 9-10 (var 8): coverage=true, probeable=true, cost 1 each  \n- Cells 11-12 (var 9): coverage=true, probeable=true, cost 1 each\n\u2192 6 cells, cost 3 probes to pin all vars\n\n**Gated region (FORK - cells 13-21):**\n- 9 coverage cells, probeable=false (reconstructed)\n- Gate: cell 0 (var 0) determines which chain is live\n- Chain 0: var 1 \u2192 var 2 \u2192 var 3 (target)\n- Chain 1: var 4 \u2192 var 5 \u2192 var 6 (target)\n- To unlock: probe gate (cell 0) + probe target (cell 3 or 6) = 2 probes\n\u2192 Unlock cost: 2, value: 9 cells\n\n**Allocation decision:**\nFork unlock (2 probes \u2192 9 cells) is better than partial clearing coverage.\n- Probe cell 0 (gate) \u2192 reveals target variable\n- Probe target cell (3 or 6) \u2192 pins target value  \n- Reconstruct 9 fork valley cells\n- Use 2 remaining probes for clearings\n\n## Probing Log\n\n**Probes executed (4/4 budget):**\n1. Cell 0 (var 0): value = 1 \u2192 var_0 = 1\n2. Cell 6 (var 6): value = 0 \u2192 var_6 = 0 (fork target, chain 1)\n3. Cell 7 (var 7): value = 1 \u2192 var_7 = 1\n4. Cell 9 (var 8): value = 1 \u2192 var_8 = 1\n\n**Reconstruction:**\n- Gate (cell 0): pinned\n- Fork unlock complete (cells 13-21 mirror var_6=0)\n- Clearing vars 7, 8: pinned\n- Clearing var 9: NOT probed (2 cells orphaned)\n\n**Coverage:** 13/15 cells (86.7%)\n- Cells 7-10, 13-21 reconstructed\n- Cells 11-12 unknown (var 9 not probed)",
+            "submitted": {
+              "0": 1,
+              "7": 1,
+              "8": 0,
+              "9": 1,
+              "10": 0,
+              "13": 0,
+              "14": 1,
+              "15": 0,
+              "16": 1,
+              "17": 0,
+              "18": 1,
+              "19": 0,
+              "20": 1,
+              "21": 0
+            },
+            "used": 4,
+            "done": true,
+            "observations": [
+              [
+                0,
+                1
+              ],
+              [
+                6,
+                0
+              ],
+              [
+                7,
+                1
+              ],
+              [
+                9,
+                1
+              ]
+            ]
+          },
+          "score": {
+            "raw": 5.0,
+            "floor": 4.0,
+            "oracle": 11.0,
+            "norm": 0.1429,
+            "determined": 4,
+            "used": 4,
+            "budget": 4
+          }
+        },
+        {
+          "result": {
+            "log": [
+              {
+                "col": 7,
+                "value": 1,
+                "cost": 1,
+                "via": "self"
+              },
+              {
+                "col": 9,
+                "value": 1,
+                "cost": 1,
+                "via": "self"
+              },
+              {
+                "col": 11,
+                "value": 1,
+                "cost": 1,
+                "via": "self"
+              },
+              {
+                "col": 0,
+                "value": 1,
+                "cost": 1,
+                "via": "self"
+              }
+            ],
+            "spawns": [],
+            "mem": "== WORLD ANALYSIS ==\n\nREGIONS:\n- Region 1 (Clearing, var 7): cells 7-8 \u2192 2 coverage cells, 1 probe\n- Region 2 (Clearing, var 8): cells 9-10 \u2192 2 coverage cells, 1 probe  \n- Region 3 (Clearing, var 9): cells 11-12 \u2192 2 coverage cells, 1 probe\n- Region 0 (Fork, gated): cells 13-21 \u2192 9 coverage cells, but needs gate(1) + chain(3) = 4 probes minimum\n\nBUDGET: 4 probes total\nCOST ANALYSIS: 3 clearings = 3 probes (guaranteed 6 cells). Fork = 4 probes (9 cells, gated).\n\nSTRATEGY: Allocate to immediate-payoff regions first.\n- Probe var 7 (cell 7) \u2192 reconstructs cells 7-8\n- Probe var 8 (cell 9) \u2192 reconstructs cells 9-10\n- Probe var 9 (cell 11) \u2192 reconstructs cells 11-12\n- 1 probe remaining: probe fork gate (cell 0) to learn which chain is live (not enough to walk it)\n\nPROBED CELLS & VALUES:\n- Cell 7 (var 7, pos 0): value = 1 \u2192 var_7 = 1\n- Cell 9 (var 8, pos 0): value = 1 \u2192 var_8 = 1\n- Cell 11 (var 9, pos 0): value = 1 \u2192 var_9 = 1\n- Cell 0 (var 0, pos 0): value = 1 \u2192 var_0 = 1 (fork gate selects chain 1)\n\nRECONSTRUCTED CELLS (value = (var_value + pos) mod 2):\n- Cell 8 (var 7, pos 1): (1 + 1) mod 2 = 0\n- Cell 10 (var 8, pos 1): (1 + 1) mod 2 = 0\n- Cell 12 (var 9, pos 1): (1 + 1) mod 2 = 0\n\nFORK ANALYSIS:\n- Gate var_0 = 1 \u2192 selects chain 1 (cells 4\u21925\u21926)\n- Chain 1 target = var_6 (the final hop)\n- To reconstruct fork cells 13-21, need var_6 value\n- BLOCKED: insufficient budget to walk chain 1 (would need 3 more probes)\n- Fork cells 13-21 cannot be reconstructed\n\nCOVERAGE: 6 cells out of 15 possible",
+            "submitted": {
+              "7": 1,
+              "8": 0,
+              "9": 1,
+              "10": 0,
+              "11": 1,
+              "12": 0
+            },
+            "used": 4,
+            "done": true,
+            "observations": [
+              [
+                7,
+                1
+              ],
+              [
+                9,
+                1
+              ],
+              [
+                11,
+                1
+              ],
+              [
+                0,
+                1
+              ]
+            ]
+          },
+          "score": {
+            "raw": 5.0,
+            "floor": 4.0,
+            "oracle": 11.0,
+            "norm": 0.1429,
+            "determined": 6,
+            "used": 4,
+            "budget": 4
+          }
+        }
+      ],
+      "report_md": "# Coverage evaluation report (sanitized)\n\nThe world: a world over 10 variables (values 0..1 hidden): a fork (2 chains, gate 0) whose live chain drives a deep 9-cell valley; a clearing (var 7) paying 2 cells immediately; a clearing (var 8) paying 2 cells immediately; a clearing (var 9) paying 2 cells immediately. Reading a signpost/gate pays ZERO coverage; clearings pay immediately; a valley pays only once its gate(s) are scouted and its live chain is walked end to end (variable values 0..1 are the only hidden information). Probe budget per world: 4 (cost-weighted). Coverage band (raw cells): floor 4.00 -> oracle 11.00.\nYou are NOT given the variable values or the true values of un-probed cells; reason only about the agent's CONDUCT.\n\n\n## world_0\n- coverage: 0.14 of the floor->oracle band (raw 5.0 cells, 4 logically determined), budget used 4/4\n- probes by the top (in order): col0->1(c1), col6->0(c1), col7->1(c1), col9->1(c1)\n- final scratchpad:\n  ## World Analysis\n  \n  **Budget:** 4 probes, K=2\n  \n  **Immediate-pay regions (coverage cells):**\n  - Cells 7-8 (var 7): coverage=true, probeable=true, cost 1 each\n  - Cells 9-10 (var 8): coverage=true, probeable=true, cost 1 each  \n  - Cells 11-12 (var 9): coverage=true, probeable=true, cost 1 each\n  \u2192 6 cells, cost 3 probes to pin all vars\n  \n  **Gated region (FORK - cells 13-21):**\n  - 9 coverage cells, probeable=false (reconstructed)\n  - Gate: cell 0 (var 0) determines which chain is live\n  - Chain 0: var 1 \u2192 var 2 \u2192 var 3 (target)\n  - Chain 1: var 4 \u2192 var 5 \u2192 var 6 (target)\n  - To unlock: probe gate (cell 0) + probe target (cell 3 or 6) = 2 probes\n  \u2192 Unlock cost: 2, value: 9 cells\n  \n  **Allocation decision:**\n  Fork unlock (2 probes \u2192 9 cells) is better than partial clearing coverage.\n  - Probe cell 0 (gate) \u2192 reveals target variable\n  - Probe target cell (3 or 6) \u2192 pins target value  \n  - Reconstruct 9 fork valley cells\n  - Use 2 remaining probes for clearings\n  \n  ## Probing Log\n  \n  **Probes executed (4/4 budget):**\n  1. Cell 0 (var 0): value = 1 \u2192 var_0 = 1\n  2. Cell 6 (var 6): value = 0 \u2192 var_6 = 0 (fork target, chain 1)\n  3. Cell 7 (var 7): value = 1 \u2192 var_7 = 1\n  4. Cell 9 (var 8): value = 1 \u2192 var_8 = 1\n  \n  **Reconstruction:**\n  - Gate (cell 0): pinned\n  - Fork unlock complete (cells 13-21 mirror var_6=0)\n  - Clearing vars 7, 8: pinned\n  - Clearing var 9: NOT probed (2 cells orphaned)\n  \n  **Coverage:** 13/15 cells (86.7%)\n  - Cells 7-10, 13-21 reconstructed\n  - Cells 11-12 unknown (var 9 not probed)\n- reconstruction submitted: 14 cells\n\n## world_1\n- coverage: 0.14 of the floor->oracle band (raw 5.0 cells, 6 logically determined), budget used 4/4\n- probes by the top (in order): col7->1(c1), col9->1(c1), col11->1(c1), col0->1(c1)\n- final scratchpad:\n  == WORLD ANALYSIS ==\n  \n  REGIONS:\n  - Region 1 (Clearing, var 7): cells 7-8 \u2192 2 coverage cells, 1 probe\n  - Region 2 (Clearing, var 8): cells 9-10 \u2192 2 coverage cells, 1 probe  \n  - Region 3 (Clearing, var 9): cells 11-12 \u2192 2 coverage cells, 1 probe\n  - Region 0 (Fork, gated): cells 13-21 \u2192 9 coverage cells, but needs gate(1) + chain(3) = 4 probes minimum\n  \n  BUDGET: 4 probes total\n  COST ANALYSIS: 3 clearings = 3 probes (guaranteed 6 cells). Fork = 4 probes (9 cells, gated).\n  \n  STRATEGY: Allocate to immediate-payoff regions first.\n  - Probe var 7 (cell 7) \u2192 reconstructs cells 7-8\n  - Probe var 8 (cell 9) \u2192 reconstructs cells 9-10\n  - Probe var 9 (cell 11) \u2192 reconstructs cells 11-12\n  - 1 probe remaining: probe fork gate (cell 0) to learn which chain is live (not enough to walk it)\n  \n  PROBED CELLS & VALUES:\n  - Cell 7 (var 7, pos 0): value = 1 \u2192 var_7 = 1\n  - Cell 9 (var 8, pos 0): value = 1 \u2192 var_8 = 1\n  - Cell 11 (var 9, pos 0): value = 1 \u2192 var_9 = 1\n  - Cell 0 (var 0, pos 0): value = 1 \u2192 var_0 = 1 (fork gate selects chain 1)\n  \n  RECONSTRUCTED CELLS (value = (var_value + pos) mod 2):\n  - Cell 8 (var 7, pos 1): (1 + 1) mod 2 = 0\n  - Cell 10 (var 8, pos 1): (1 + 1) mod 2 = 0\n  - Cell 12 (var 9, pos 1): (1 + 1) mod 2 = 0\n  \n  FORK ANALYSIS:\n  - Gate var_0 = 1 \u2192 selects chain 1 (cells 4\u21925\u21926)\n  - Chain 1 target = var_6 (the final hop)\n  - To reconstruct fork cells 13-21, need var_6 value\n  - BLOCKED: insufficient budget to walk chain 1 (would need 3 more probes)\n  - Fork cells 13-21 cannot be reconstructed\n  \n  COVERAGE: 6 cells out of 15 possible\n- reconstruction submitted: 6 cells"
+    },
+    "transfer": {
+      "mean_raw": 7.5,
+      "mean_norm": 0.5,
+      "solved": 0,
+      "n_worlds": 1,
+      "per_world": [
+        {
+          "result": {
+            "log": [
+              {
+                "col": 0,
+                "value": 1,
+                "cost": 1,
+                "via": "self"
+              },
+              {
+                "col": 4,
+                "value": 1,
+                "cost": 1,
+                "via": "self"
+              },
+              {
+                "col": 5,
+                "value": 0,
+                "cost": 1,
+                "via": "self"
+              },
+              {
+                "col": 6,
+                "value": 0,
+                "cost": 1,
+                "via": "self"
+              }
+            ],
+            "spawns": [],
+            "mem": "## STRATEGY\nFork region 0 unlocks with exactly 4 budget \u2192 9 coverage cells (cols 13-21)\nCost: probe cell 0 (gate) + 3 cells in live chain\n\n## PROBED\n(none yet)\n\n## FORCED (by value rule)\nOnce a variable is pinned, all cells using it are determined via: cell = (var + pos) mod 2\n\n## BRANCHES\n- Cell 0 value mod 2 determines live chain\n  - If 0: chain 0 (cells 1,2,3) \u2192 var_3 target\n  - If 1: chain 1 (cells 4,5,6) \u2192 var_6 target\n",
+            "submitted": {
+              "13": 0,
+              "14": 1,
+              "15": 0,
+              "16": 1,
+              "17": 0,
+              "18": 1,
+              "19": 0,
+              "20": 1,
+              "21": 0
+            },
+            "used": 4,
+            "done": true,
+            "observations": [
+              [
+                0,
+                1
+              ],
+              [
+                4,
+                1
+              ],
+              [
+                5,
+                0
+              ],
+              [
+                6,
+                0
+              ]
+            ]
+          },
+          "score": {
+            "raw": 7.5,
+            "floor": 4.0,
+            "oracle": 11.0,
+            "norm": 0.5,
+            "determined": 9,
+            "used": 4,
+            "budget": 4
+          }
+        }
+      ],
+      "report_md": "# Coverage evaluation report (sanitized)\n\nThe world: a world over 10 variables (values 0..1 hidden): a fork (2 chains, gate 0) whose live chain drives a deep 9-cell valley; a clearing (var 7) paying 2 cells immediately; a clearing (var 8) paying 2 cells immediately; a clearing (var 9) paying 2 cells immediately. Reading a signpost/gate pays ZERO coverage; clearings pay immediately; a valley pays only once its gate(s) are scouted and its live chain is walked end to end (variable values 0..1 are the only hidden information). Probe budget per world: 4 (cost-weighted). Coverage band (raw cells): floor 4.00 -> oracle 11.00.\nYou are NOT given the variable values or the true values of un-probed cells; reason only about the agent's CONDUCT.\n\n\n## world_0\n- coverage: 0.50 of the floor->oracle band (raw 7.5 cells, 9 logically determined), budget used 4/4\n- probes by the top (in order): col0->1(c1), col4->1(c1), col5->0(c1), col6->0(c1)\n- final scratchpad:\n  ## STRATEGY\n  Fork region 0 unlocks with exactly 4 budget \u2192 9 coverage cells (cols 13-21)\n  Cost: probe cell 0 (gate) + 3 cells in live chain\n  \n  ## PROBED\n  (none yet)\n  \n  ## FORCED (by value rule)\n  Once a variable is pinned, all cells using it are determined via: cell = (var + pos) mod 2\n  \n  ## BRANCHES\n  - Cell 0 value mod 2 determines live chain\n    - If 0: chain 0 (cells 1,2,3) \u2192 var_3 target\n    - If 1: chain 1 (cells 4,5,6) \u2192 var_6 target\n- reconstruction submitted: 9 cells"
+    },
+    "combined_fitness": 0.3215
+  }
+}
