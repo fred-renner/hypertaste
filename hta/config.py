@@ -72,6 +72,18 @@ class Config:
     world_gap_min: float = 1.0    # oracle - floor must clear this (in coverage cells) to be "hard"
     world_reach_min: float = 0.5  # oracle / scorable-cells must clear this to be "solvable"
 
+    # ---- the gym's ship-gate (the dumb-player battery + the offline ZPD screen) ----
+    # A stronger hardness bar than gap-over-lazy-floor: best-play must beat the strongest *scripted*
+    # player (greedy/random/sweep/2-step-lookahead) by this much of the floor->oracle band, so "hard"
+    # means taste and not a shallow rule the battery already runs. And the offline ZPD screen (a
+    # NECESSARY condition, not true ZPD -- there is no live agent in this pass): the greedy champion
+    # analogue must stall at/under the fail bar while the scout-the-path fix clears the solve bar.
+    # Defaults lifted out of hta/_trail/world_smith.py's known-good hardcodes (MARGIN/FAIL_BAR/
+    # SOLVE_BAR), then re-calibrated against the seed -- surfaced here, never baked into the gym.
+    world_battery_margin: float = 0.15  # how far oracle must beat the best scripted player (band frac)
+    world_zpd_fail_bar: float = 0.30    # champion analogue counts as "stalls" at/under this band frac
+    world_zpd_solve_bar: float = 0.85   # fix analogue counts as "reaches the band" at/over this frac
+
     # ---- meta agent (airgap: NO Bash tool, edits code only) ----
     meta_allowed_tools: Tuple[str, ...] = ("Edit", "Read", "Write")
     # The Read -> diagnose -> rewrite loop on the playbook does not fit in a tight budget:

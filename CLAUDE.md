@@ -52,13 +52,16 @@ questions — match the depth and tone of a genuine research-design conversation
 
 ## Run & test
 
-**Where we are (2026-06-16):** the repo was re-cut around the system's loops (see `DESIGN.md`).
+**Where we are (2026-06-18):** the repo was re-cut around the system's loops (see `DESIGN.md`).
 Shared plumbing sits at the top (`hta/llm.py`, `hta/config.py`); `hta/dgmh/` is LOOP 1 (grow the
 agent — the archive, the program-length prior, the meta-agent airgap), `hta/gym/` is LOOP 2 (grow
 the world — the world-smith), and `hta/world/` is the agent-inaccessible world. The retired trail
 puzzle is **quarantined** in `hta/_trail/` as a temporary test world — it still runs and backs the
-tests. The fresh lab inside `world/`, `dgmh/episode/`, `dgmh/loop.py`, and `gym/` is **skeleton-
-stubbed**, built in the next pass against the contract designed from `DESIGN.md`.
+tests. **The LOOP-2 substrate is now built and certified offline** (`findings/2026-06-18-world-
+substrate-landed.md`): the grammar (`hta/world/spec.py` — variables + gated readouts), the seed
+(`hta/world/seed/`), the dumb-player battery + ship-gate + mutation smith (`hta/gym/`), all proven
+model-free against the frozen grader. Still **skeleton-stubbed**, for the next pass: LOOP 1's fresh
+lab (`dgmh/episode/`, `dgmh/loop.py`) and the LLM inventor inside `gym/smith.py`.
 
 ```bash
 python run_anchor.py                              # anchor build gate: free, model-free, deterministic
@@ -66,8 +69,9 @@ pip install pytest && python -m pytest tests/ -q  # tests (pytest is not preinst
 python run_loop.py --iterations 1 --backend mock  # the loop, offline (deterministic floor-player)
 python run_loop.py --iterations 1 --backend real  # the loop, live (cents/Haiku episode, ~$1/Opus edit)
 python run_probe.py --backend real                # stage-1: champion vs a scalar-harder world (cents)
-python run_worldsmith.py                          # ship-gate both curriculum moves: free, model-free (slow)
-python run_worldsmith.py --backend real           # + the LIVE two-iteration two-loop (~$2.5 total)
+python run_worldsmith.py                          # [trail] ship-gate both curriculum moves: free (slow)
+python run_worldsmith.py --backend real           # [trail] + the LIVE two-iteration two-loop (~$2.5)
+python run_smith.py                               # LOOP-2 substrate: seed→mutate→ship-gate, offline/free
 ```
 
 The `claude` CLI is installed and authenticated here, so the `real` backend works without an API
@@ -91,10 +95,13 @@ seven primitives), `loop.py` (the model-orchestrated DGM-H loop + the Opus `meta
 `seed/playbook.md` + `champion/playbook.md`. The `run_*.py` drivers still point here. It is the one
 worked example; it is deleted once the fresh lab carries its own tests.
 
-**The fresh lab — skeleton-stubbed, built in the next pass:** `hta/world/` (the contract + the dumb
-scorer/band), `hta/dgmh/episode/` (the play + the airgap), `hta/dgmh/loop.py`, and `hta/gym/` (the
-world-smith). Built from `DESIGN.md`'s principles — reusing the machinery and the trail as the
-worked example, not re-cloning the loop.
+**The fresh lab — partly built:** the LOOP-2 substrate is **landed and tested** — `hta/lab/scoring.py`
+(the frozen grader, do not touch), `hta/world/spec.py` (the grammar: variables + gated readouts) +
+`hta/world/seed/` (the certified seed), and `hta/gym/battery.py` / `ship_gate.py` / `smith.py` /
+`loop.py` (the dumb-player battery, the model-free ship-gate, the deterministic mutation smith). Still
+**skeleton-stubbed, for the next pass:** `hta/dgmh/episode/` (the play + the airgap), `hta/dgmh/loop.py`,
+and the LLM inventor inside `hta/gym/smith.py`. Built from `DESIGN.md`'s principles — reusing the
+machinery and the trail as the worked example, not re-cloning the loop.
 
 ## The two invariants (the integrity floor — they survive every chapter)
 
