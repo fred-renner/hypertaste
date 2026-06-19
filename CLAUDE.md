@@ -10,8 +10,10 @@ evaluating your position*. (The thesis: taste is the situational trigger, not th
 the moves are the model's; which one fires from the position read is the grown procedure, so it
 should port onto even a weak model.)
 
-- **The design — read first:** `DESIGN.md` (the current taste definition, the rules any world
-  must meet, and the machinery).
+- **The north star — read first:** `VISION.md` (what taste is, the value functional, the three
+  layers — score · functional · grown estimator — and what grows vs. what we fix).
+- **The design — the detailed second layer:** `DESIGN.md` (the rules any world must meet, "price
+  it", the catalogue, the smith, the wish channel; its §1 framing is superseded by `VISION.md`).
 - Vision: `ROADMAP.md` → "The gym and its chains".
 - How to run the current code (the anchor reference chapter): `README.md`.
 - Last lab note: `findings/2026-06-14-instance0-machine-world.md` (instance 0 read as a tactic,

@@ -1,5 +1,12 @@
 # DESIGN — what hypertaste is building
 
+> **Superseded on the core framing by `VISION.md`** (2026-06-19). What taste *is* and why it's
+> grown — the three layers (score · functional · grown estimator) and the value functional — now
+> live in `VISION.md`, the north star. Read it first; §1 here is history. This file remains the
+> **detailed second layer**: the rules of the game (§2), "don't prove it, price it" (§3), the
+> catalogue (§4), the world language and the smith (§5–§7), the standing decisions (§10), the wish
+> channel.
+
 > **Status: this is where the design is now — the live working doc.** Not locked, not final: it's
 > the current best statement of what hypertaste is building, and a later session may sharpen any of
 > it. The earlier design records that fed it are kept as history, not current: the anchor/trail
