@@ -9,11 +9,26 @@
 
 **Taste is choosing your next move well by reading your position.**
 
-The reading has a shape. The value of a position is how much you'd learn by going there
+The reading has a shape. The value of a position is what you *forecast* you'd learn by going there
 (**learning-progress**), times how far that learning carries toward your goal (**transfer**), per
 unit cost — and when you're unsure, bet on what you're least sure of.
 
 `Value(X) ≈ learning-progress(X) · transfer(X → goal) / cost`, biased to uncertainty.
+
+Three things this line *absorbs*, so it isn't misread:
+
+- **It is forecasts all the way down — there is no "immediate" term.** You never *collect* value at a
+  position; you predict what's learnable, predict what it opens, and spend a little to test the
+  prediction (sometimes the forecast is trivial, so you don't even spend that). Taste is just the
+  *quality of those forecasts*.
+- **`transfer` is the value function in disguise, not a closeness-to-goal number.** It is the
+  downstream, multi-horizon worth of everything the move *opens*, weighted toward your goals — so the
+  depth ("a position's worth is mostly what it opens") and the planning both live inside this one
+  term. The "goal" is a **portfolio** (a vector, one component per live goal); how you collapse the
+  vector is still open (see the portfolio section).
+- **"Biased to uncertainty" is only weakly here.** The learning term already leans toward what you
+  don't yet know, but the sharp, non-myopic version — betting *across horizons* on what you're least
+  sure of — is **grown, not written**. The crude line does not give it for free.
 
 That sentence is the *label*. It is not the skill — and that gap is the whole reason the project
 exists (see "Why it has to be grown").
@@ -27,7 +42,10 @@ Everything that has confused us comes from collapsing these. Keep them apart:
    reward-hacking.
 2. **The functional** — `LP · transfer / cost, biased to uncertainty`. This is **not** ground
    truth. It's our crude, hand-written estimator — a guess at what good play looks like, written by
-   thinking. It's a *lens*, not a target. It is sharpened only by us.
+   thinking. It's a *lens* and a *seed*, not a target: it gets the agent off the ground and is the
+   prior the grown estimator (layer 3) is **meant to outgrow**. It is sharpened only by us — but we
+   do not pour effort into perfecting it, because polishing the part that's meant to be crude is just
+   overfitting the lens. The leverage is in the world and the playbook, not the formula.
 3. **The grown estimator** — the playbook (position → move, in the agent's own words) plus the way
    the agent runs its goals. This is what the loop discovers, and it is *meant to surpass* layer 2.
 
@@ -90,8 +108,15 @@ a bet, not a proof — it's watched, never assumed (the port check).
 
 The functional is a **snapshot** — what a position is worth *right now*, given the current
 portfolio. The portfolio's motion over time — which goals form, how attention shifts, when a
-sidequest is promoted — is the **other half**, and it's the part we *grow, never specify*. Taste is
-the snapshot plus the dynamics.
+sidequest is promoted, and (on the slowest clock) when the main goal itself is **revised or
+dropped** — is the **other half**, and it's the part we *grow, never specify*. Taste is the snapshot
+plus the dynamics.
+
+This is also *why* the dynamics is grown rather than scored. The score's perfect-play benchmark —
+best play under uncertainty, computed mechanically over the world family — can only be derived for a
+**fixed** goal: it assumes the target doesn't move while you learn. So it scores the snapshot and is
+structurally blind to the dynamics. There is no mechanical referee for how goals should form and
+shift, so that half *cannot* be a target — only grown.
 
 ## What a world must be to demand taste
 
