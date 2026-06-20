@@ -6,6 +6,8 @@ outputs/
 .pytest_cache/
 .venv/
 venv/
+# DiscoveryWorld writes rendered frames here (FRAME_DIR); sim artifacts, never committed.
+video/
 # Scratch runs go to outputs/ (ignored above). Curated runs are committed under runs/
 # (PLAN.md Pass 0: a run you can't inspect didn't happen).
 /outputs_smoke.log

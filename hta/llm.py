@@ -195,12 +195,15 @@ def agentic(instruction: str, workdir: str, model: str,
 # ---------------------------------------------------------------------------
 def episode(prompt: str, model: str, mcp_server_argv, server_env, cwd: str,
             allowed_tools, max_turns: int, role: str = "task_episode",
-            cfg: Optional[Config] = None, append_system: Optional[str] = None) -> dict:
+            cfg: Optional[Config] = None, append_system: Optional[str] = None,
+            server_name: str = "probe") -> dict:
     cfg = cfg or Config()
     if cfg.backend == "mock":
         raise RuntimeError("episode() not available in mock backend; caller must handle mock")
-    # Inline MCP config string -> nothing written to disk that the agent could read.
-    mcp_cfg = json.dumps({"mcpServers": {"probe": {
+    # Inline MCP config string -> nothing written to disk that the agent could read. The
+    # server name (default "probe") becomes the `mcp__<name>__*` tool prefix; callers that
+    # host a different confined world (e.g. the DiscoveryWorld arena) pass their own.
+    mcp_cfg = json.dumps({"mcpServers": {server_name: {
         "type": "stdio",
         "command": mcp_server_argv[0],
         "args": list(mcp_server_argv[1:]),
