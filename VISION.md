@@ -39,7 +39,10 @@ Everything that has confused us comes from collapsing these. Keep them apart:
 
 1. **The score** — predict behaviour you never observed, graded by a dumb mechanical function the
    agent can't touch. *This is the only fixed point.* It can't move, ever; moving it is
-   reward-hacking.
+   reward-hacking. But the score is the **selection pressure, not the measurement of success**: it
+   can't tell grown taste from a good-enough imitation of perfect play. The measurement is the
+   **port lift** — does the weak model *plus the playbook* beat the weak model *alone* on held-out
+   worlds. The score selects; the port lift judges.
 2. **The functional** — `LP · transfer / cost, biased to uncertainty`. This is **not** ground
    truth. It's our crude, hand-written estimator — a guess at what good play looks like, written by
    thinking. It's a *lens* and a *seed*, not a target: it gets the agent off the ground and is the
@@ -112,8 +115,8 @@ sidequest is promoted, and (on the slowest clock) when the main goal itself is *
 dropped** — is the **other half**, and it's the part we *grow, never specify*. Taste is the snapshot
 plus the dynamics.
 
-This is also *why* the dynamics is grown rather than scored. The score's perfect-play benchmark —
-best play under uncertainty, computed mechanically over the world family — can only be derived for a
+This is also *why* the dynamics is grown rather than scored. The score's strong-play benchmark —
+a credible mechanical ceiling on play under uncertainty, computed over the world family — can only be derived for a
 **fixed** goal: it assumes the target doesn't move while you learn. So it scores the snapshot and is
 structurally blind to the dynamics. There is no mechanical referee for how goals should form and
 shift, so that half *cannot* be a target — only grown.
@@ -130,8 +133,9 @@ two ways — the two traps we keep walking into:
    compounding — there are no stepping stones, only immediate payoffs, and a tasteless grab wins.
    (This was the trail. This was instance-0's flatness.)
 
-So the world spec is one line: **make Value(X) un-guessable without playing, and make transfer a
-deep path** — so a position's worth is mostly *what it opens*, not what it pays on the spot.
+So the world spec is one line: **make Value(X) un-guessable without playing, and put the goal many
+linked moves away — each move unlocking the next (transfer is a path, not a hop)** — so a
+position's worth is mostly *what it opens*, not what it pays on the spot.
 
 ## Who moves what — the integrity floor at every level
 
@@ -145,7 +149,8 @@ move against something else:
 | the functional  | — (nothing)                                         | only humans sharpen it, via the wish channel |
 
 The wall holds at each level: the agent can't touch the score; the smith proposes only *structure*,
-and the referee and the perfect-play benchmark are re-derived mechanically from it; the functional
+and the referee and the strong-play benchmark (a credible mechanical ceiling, not necessarily the
+exact optimum) are re-derived mechanically from it; the functional
 is human territory, refined deliberately from what the loop surfaces, never self-modified. Letting
 anything evolve its own definition of good is the wireheading line. *99% hands-off is the prize;
 100% is wireheading.* And the artifact stays text — the playbook is read as context, never run.
