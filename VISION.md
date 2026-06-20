@@ -91,6 +91,35 @@ can't. That portable text is the one artifact you cannot hand-write, because it'
 estimator made explicit. (Taste is the situational trigger, not the capability.) This last part is
 a bet, not a proof — it's watched, never assumed (the port check).
 
+## The lineage — the label is old, the object is unbuilt
+
+The functional is not new, and that is the point. Laurent Orseau's *knowledge-seeking agent* (2014)
+is layer 2 written as a theorem: drop external reward, give the agent one internal drive — explore
+the world optimally, scored by information — and you get what he calls *the optimal scientist*. That
+is `LP · 1/cost, biased to uncertainty` made rigorous. And it is **incomputable** — it assumes
+unlimited compute and a perfect predictor, so no machine can run it; it is an optimality result in
+the limit, not an agent. That is the cleanest outside confirmation of "Why it has to be grown"
+above: the label for the scientist has existed in rigorous form for over a decade, and the object it
+names still has not been built. (Same shape as chess, above.)
+
+What hypertaste adds is the half Orseau leaves out. A *pure* knowledge-seeker seeks all knowledge
+equally — it will happily characterise pure noise forever (the "Delusion Box": an agent that fools
+its own senses into feeling like it is learning). It has no answer to *which* knowledge is worth
+seeking. That answer is the `transfer` term and the portfolio below: taste is knowledge-seeking
+weighted by what ports and what opens. So the placement in one line — **we are not building a
+knowledge-seeking agent; we are growing the taste that tells a knowledge-seeker which knowledge is
+worth seeking** — the discriminator the optimal scientist was missing, which is the uncomputable,
+tacit half.
+
+And the open problem is current, not retired. DeepMind's *From AGI to ASI* (2026) — same lineage,
+Orseau a co-author, the 2014 KSA among its citations — maps the routes to superintelligence and ends
+in open questions. Two of them are ours: *how good must the verifier be* (the dumb, un-movable
+scorer and the oracle band — the integrity floor) and *reward hacking / the Delusion Box* as the
+failure mode of self-improvement (the wall that lets the smith move structure but never the score).
+The report flags these as unanswered. So the foundation is old and rigorous, the open problem is
+named and current, and the object in the middle — a grown, portable estimator of which knowledge is
+worth seeking — is the thing neither paper builds.
+
 ## The goal is a portfolio, and its dynamics is the other half of taste
 
 "Goal" in the functional was never one goal. It's a **portfolio**: a heavy main goal plus a small
