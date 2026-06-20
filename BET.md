@@ -1,9 +1,9 @@
 # BET — the cheapest test of the whole idea
 
-> **Status: the next move.** Before any more machinery, run the smallest experiment that can
-> confirm or kill the core bet. This file fixes *what we're testing and why*; the *how* (which
-> benchmark, what the agent is, how the framing is injected) is left open for a brainstorming
-> session. North star: `VISION.md`. Detailed second layer: `DESIGN.md`.
+> **Status: scoped, arena chosen.** The smallest experiment that can confirm or kill the core bet.
+> The arena (DiscoveryWorld) and the experiment design (harness fixed, toggle the allocator) are
+> now settled; what's still open is the playbook's *content* and the run protocol. North star:
+> `VISION.md`. Detailed second layer: `DESIGN.md`.
 
 ## The two things in our head — and why they point the same way
 
@@ -23,17 +23,17 @@ automate a loop before you've made one part on the bench.
 
 ## The experiment, in one line
 
-**Equip a cheap agent with our framing; race it against the same cheap agent without it, on an
-existing benchmark where the path matters; measure the lift.**
+**Equip a cheap agent with our framing; race it against the same agent without it, on DiscoveryWorld
+where the path itself is scored; measure the lift.**
 
-- **Equipped agent** — a Haiku Claude Code agent given the framing (the `LP · transfer / cost`
-  reading, the goal-weighted allocator) as its playbook / operating instructions.
-- **Baseline agent** — the same Haiku Claude Code agent, plain, no framing.
-- **The arena** — an *existing* benchmark, borrowed not built. This is the one hard part we can't
-  skip (see "The one constraint").
-- **The measurement** — the **port lift**: does *equipped* beat *plain* on held-out tasks. This is
-  the verdict. Reading the agent's behaviour/notes in plain English for taste is *color*, not the
-  verdict — plain-English taste advice is cheap and self-deceiving on its own.
+- **Equipped (toggle-on)** — a Haiku Claude Code agent whose move/goal selection runs under the
+  allocator discipline (`LP · transfer / cost`, goal-spawning, biased to uncertainty).
+- **Baseline (toggle-off)** — the *same* agent, *same* harness, selecting by Haiku's default under a
+  world-general "you are a researcher under uncertainty; solve X."
+- **The arena** — DiscoveryWorld, borrowed not built (see "Settled: the arena").
+- **The measurement** — the **port lift**: does toggle-on beat toggle-off on held-out task
+  variations. Reading the agent's notes in plain English for taste is *color*, not the verdict —
+  plain-English taste advice is cheap and self-deceiving on its own.
 
 ## What it answers
 
@@ -52,41 +52,108 @@ you*. We want all of taste, so two more halves are named now so v1 doesn't quiet
 for the whole:
 
 - **The generator** — *coming up with the right moves in the first place*, upstream of the
-  evaluator and arguably the more taste-laden half. The functional is silent on it. We want it.
+  evaluator and arguably the more taste-laden half. The functional is silent on it. Deferred,
+  named.
 - **In-context learning (the organism feels the cost, fast)** — humans grow taste because the
   organism feels the bite *mid-run* and revises its read on the spot, not because evolution slowly
-  rewrites a playbook across lifetimes. The lever: make the **within-episode** loop the place
-  learning happens — the agent revising its own reading mid-run from what just bit it — rather than
-  (or before) a slow cross-episode playbook rewrite. This is the more faithful model of
-  "taste developed by exposure to failure." Held as a real design fork to fold in, not v1's first
-  cut.
+  rewrites a playbook across lifetimes. **DiscoveryWorld pushes back mid-episode, so v1 already
+  lives in this regime:** you act, the world answers, the agent revises its read on the spot from
+  what the experiment returned. What stays deferred is the slower *cross-episode* playbook rewrite —
+  which is exactly LOOP 1.
 
 ## The one constraint we can't skip
 
 Most existing benchmarks grade the **answer, not the path** — which is the "transfer is a hop"
-failure wearing a leaderboard. The benchmark must be one where **the path matters and value is
-un-guessable**: agentic / interactive (debugging a real system, a multi-step task/web agent, a
-game, a discovery sim), **never QA**. Choosing that benchmark *is* the world-building question —
-but borrowing a good one is far cheaper than authoring a world language, and it hands us better
-scoring and a better world for free.
+failure wearing a leaderboard. The real test is not *what gets scored* but **whether the answer is
+guessable without playing the path**: outcome-scoring on an un-guessable answer is fine — it's the
+cleanest *agent-inaccessible* score we can get. The benchmark must be agentic / interactive, with
+the goal many linked moves away and reality pushing back along the way — **never QA**. DiscoveryWorld
+satisfies this, and goes one better: it scores the path *directly* (see below).
 
-## Why not the loop (yet)
+## Settled: the arena — DiscoveryWorld
 
-This is the smallest thing that can kill or confirm the bet, in days not months. If equipped beats
-plain by a real margin on a path-benchmark, *then* the loop (smith, archive, airgap) is worth
-building — to automate and scale the playbook discovery we just did by hand. If it doesn't lift
-even hand-tuned, no amount of loop machinery saves it.
+DiscoveryWorld (Ai2, 2024) — an interactive, text-based scientific-discovery simulator: 8 fields,
+120 tasks, 3 difficulty tiers, ~20k-line Python sim with an agent API. It clears every bar:
 
-## Open — for the next session to brainstorm
+- **Knowledge-seeking science, not code.** The episode *is* the discovery cycle — hypothesize,
+  design an experiment, run it, read the result, revise. The value function as a task, not a label.
+  (Code was the thing to avoid: every agent is trained on it, and it's not the general-research
+  target.)
+- **Reality pushes back, mid-episode.** You act; the world answers. "Learning while running" is
+  *forced by the world*, not bolted on — and the LLM failure we most care about (chasing
+  interesting-sounding noise because nothing corrects you) is exactly what it measures resistance to.
+- **Not hard in the reasoning sense.** ~4th-grade science; the difficulty is *what to do next*, not
+  raw smarts — precisely the target.
+- **Mechanical scoring, and one metric grades the path.** Three automatic metrics — task completion,
+  *task-relevant actions taken*, explanatory-knowledge correctness; **no LLM judge** (the integrity
+  floor holds). The middle one grades whether you did the *right things*, so the path-vs-answer
+  tension dissolves — it's a mechanical *path* score.
+- **Held-out for free, and un-memorizable.** Every task has parametric variations (data, solution,
+  layout change each run) — the held-out split is built in, and "all agents are trained on this"
+  can't bite.
+- **Cheap and drivable.** Text sim + agent API → a native Haiku Claude Code agent driving it through
+  a *confined action interface* (the airgap: the agent acts only through probes, never reads the
+  world source). This *is* "spawn local agents limited in what they can do."
 
-Settled above: the bet, the framing, the port-lift verdict, the path-not-answer constraint, the
-"all of taste" ambitions. Left open, deliberately:
+**Rejected — ARC-AGI-3:** shape-perfect (no instructions, acquire goals on the fly, build a world
+model, learn continuously) but **floor-fatal** — frontier models score <1%, humans ~100%, so a
+cheap model lands at zero either way and there is no lift to measure; also abstract grids, not
+knowledge-seeking. **ScienceWorld** is the cheaper warm-up if the adapter fights us, but it's
+procedure-following more than discovery (lower taste-fidelity).
 
-1. **Which benchmark.** Concrete candidates that are path-mattering and cheap to run; how held-out
-   is drawn; what counts as a win margin.
-2. **What the agent is.** Exactly how the framing is injected (system prompt / playbook /
-   scaffold), what "equipped with taste" concretely reads as, how to keep equipped vs plain a fair
-   A/B (same model, same tools, only the framing differs).
-3. **How to measure the lift cleanly.** Enough runs that luck washes out; abstain/honesty handling;
-   guarding against the framing just being "try harder" rather than "read the position."
-4. **How much generator / in-context learning to attempt in v1** vs. deferring to a later cut.
+**A note on reach:** DiscoveryWorld isn't just a test fixture — it's a credible *real* world for the
+framework. Finding it **collapses the roadmap**: with a fixed, taste-demanding, path-scored world in
+hand, LOOP 2 (the world-smith) is unnecessary for now. The whole program reduces to LOOP 1 — grow
+the agent against this world.
+
+## Settled: the experiment — harness fixed, toggle the allocator
+
+The unit under test is the **allocation policy** (when to make which move), not prose. So:
+
+- **Hold the harness fixed; toggle the allocator.** Same multiturn scaffold, same memory management,
+  same subexplorer-spawning in both arms. The *only* difference is whether move/goal selection runs
+  under the allocator discipline. This isolates *taste* from *engineering hygiene* — memory and
+  subagents help regardless of taste, so they stay constant. **Two arms, not three.** (Almost
+  evolutionary: one mutation, measured.)
+- **The playbook stays world-general — a discipline, not an arm.** Write it once for "a researcher
+  under uncertainty," never naming DiscoveryWorld. If it lifts, it's taste; the instant you tune it
+  to the benchmark, you're measuring overfitting. This is the answer to "the comparison goes
+  apples-to-oranges": don't let it.
+- **The v1 gate is the honest minimum: does the allocator framing lift a dumb model at all** —
+  toggle-on > toggle-off, world-general, on held-out variations. The stronger "beats a generic
+  try-hard prompt" check (did the value-*reading* help, or just the extra deliberation?) is a **v2
+  arm** — named so we don't fool ourselves, not the first gate. One variable at a time.
+
+The **genome** — what's evolvable — is the whole Claude Code harness within constraints: the
+playbook, the memory policy, the subexplorer config. *Anything that helps a Claude Code agent, within
+some constraints.* Toggling it by hand now is a **hand-run of DGM-H LOOP 1**; once the hand-run shows
+lift and names the genome, the same knobs plug straight into the automated loop.
+
+## Why not the loop (yet) — hand-run first, then LOOP 1
+
+Even though DiscoveryWorld is a real world and tempts us straight into LOOP 1 (let the loop grow
+whatever harness maximizes the task-relevant-actions metric), we run it **by hand first**. You don't
+automate a search before you've done it once: the hand-run is cheap, it tells us the lift exists at
+all, and it names the genome the loop would search over. *Then* LOOP 1 is the clean scaling step —
+against a fixed world, with LOOP 2 retired. If hand-tuned doesn't lift, no loop machinery saves it.
+
+## Open — for this session to resolve
+
+Settled: the bet, the arena (DiscoveryWorld), the experiment design (harness-fixed toggle, world-
+general playbook, lift-exists gate), the hand-run-then-LOOP-1 sequencing. Left open:
+
+1. **The playbook's content — the general taste principle.** The starting point ("a researcher under
+   uncertainty"; the `LP·transfer/cost` allocator with goal-spawning) is good; how do we sharpen it
+   into the *smallest operating playbook* that targets the two named failure modes —
+   getting-lost-in-shiny-noise and reality-doesn't-push-back? Candidate guards: a **transfer gate**
+   that kills zero-transfer novelty; a **discriminating-experiment habit** that prefers moves whose
+   result you can't predict.
+2. **The difficulty band.** Is DiscoveryWorld too easy — does a *tasteless* agent also solve it,
+   leaving no gap? Pick the tier where plain-Haiku scores low-but-nonzero; lean on the
+   task-relevant-actions metric, which separates tasteful from flailing play even on completed tasks.
+3. **The confined action interface.** Exactly what moves the agent can make (design/run an
+   experiment, read an instrument, take notes, spawn a subexplorer, revise hypotheses) and how the
+   airgap is enforced.
+4. **The run protocol.** How many task-variation runs to wash out luck; what counts as a win margin;
+   abstain/honesty handling.
+5. **Generator + the v2 purity arm** — deferred, named so v1 doesn't mistake itself for the whole.
