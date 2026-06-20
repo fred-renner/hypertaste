@@ -1,5 +1,16 @@
 # BET — the cheapest test of the whole idea
 
+> **Next session starts here.** The *design* is done (read top-to-bottom for the why). The next
+> session is bench work, not argument:
+> 1. Stand up the **DiscoveryWorld adapter** + a minimal **Haiku Claude Code agent** driving it
+>    through the confined action interface (open item 3).
+> 2. **10-minute calibration:** pick the difficulty tier where plain-Haiku scores low-but-nonzero
+>    (open item 2).
+> 3. Write the **smallest playbook prose** that induces the loop + two guards (open item 1), then
+>    measure **toggle-on vs toggle-off** on held-out task variations (open item 4).
+>
+> Everything below is settled; the work is open items 1–4.
+
 > **Status: scoped, arena chosen.** The smallest experiment that can confirm or kill the core bet.
 > The arena (DiscoveryWorld) and the experiment design (harness fixed, toggle the allocator) are
 > now settled, and so is the taste principle the equipped arm runs; what's still open is the
