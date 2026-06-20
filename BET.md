@@ -2,7 +2,8 @@
 
 > **Status: scoped, arena chosen.** The smallest experiment that can confirm or kill the core bet.
 > The arena (DiscoveryWorld) and the experiment design (harness fixed, toggle the allocator) are
-> now settled; what's still open is the playbook's *content* and the run protocol. North star:
+> now settled, and so is the taste principle the equipped arm runs; what's still open is the
+> playbook's *exact prose* and the run protocol. North star:
 > `VISION.md`. Detailed second layer: `DESIGN.md`.
 
 ## The two things in our head — and why they point the same way
@@ -129,6 +130,40 @@ playbook, the memory policy, the subexplorer config. *Anything that helps a Clau
 some constraints.* Toggling it by hand now is a **hand-run of DGM-H LOOP 1**; once the hand-run shows
 lift and names the genome, the same knobs plug straight into the automated loop.
 
+## Settled: the taste principle — the operating loop
+
+This is the toggle-on arm's *content*. The functional is the **snapshot** (*what to value*); the
+principle turns it into *what to do next* and folds in self-correction:
+
+**Value the position → forecast the move out loud → act → revise on the surprise.** Before each move
+the agent commits to a one-line prediction — *what I expect to learn, what it opens toward the goal,
+what it costs* — then acts, then treats the **gap between forecast and result** as the signal. That
+one loop carries all of it: LP (*what will I learn*), transfer (*what it opens*), cost,
+uncertainty-bias (*forecast where you're least sure*), **and** learning-while-running — the surprise
+is the bite the organism feels. A model that never predicts can't be surprised, so nothing corrects
+it: that *is* the core failure mode, restated.
+
+Two **guards**, each aimed at one named failure:
+
+- **The transfer gate, with an explicit play goal.** A move must serve *some* live goal to count;
+  novelty with zero transfer to *any* goal dies — the antidote to *getting lost in
+  interesting-sounding stuff*. But the portfolio always carries a small, weight-limited **play goal**
+  whose only notion of worth is "is this teaching me something," so genuinely interesting orphan
+  threads — **stepping stones** — survive on the play component instead of being culled. When a
+  stepping stone turns out to wire into the main goal, the agent **spawns a new subgoal** that now
+  carries real transfer weight. (The gate kills noise; the play goal keeps live curiosity; promotion
+  is how a sidequest graduates.)
+- **The discriminating-move habit.** Prefer the experiment whose result you *can't* predict and that
+  *splits* your live hypotheses — *seek the bite*. The anti-pattern is the confirmatory experiment
+  that teaches nothing.
+
+**Learning-while-running is both clocks.** *Fast:* the forecast-gap feeds back into the *next*
+allocation within the episode — the prediction is acted on, not just stated. *Slow:* the *tools for
+how* the agent forecasts, gates, and revises are themselves part of the evolvable genome and sharpen
+across episodes (LOOP 1). The within-episode loop is the most taste-laden and most fragile part to
+get right — and it's also why a loop could work at all: the machinery is self-correcting by
+construction.
+
 ## Why not the loop (yet) — hand-run first, then LOOP 1
 
 Even though DiscoveryWorld is a real world and tempts us straight into LOOP 1 (let the loop grow
@@ -140,14 +175,13 @@ against a fixed world, with LOOP 2 retired. If hand-tuned doesn't lift, no loop 
 ## Open — for this session to resolve
 
 Settled: the bet, the arena (DiscoveryWorld), the experiment design (harness-fixed toggle, world-
-general playbook, lift-exists gate), the hand-run-then-LOOP-1 sequencing. Left open:
+general playbook, lift-exists gate), the taste principle (the forecast-act-revise loop + two guards),
+the hand-run-then-LOOP-1 sequencing. Left open:
 
-1. **The playbook's content — the general taste principle.** The starting point ("a researcher under
-   uncertainty"; the `LP·transfer/cost` allocator with goal-spawning) is good; how do we sharpen it
-   into the *smallest operating playbook* that targets the two named failure modes —
-   getting-lost-in-shiny-noise and reality-doesn't-push-back? Candidate guards: a **transfer gate**
-   that kills zero-transfer novelty; a **discriminating-experiment habit** that prefers moves whose
-   result you can't predict.
+1. **The playbook's exact prose.** The operating loop and the two guards are settled (above); what
+   remains is the *smallest wording* that actually induces them in a Haiku agent, and how structured
+   the forecast must be — free-text, or a fixed *expect / opens / cost* line. Found on the bench, not
+   by argument.
 2. **The difficulty band.** Is DiscoveryWorld too easy — does a *tasteless* agent also solve it,
    leaving no gap? Pick the tier where plain-Haiku scores low-but-nonzero; lean on the
    task-relevant-actions metric, which separates tasteful from flailing play even on completed tasks.
