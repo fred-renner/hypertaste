@@ -9,3 +9,10 @@ venv/
 # Scratch runs go to outputs/ (ignored above). Curated runs are committed under runs/
 # (PLAN.md Pass 0: a run you can't inspect didn't happen).
 /outputs_smoke.log
+
+# bet/: the borrowed world (cloned, not vendored) and scratch results
+bet/discoveryworld/
+bet/results/
+# DiscoveryWorld writes these relative to cwd (frames/logs) -- never commit them
+video/
+logs/
