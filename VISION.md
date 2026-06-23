@@ -213,6 +213,15 @@ information the agent has pinned down — read externally, never the agent's sel
 learned. So the open part is no longer *whether* the allocator can be grown but *how well* this
 coverage-tilted, multi-world setup actually grows it.
 
+The tilt itself shouldn't be a constant. How far breadth outweighs depth depends on the situation and
+on how stable we've declared the top preference to be (§4) — which is a setting we supply, plausibly a
+**user config** rather than a fixed law. At the unstable end, one concrete mechanism is to let the
+agent *surface* the choice — "this thread looks worth more than the main goal; promote it?" — and have
+a human answer, i.e. §4's slow top-revision made interactive. The catch is honest: every promotion a
+human decides is one the allocator didn't grow, so this escalation channel buys control at the cost of
+growth, and where to draw the line — which promotions the agent commits to vs. escalates — is itself
+open.
+
 ## 9. Nothing evolves its own definition of good
 
 Three things move, and each moves only against something it cannot itself touch:
