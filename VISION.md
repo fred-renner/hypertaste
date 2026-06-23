@@ -1,16 +1,13 @@
 # VISION — taste, derived from one starting point
 
 > **Status: the north star.** What taste is, and why everything else in the repo has the shape it
-> has. This rewrite (2026-06-23) starts from a single idea and *derives* the rest: the integrity
-> floor, the demand a world must meet, the portfolio of goals, what grows vs. what we fix. Each is
-> shown to be **forced** by the start, not chosen. The intuition-era statement these conclusions came
-> from is kept at `history/2026-06-23-vision-intuition-era.md`. The cheapest test of all of it is
-> `BET.md`; the detailed machinery is `DESIGN.md`.
+> has. This rewrite starts from a single idea and *derives* the rest: the integrity floor, the demand
+> a world must meet, the ledger of goals, what grows vs. what we fix. Each is shown to be **forced**
+> by the start, not chosen. The cheapest test of all of it is `BET.md`; the detailed machinery is
+> `DESIGN.md`; the prior intuition-era statement is `history/2026-06-23-vision-intuition-era.md`.
 >
-> **Reading rule for this doc (and the cure for the old one):** everything is named by what it *does*,
-> never by its position in a scheme. There is no "layer 2." A statement about *function* survives the
-> inside/outside line moving as models get stronger; a statement about *which box does it* rots. When
-> a term is coined, it gets one plain sentence on first use.
+> **One reading rule:** everything is named by what it *does*, not by its slot in a scheme — there is
+> no "layer 2". A term gets one plain sentence when first coined.
 
 ---
 
@@ -41,32 +38,54 @@ slightly uncanny: it isn't grading the object in front of you, it's estimating *
 forward. A fertile position is locally unremarkable but opens onto many further good ones; a dead
 one is locally fine and leads nowhere.
 
-## 2. How you train a value function with no labels
+## 2. The value it estimates — one scalar, and its few slopes
 
-There's no external reward to regress on — by setup, no consensus yet on what's good. So you
-supervise against the only thing available: **derivatives of your own model.** A handful of signals
-carry it, and all are label-free because each is measured against *you*, not the world:
+There is no quality-*label* to predict — by setup, no consensus yet on what's good. So what does the
+read regress on? One scalar, and it's the same one under every quality judgment: **how short your
+account of everything you've seen is, under your current model.** Two parts — the bits to write the
+model down, plus the bits to encode the data once you have it. Low total is a good model, and is
+exactly what *elegant* means: a small scheme that covers a lot. The total punishes both failure modes
+at once — memorize everything and the model-bits explode (overfit, baroque); keep the model tiny but
+explain nothing and the data-bits explode (trivial). The felt sense of quality is that sum held in
+tension.
 
-- **Learning progress** — does occupying this position make your model of the domain better. Not "is
-  the object good" but "does engaging it improve my map."
-- **Surprise that resolves** — a prediction that broke *and then folded into a simpler account*. Pure
-  surprise is noise; pure confirmation is boredom; the signal is the violation that compresses.
-- **Generativity** — how many further good positions the move opens. Forward-looking, recursive.
+One correction, which the theory-of-everything case forces: it is **not** raw shortness. The shortest
+possible account of the world is cheapest to *write* and astronomically expensive to *run forward*
+into any usable consequence — the fundamental laws hand you no macroscopic behaviour you can reach. So
+discount shortness by the cost of running it: the quantity taste tracks is the **cheap, effective
+account at the scale you work** — depth, not brevity. (This is also what *interesting* is: not the
+incompressible, which is noise, and not the shallow, which compresses to nothing, but the **logically
+deep** — structure that was expensive to reach.)
 
-The single scalar underneath all of them is how short your account of experience is — a small scheme
-that covers a lot. With one correction your own reasoning forces: it is **not** raw shortness. The
-shortest possible account (a theory of everything) is cheapest to write and astronomically expensive
-to *run forward* into anything you can use, and gives you no macroscopic behaviour. So the quantity
-taste tracks is shortness **discounted by the cost of running it** — the cheap, effective account at
-the scale you operate, not the ultimate one. Depth, not brevity.
+Now the part that explains why the quality-signals are **few**, which we kept tripping over. Call the
+scalar L. You can do only two things with a scalar: read its **level**, or read its **slope** along
+some direction. So every quality-signal is L differentiated against a different variable — none is a
+new substance; all are one object seen from a different angle. The count of distinct signals can't
+exceed the count of distinct directions you can differentiate L in, and only a few mean anything:
+
+- **Level — compression.** How much the position unifies what's already in view.
+- **Slope vs. the object — rigidity.** Perturb it; does quality collapse. ("Couldn't easily be
+  otherwise.")
+- **Slope vs. your own time — learning progress.** Engage it; does your model get shorter. (The
+  acquisition signal; its live form is the *rate* of compression progress.)
+- **Slope vs. forward steps — generativity.** Step ahead; how many further good positions open.
+- **Slope vs. your encoder — the right-abstraction move.** Does this change the vocabulary you
+  represent things in, so your whole prior experience re-compresses cheaper. This one is special: it
+  changes the apparatus that computes the other four, so it is the recursive term and sits apart.
+
+That is why the list is short *and* why it can't also be orthogonal: a short list and an independent
+list pull against each other, and here shortness wins because every entry descends from the one scalar
+L — which is exactly what makes them non-independent. They are projections, not primitives. And every
+one is **label-free**, because each is measured against your own model, not the world. That is the
+whole content of "a search with no reward signal": **you supervise against yourself.** Hold onto that
+— §5 turns on it.
 
 ## 3. What actually transfers across domains
 
 The estimator itself does **not** transfer. A great wine palate has zero edge on chess; a value
 function is a model of one geometry, domain-bound by construction. So whatever makes judgment feel
 like it travels, it isn't the estimator. What travels is the **infrastructure that builds and runs
-estimators**, and it is three organs that fire together — which is why they read back as one
-faculty:
+estimators**, and it is three organs that fire together — which is why they read back as one faculty:
 
 - **The acquisition loop** — the skill of metabolizing a fresh domain into a working read fast. The
   experienced person didn't get better at music; they got better at *getting good at things*.
@@ -78,27 +97,27 @@ faculty:
 
 **This is the whole thesis.** The estimators you can always regrow per-domain once the infrastructure
 is good — so the infrastructure is the only thing worth building directly. *Taste is the situational
-trigger, not the capability:* the moves belong to the model; which one fires from the position-read
-is the grown part, which is why it can port onto even a weak model.
+trigger, not the capability:* the moves belong to the model; which one fires from the position-read is
+the grown part, which is why it can port onto even a weak model.
 
-## 4. The one irreducible point — authorship of the apex
+## 4. Preference — the goal that gives the field a gradient
 
-The deepest-looking taste-acts — *this problem is worth the field's attention, this is the right
-abstraction* — look like they escape the value-function story, because they **posit** an objective
-rather than estimate toward one. But positing is itself a position-read one level up: it decomposes
-into recognizing that the current position affords a high-generativity declaration, and sensing that
-*now* is the moment it will take. Both are reads. So it collapses back into value-estimation — with
-exactly one exception.
+The value framing needs a direction to point at: with no goal, nothing is "good-reachable" and there
+is no gradient to climb. So you supply one — an overarching goal, even a coarse one. This looks like a
+special act ("positing the objective") but it is not a separate faculty: choosing the goal is **deep
+downstream value-estimation** read one level up — *what does committing to this route open?* — and the
+route is just another direction in the same value framing.
 
-The exception is the **apex**: the goal with nothing above it. There the read has no referent (there
-is no higher quantity to estimate generativity *toward*), and it is self-fulfilling (pursuing it makes
-the field reorganize around it, so the verdict is part of what makes itself true). That is authorship,
-not estimation, and it does not reduce. But it shrinks to a **single point**. Below the apex, given
-*any* fixed goal, spawning and ranking sub-goals is ordinary value-estimation toward that fixed top —
-fully growable by the signals above.
+What the goal buys is organization. An overarching goal plus a small, stable **play** drive — whose
+only notion of worth is "is this teaching me something" — keeps you from wandering and gets you to
+actually *solve something*: everything orients, at least loosely, around the goal. That orientation is
+the **transfer** idea — value weighted toward what carries to the goal. In the language of §2,
+supplying the goal is what gives the otherwise-flat value field a "toward."
 
-> **The design consequence:** supply the apex by hand; grow everything beneath it. The irreducible
-> authored part is one sentence you write, not a faculty you have to evolve.
+The goal is not frozen. It can change — slowly, or fast if the situation truly demands it (you made a
+wrong bet). So even the top is revisable, on the slowest clock. But it is **the one thing we author**;
+everything beneath it follows as value-estimation toward it. That single authored input is the whole
+of what stays in human hands — the rest is grown (the 99/1 of §9).
 
 ---
 
@@ -110,40 +129,47 @@ imported.
 
 ## 5. The floor: the value-read *steers*, an external score *grades*
 
-Section 2 says train against derivatives of your own model. Taken literally into an agent we optimize,
-that is **wireheading**: the moment the agent's own signal becomes the selection pressure, the agent is
-optimizing a thing it can move — sandbag the forecast, *look* like you're learning. That is the trap
-that forced the reset, re-derived from first principles.
+Section 2 says train against the slopes of your own model. Taken literally into an agent we optimize,
+that is **wireheading**: the moment the agent's own signal becomes the selection pressure, the agent
+is optimizing a thing it can move — sandbag the forecast, *look* like you're learning. That is the
+trap that forced the reset, re-derived from first principles.
 
 The escape is that the internal signal has **two jobs and they must not be the same job**:
 
 - **Steering** — the value-read chooses the agent's next move *inside* an episode. This is supposed to
   be the agent's own, movable, growing read. Good.
 - **Grading** — what selects one agent over another across episodes. This must be **external,
-  mechanical, and untouchable by the agent**, or step 5 eats itself.
+  mechanical, and untouchable by the agent**, or steering eats itself.
 
 So a **dumb deterministic score the agent cannot reach** is forced — not as dogma, but as the only
-guard that lets the self-supervision of Part I exist inside a selected agent without collapsing. The
-score is **selection pressure, not the measure of success**: it cannot tell grown taste from a
-good-enough imitation of perfect play. The measure of success is the **port lift** — does a weak model
-*plus the grown artifact* beat the weak model *alone* on held-out worlds. The score selects; the port
-lift judges. And the artifact stays **text, read as context, never run** — the same wall, since
-runnable output is output that can reach around the score.
+guard that lets the self-supervision of §2 exist inside a selected agent without collapsing. The score
+is **selection pressure, not the measure of success**: it cannot tell grown taste from a good-enough
+imitation of perfect play. The measure of success is the **port lift** — does a weak model *plus the
+grown artifact* beat the weak model *alone* on held-out worlds. The score selects; the port lift
+judges. And the artifact stays **text, read as context, never run** — the same wall, since runnable
+output can reach around the score.
 
-## 6. The world must demand taste
+## 6. The world must demand taste — and only where it's hard
 
-Section 1 says taste pays only where the objective is ill-defined and the value isn't computable in
-advance. Turn that into a spec for a world worth playing. A world demands taste exactly when **reading
-the value of a position is the hard part**, and it fails that in the two ways we keep walking into:
+A world demands taste exactly where **reading the value of a position is the hard part** — and the
+sharp word is *where*, not *whether*. A grown agent should make ordinary competent progress on its own
+and engage the slow, deliberate position-read only at the points where value genuinely can't be read
+off — the switch into effortful "System 2" thinking, fired only when the fast read won't do. We don't
+want taste forced on every move; we want it to fire where it pays. So a good world **hides its hard
+points among tractable progress**, and *knowing when to switch* is itself the meta-calibration organ
+of §3 — the read on whether your fast read is trustworthy here. A uniformly hard or uniformly easy
+world teaches the wrong thing; one that demands the switch at the right moments grows the gate.
+
+At those hard points a world still fails to demand taste in the two ways we keep walking into:
 
 1. **Value is readable off the rules.** If the best move can be written down from the law without
    playing, it's calculation, not taste.
 2. **The goal is one hop, not a path.** If nothing unlocks anything — no compounding — there are no
    stepping stones, only immediate payoffs, and a tasteless grab wins.
 
-> **The world spec, one line:** make a position's value **un-guessable without playing**, and put the
-> goal **many linked moves away — each move unlocking the next** — so a position is worth mostly *what
-> it opens*, not what it pays on the spot.
+> **The world spec, one line:** make a position's value **un-guessable without playing**, put the goal
+> **many linked moves away — each move unlocking the next**, and **bury the hard reads among easy
+> progress** so the agent must learn *when* to spend taste, not just how.
 
 ## 7. Forecast the move — making the internal signal honest and measurable
 
@@ -153,73 +179,66 @@ then acts, then treats the **gap between forecast and result** as the signal. Be
 deterministic and hidden, the world itself returns the true answer — so the surprise is measured
 against reality, not against a judge that could be talked into anything.
 
-That one move yields all three label-free signals at once: **surprise** is the forecast error,
+That one move instruments the slopes of §2 that are cheap to read: **surprise** is the forecast error,
 **learning progress** is that error trending down across the episode, **meta-calibration** is whether
 the agent's stated confidence matches its hit rate. It is also the within-episode self-correction — a
 model that never predicts can't be surprised, so nothing corrects it, which is the core failure mode
 restated. Per §5 this forecast log is **instrumentation that steers**; it never becomes the graded
 objective, or the agent games it.
 
-## 8. The goal is a portfolio, and its motion is grown, not graded
+## 8. The goal is a dynamic ledger, and a coverage-tilted score can grow it
 
-Section 4 said: supply the apex, grow everything below. "Everything below" has structure, and it is the
-other half of taste. The "goal" was never one goal — it's a **portfolio**: a heavy main goal plus a
-small **play** goal whose only notion of worth is "is this teaching me something."
+"Goal" was never one goal (§4). It is a **dynamic ledger**: many goals at different weights and
+timescales — a heavy, slow main goal; a light, fast play goal worth only "am I learning"; others that
+form, get reweighted, get **promoted** when a side-thread turns out to wire into the main goal, and
+dissolve. A **stepping stone** is a side-thread with high learning-progress and ~zero transfer to the
+main goal when you take it, ridden on the play weight, kept because it might wire in later. The
+value-read is the **snapshot** — what a position is worth right now given the ledger; the ledger's
+**motion** is the other half of taste, and it's grown, never scripted.
 
-- **Transfer is a vector**, one component per live goal; how you collapse it to a number is the knob
-  for *don't chase every anomaly*. (Geometric mean is the interesting candidate: a position then needs
-  *some* live thread to count, so pure noise dies while an interesting orphan survives on play.)
-- **Stepping stones** are sidequests — high learning-progress, ~zero transfer to the main goal when
-  taken, ridden on the play component, weight-limited so you don't wander forever.
-- **Promotion** is when a stepping stone turns out to wire into the main goal and the agent mints a
-  subgoal that now carries real transfer weight.
+We don't script the allocator. The question is whether it can be *selected for*, since a perfect-play
+benchmark wants a **fixed** goal and the ledger's whole point is that the goal moves. The way through —
+and it looks right — is to **tilt the external score toward how much you covered**, not toward reaching
+one target cheapest. Then "perfect play" stops being "hit the single goal for least cost" and becomes
+**"covers a lot."** A one-track greedy agent now scores *lower* on the final exam even when it reached
+its one goal cheaply, because it skipped the stepping stones — including ones that would have spawned a
+richer subgoal worth following instead. The coverage tilt makes a good allocator win on the score
+directly, so the dynamics becomes selectable **without anyone scripting it**. Stochasticity is fine:
+under a moving goal there is no single perfect policy, only "covers more." And it is grown across
+**many** worlds, not one — the agent learns that play pays across varied situations, which is where the
+growth gets interesting.
 
-The value-read is the **snapshot** — what a position is worth right now, given the portfolio. The
-portfolio's **motion** — which goals form, how attention shifts, when a sidequest is promoted, and on
-the slowest clock when the main goal is revised — is grown, never specified. And it *has* to be:
-re-deriving a credible perfect-play benchmark (§5's grader) needs a **fixed** goal, so the grader can
-score the snapshot but is structurally blind to the motion. No mechanical referee for how goals should
-form means that half **cannot** be a target — only grown. **This is the one genuinely open thing.** We
-plant the world so good allocation wins; we never script the allocator.
+This stays inside the floor (§5): "how much you covered" is a **mechanical** coverage measure — the
+information the agent has pinned down — read externally, never the agent's self-report of how much it
+learned. So the open part is no longer *whether* the allocator can be grown but *how well* this
+coverage-tilted, multi-world setup actually grows it.
 
-## 9. What moves what — the wall at every level
+## 9. Nothing evolves its own definition of good
 
-| What moves           | Optimizes against                                  | Genome (what's evolvable)              |
-| -------------------- | -------------------------------------------------- | -------------------------------------- |
-| the agent            | the external score                                 | its playbook / read, as text           |
-| the world-author     | the score-derived gates (hard · solvable · above the line) | the world's *structure*, a declarative spec |
-| the value-read itself| nothing — it's a lens, not a target                | only humans sharpen it, deliberately   |
+Three things move, and each moves only against something it cannot itself touch:
 
-The wall holds at each level. The agent can't touch the score. The world-author proposes only
-**structure**; the referee and the perfect-play ceiling are re-derived mechanically from it, and a
-world ships only if still **hard** (perfect play ≫ greedy) **and solvable** within budget — an author
-that could also move the score would just mint worlds that *look* solved. The value-read is human
-territory, refined from what the loop surfaces, never self-modified. Letting anything evolve its own
-definition of good is the wireheading line: **99% hands-off is the prize; 100% is wireheading** — and
-the 1% we keep is exactly §4's apex authorship, supplied on purpose.
+- **The agent** revises its own read — text it writes — against the **external score** (§5). It can't
+  reach the score.
+- **The world-author** proposes only the world's **structure**, against gates re-derived mechanically
+  from that structure: still **hard** (good play beats greedy) and still **solvable** in budget. It
+  never touches the score — an author that could move the score would just mint worlds that *look*
+  solved.
+- **The seed-read** (the crude starting estimator) is optimized by **nothing**; only humans revise it,
+  deliberately, from what the loop surfaces.
+
+The single rule under all three: **nothing evolves its own definition of good** — that is the
+wireheading line, and the only thing held out of the loop by hand is the top preference of §4. *99%
+hands-off is the prize; 100% is wireheading.*
 
 ---
 
-# Appendix — the crude seed-estimator, demoted to what it is
+## Appendix — the prior functional, carried as desiderata only
 
-We do hand the agent a starting read, to get it off the ground:
-
-`Value(X) ≈ learning-progress(X) · transfer(X → goal) / cost`, biased toward what you're least sure of.
-
-This is **not truth and not a target** — it's the crude, hand-written seed the grown read is *meant to
-outgrow*, and nothing optimizes against it. We don't pour effort into perfecting it; polishing the part
-that's meant to be crude is just overfitting the lens. The leverage is in the world (§6) and the grown
-text (§3), not the formula. Three things it absorbs so it isn't misread: it is **forecasts all the way
-down** (no "immediate" term — you predict, then spend a little to test, per §7); **transfer is the
-value function in disguise**, the multi-horizon worth of what a move opens, not a closeness-to-goal
-number; and **"biased to uncertainty" is an estimator trick, not part of what value is** — which is the
-tell that the whole line is estimator-level, hence improvable.
-
-A note on why the quality-signals are *few* (§2), since it recurs: there is one scalar — the
-description length of your model — and you can only read its **level** (how well it compresses now) or
-its **slope** along the few directions that exist: against the object (rigidity — does value survive a
-perturbation), against your own time (learning progress), against forward steps (generativity), and
-against your encoder (the right-abstraction move — does this change the vocabulary you read positions
-in). Few directions, so few signals. Treat them as **reading vocabulary** for building worlds and
-naming what the loop discovers — **never as runtime scorers**, since the only thing that scores at
-runtime is the one dumb external number of §5.
+The earlier north star ran on a hand-written functional — `Value ≈ learning-progress · transfer /
+cost, biased toward what you're least sure of`. It was **intuition, not derived**, and it is *not*
+load-bearing here. A later session should **rederive** something like it from the field of §2 rather
+than patch it. It is carried along only as the desiderata it was groping for: value is **forecasts all
+the way down** (no "immediate" term — you predict, then spend a little to test, §7); **transfer is the
+downstream worth of what a move opens**, not a closeness-to-goal number; and **"biased to uncertainty"
+is an estimator trick, not part of what value is** — the tell that the whole line is estimator-level,
+hence improvable. The full prior statement is in `history/2026-06-23-vision-intuition-era.md`.
