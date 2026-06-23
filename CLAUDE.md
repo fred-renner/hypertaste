@@ -10,8 +10,10 @@ evaluating your position*. (The thesis: taste is the situational trigger, not th
 the moves are the model's; which one fires from the position read is the grown procedure, so it
 should port onto even a weak model.)
 
-- **The north star — read first:** `VISION.md` (what taste is, the value functional, the three
-  layers — score · functional · grown estimator — and what grows vs. what we fix).
+- **The north star — read first:** `VISION.md` (taste = the value function of a search with no reward
+  signal, derived from that one start: what it forces — the external-score floor, the world that must
+  demand taste, the portfolio — and what grows vs. what we fix). The prior intuition-era statement is
+  `history/2026-06-23-vision-intuition-era.md`.
 - **The design — the detailed second layer:** `DESIGN.md` (the rules any world must meet, "price
   it", the catalogue, the smith, the wish channel; its §1 framing is superseded by `VISION.md`).
 - Vision: `ROADMAP.md` → "The gym and its chains".
